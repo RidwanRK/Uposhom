@@ -55,6 +55,8 @@ An Android app (React Native) designed to simplify medication adherence, medical
 5. **Data & Storage:** PostgreSQL for schedules/users and encrypted Cloudflare R2 object storage for medical scans.
 6. **Applink Telecom APIs:** Carrier integration for OTPs, SMS alerts, USSD, and airtime micro-billing (backend only).
 
+> **Sign-up:** Anyone can create an account with any Bangladeshi mobile number. A number Applink rejects sees a clear message at sign-up instead of a silent failure, and during Limited Production only whitelisted test numbers can sign up. Plans are billed to the mobile account (prepaid is debited, postpaid is added to the bill).
+
 ## 🛡️ AI Safety Guardrail
 
 ```text
