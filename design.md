@@ -204,7 +204,7 @@ Mandated human-in-the-loop validation barrier before any dosing schedule is gene
 
 * **Layout Structure (Vertical Split / Pager)**:
   - **Top Half (40% Viewport)**: Zoomable, pannable view of the captured prescription photo with extracted text bounding boxes outlined.
-  - **Bottom Half (60% Viewport)**: Scrollable editable cards of each parsed item from Gemini 2.5 Flash.
+  - **Bottom Half (60% Viewport)**: Scrollable editable cards of each parsed item extracted via OpenRouter (Gemini 2.5 Flash / Qwen 2.5 VL).
 * **Extracted Item Card Components**:
   - Input field: Medicine Brand Name (with auto-suggest from DGDA drug database).
   - Dosage pattern chip group: `১+০+১`, `০+০+১`, `১+১+১`, or manual numeric entry.

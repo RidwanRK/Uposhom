@@ -17,7 +17,7 @@ Team of 4 · AppQuest 2.0 · 20 to 30 Nov 2026 · Version 2 (Native Android App 
 
 - A, Platform and Applink: repo, CI, hosting, Applink client, callbacks, OTP, SMS, USSD, Subscription, CaaS, entitlements, security pass.
 - B, Domain and engine: database schema, schedule engine package, reminder and escalation state machine, jobs, adherence, router and agent traces.
-- C, AI and data: Gemini intake, explainer, report extraction, generic matching, symptom journaling, voice spike, analytics, and all seed data (drug table, synthetic prescriptions and reports, pharmacies).
+- C, AI and data: OpenAI Agents SDK + OpenRouter (Gemini 2.5 Flash / Qwen 2.5 VL), multi-agent handoffs, explainer, report extraction, generic matching, symptom journaling with 999 emergency guardrail, voice spike, agent-trace logging, and all seed data (drug table, synthetic prescriptions and reports, pharmacies).
 - D, Product Mobile & UI: Native Android App (Kotlin, Compose, CameraX, Room, local notification alarms), B2B pharmacy web dashboard, agent-trace dashboard, facts carousel, demo video editing.
 - Proposal ownership: P1 to P4 by C, P5 and P6 by A, P7 by D with B on the numbers, P8 diagram by B and D. Everyone reviews P6 against the real flows.
 
@@ -65,7 +65,7 @@ Monorepo (pnpm + Gradle):
 - apps/worker: pg-boss consumers for reminders, escalation, SMS sending, reconciliation, digests
 - packages/schedule-engine: pure TypeScript, no I/O, fully unit-tested
 - packages/applink-client: typed wrappers, one tel: normaliser, status-code handling
-- packages/ai: prompts, JSON schemas, validators, numeric guard
+- packages/ai: OpenAI Agents SDK multi-agent orchestration, OpenRouter client, specialist agents with handoffs, prompts, JSON schemas, numeric guard
 - packages/db: migrations and queries
 - data/: seed files (drugs, glossary, tips, pharmacies, synthetic prescriptions)
 
@@ -198,13 +198,23 @@ uposhom/
 │   │   ├── package.json
 │   │   └── tsconfig.json
 │   │
-│   ├── ai/                          # AI Pipeline & Deterministic Safety Guards
+│   ├── ai/                          # OpenAI Agents SDK + OpenRouter Pipeline
 │   │   ├── src/
-│   │   │   ├── gemini.ts            # Gemini 2.5 Flash Vision OCR structured extraction
-│   │   │   ├── numeric-guard.ts     # Deterministic sanity guard (rejects dosage hallucinations)
-│   │   │   ├── report-vault.ts      # Lab report metric extractor & printed range comparator
-│   │   │   ├── symptom-guard.ts     # Immediate 999 red-flag emergency detector
-│   │   │   └── explainer.ts         # Bangla clinical language simplifier
+│   │   │   ├── client.ts            # OpenRouter API client (OpenAI SDK compatible, baseURL: openrouter.ai/api/v1)
+│   │   │   ├── agents/              # OpenAI Agents SDK definitions
+│   │   │   │   ├── triage-agent.ts  # Inbound Bangla router with specialist handoffs
+│   │   │   │   ├── schedule-agent.ts# Medication schedule query agent (tool: getTodayDoses)
+│   │   │   │   ├── symptom-agent.ts # Slot-filling clinical intake Q&A agent
+│   │   │   │   ├── emergency-agent.ts # 999 red-flag safety interrupt agent
+│   │   │   │   └── generic-agent.ts # DGDA bioequivalent alternative finder agent
+│   │   │   ├── vision/
+│   │   │   │   ├── ocr-extract.ts   # OpenRouter Vision OCR (Gemini 2.5 Flash / Qwen 2.5 VL)
+│   │   │   │   └── report-vault.ts  # Lab metric extractor & printed range comparator
+│   │   │   ├── guards/
+│   │   │   │   ├── numeric-guard.ts # Deterministic dosage sanity guard
+│   │   │   │   └── redflag-guard.ts # Immediate emergency keyword interceptor
+│   │   │   └── traces/
+│   │   │       └── trace-logger.ts  # Captures agent steps & handoffs into agent_traces table
 │   │   ├── package.json
 │   │   └── tsconfig.json
 │   │
@@ -285,20 +295,31 @@ Escalation ladder (state machine in code, timers on pg-boss):
 
 Defaults live in config. Every stage has an idempotency key, so no message sends twice, even after a restart.
 
-## 7. AI pipeline
+## 7. AI pipeline (OpenAI Agents SDK + OpenRouter)
 
-Principle: AI reads and explains, code decides. No model output sets a dose, time or schedule.
+Principle: AI reads, routes and explains, code decides. No model output sets a dose, time or schedule.
 
-- Intake (C): the Android app compresses the photo via CameraX. Gemini Flash vision returns JSON by schema with per-field confidence. Validators then run: brand match with fuzzy search (pg\_trgm), the pattern parser, unit and range sanity. The Android confirm screen shows the photo beside the fields, highlights low confidence, and allows edit, add and remove. Nothing is scheduled before a human confirms. Typed entry with autocomplete is the fallback.
-- Explainer: simple Bangla from a curated drug\_info table. It must not give dose advice or diagnoses. A numeric guard rejects any output containing a number that is not in the confirmed data, and falls back to a template.
-- Report vault: Gemini vision (Tesseract for printed reports as fallback) extracts values, units and the range printed on the report. The flag is a plain comparison against that printed range, not our own reference table. Terms are explained from a glossary of about 40 common tests, always ending with a pointer to the doctor.
+- Gateway & Models: All LLM and Vision requests route through **OpenRouter** (`https://openrouter.ai/api/v1`) using `OPENROUTER_API_KEY`, eliminating direct Google Cloud billing obstacles in Bangladesh. Primary models:
+  - Vision OCR & Extraction: `google/gemini-2.5-flash` (fast, cost-effective, strong Bangla and Southeast Asian prescription comprehension) with fallback to `qwen/qwen-2.5-vl-72b-instruct`.
+  - Conversational & Specialist Agents: `google/gemini-2.5-flash` or `openai/gpt-4o-mini` via OpenRouter.
+  - Testing / Free Tier: `google/gemini-flash-1.5:free` for local sandbox and CI runs.
+- Multi-Agent Orchestration (OpenAI Agents SDK):
+  The conversational router is implemented using `@openai/agents` with typed tools and explicit handoffs:
+  - `TriageAgent`: Inbound Bangla classifier. Inspects incoming free-text SMS or spoken voice messages and executes handoffs to specialist agents.
+  - `ScheduleQueryAgent`: Equipped with read-only tools (`getTodayDoses(profileId)`, `getNextDose(profileId)`). Answers schedule inquiries in polite Bangla without modifying state.
+  - `SymptomJournalAgent`: Conducts an empathetic slot-filling conversation (at most six turns: onset, duration, severity, triggers, associated symptoms, current medicines) and formats a structured summary for doctor visits.
+  - `EmergencyAgent` (Safety Guardrail): Triggers immediate 999 emergency banner if critical symptoms are detected (chest pain, severe dyspnea, acute bleeding, stroke signs).
+  - `GenericFinderAgent`: Equipped with tool `searchBioequivalents(brandName)` querying the local DGDA database.
+- Agent Tracing & Telemetry:
+  The OpenAI Agents SDK automatically emits execution traces (agent name, handoffs, tool calls, latency). Every execution is stored in the `agent_traces` table and rendered on the live Admin Dashboard (`apps/b2b-web/src/app/admin/traces`), directly providing the source evidence and diagram for **Hackathon Proposal Page 8** (Blank Page Challenge) and **Theme 4, Category 11: Agentic AI & Autonomous Systems**.
+- Intake (C): the Android app compresses the photo via CameraX. OpenRouter vision extraction returns schema-constrained JSON with per-field confidence. Validators run: brand match with fuzzy search (`pg_trgm`), the pattern parser, unit and range sanity. The Android confirm screen shows the photo beside the fields, highlights low confidence, and allows edit, add and remove. Nothing is scheduled before a human confirms. Typed entry with autocomplete is the fallback.
+- Explainer: simple Bangla from a curated `drug_info` table. It must not give dose advice or diagnoses. A numeric guard rejects any output containing a number that is not in the confirmed data, and falls back to a template.
+- Report vault: OpenRouter vision extracts values, units and the range printed on the report. The flag is a plain comparison against that printed range, not our own reference table. Terms are explained from a glossary of about 40 common tests, always ending with a pointer to the doctor.
 - Generic finder: same active ingredient, strength and form, sorted by indicative price, with a note that a doctor or pharmacist confirms any substitution. Do not claim bioequivalence or government approval unless the row has a verified source.
-- Symptom journaling: a slot-filling conversation of at most six questions (onset, duration, severity, triggers, associated symptoms, current medicines), then a structured summary and PDF. A rule-based red-flag check (chest pain, trouble breathing, severe bleeding, unconsciousness, stroke signs) interrupts with a seek-emergency-care message and the national emergency number 999. Statements about self-harm get a supportive message with crisis contacts the team verifies before freeze. No diagnosis, no prescribing.
-- Voice: a Day 1 spike comparing Whisper (API) and Gemini audio on 10 Bangla recordings. The Android app records audio via MediaRecorder. The transcript is shown and editable before anything is saved or acted on.
+- Voice: a Day 1 spike comparing Whisper (API via OpenRouter/OpenAI) and Gemini audio on 10 Bangla recordings. The Android app records audio via MediaRecorder. The transcript is shown and editable before anything is saved or acted on.
 - Sickness-pattern analytics: aggregates (counts by month and symptom category) are computed in SQL, a minimum record count is required, and the model only phrases the summary. Tips are chosen from a curated library. Demo on labelled synthetic history.
-- Router (B): rules first. Reply codes and USSD selections never reach an LLM. Free-text SMS and voice go to an LLM with a fixed tool list: get\_next\_dose, list\_today, log\_dose, explain\_item, find\_generic, add\_symptom, notify\_caregiver. Only log\_dose and add\_symptom write. Nothing can create or change a schedule except the confirm endpoint. Every step is written to agent\_traces, which feeds the dashboard and the Page 8 diagram.
+- Strict Non-LLM Boundaries: Reply codes (`1`, `2`, `3`) and USSD menus (`*195#`) **never call an LLM**. They remain 100% deterministic, zero-latency code paths.
 - Treat prescription and report text as untrusted input: model outputs are schema-bound JSON only, never executed instructions.
-- Cache outputs for the demo prescriptions and rate-limit calls, so free-tier quotas cannot break the demo.
 
 ## 8. Applink integration (owner A)
 
@@ -341,14 +362,14 @@ Fri 20 Nov, Day 0 (Day 0 Live Deployment & Walking Skeleton)
 - All: lock stack and roles, create the monorepo, configure GitHub Actions CI/CD workflows for backend and Android.
 - A: provision Oracle Cloud Always Free VM, reserve static IPv4, configure Caddy HTTPS domain, deploy Day 0 "Walking Skeleton" Fastify API responding to `/healthz`, install Applink skill, run mock, send Applink IP approval email (`support@applink.com.bd`).
 - B: schema, schedule-engine skeleton, parser grammar and test harness.
-- C: 15 synthetic prescriptions (printed and handwritten style) and 5 lab reports; Gemini intake prompt v0; start the drug table.
+- C: 15 synthetic prescriptions (printed and handwritten style) and 5 lab reports; OpenRouter API setup and OpenAI Agents SDK skeleton; start the drug table.
 - D: Android project skeleton (Gradle, Kotlin, Jetpack Compose, Material 3, Noto Sans Bengali typography), API client setup with Retrofit, first automated APK build in GitHub Actions (`uposhom-v0.1-skeleton.apk`), auth and Family Circle composables.
 
 Sat 21 Nov, Day 1
 
 - A: applink-client, callback receiver, OTP sign-up working on the mock.
 - B: parser and engine v1 with tests, migrations.
-- C: intake to JSON plus validators; one-hour voice spike.
+- C: OpenRouter vision intake to JSON plus numeric guard; one-hour voice spike.
 - D: CameraX prescription capture flow, side-by-side visual confirm composable screen, profile management.
 
 Sun 22 Nov, Day 2
@@ -370,7 +391,7 @@ Tue 24 Nov, Day 4 (submission portal opens, mentoring starts)
 
 Wed 25 Nov, Day 5
 
-- A: CaaS flow, charging notification, reconciliation, entitlements. B: router and traces. C: report explainer and generic finder. D: generic medicine finder and report vault UI in Android, facts carousel composable.
+- A: CaaS flow, charging notification, reconciliation, entitlements. B & C: OpenAI Agents SDK router with specialist handoffs and trace logging. C: report explainer and generic finder agent. D: generic medicine finder and report vault UI in Android, facts carousel composable.
 
 Thu 26 Nov, Day 6
 
@@ -409,7 +430,7 @@ Never cut: the Android confirm screen, the engine tests, the escalation ladder, 
 
 Risks:
 
-- Gemini free-tier quotas or data terms: cache demo outputs, rate-limit, synthetic data only, manual fallback.
+- OpenRouter rate limits or model fallbacks: cache demo outputs, use reliable fallbacks (google/gemini-2.5-flash with qwen/qwen-2.5-vl-72b-instruct), synthetic data only, manual fallback.
 - Applink approval or IP problems: mock mode keeps work moving; escalate early via dev.applink.com.bd/contact or +880 1959 97 93 76.
 - Handwriting accuracy: present the confirm screen as deliberate safety design and never quote an accuracy figure.
 - Hosting that sleeps: use the always-on VPS.
@@ -430,7 +451,7 @@ Risks:
 
 - Proposal pages: P1 name, team, track; P2 executive summary; P3 problem; P4 solution; P5 technical implementation and safety pipeline; P6 all five Applink flows; P7 revenue model, 6-month plan, promotion plan; P8 orchestration and handoff diagram with a trace screenshot.
 - Also required: an accessible GitHub repo with Android source code and backend, the demo video and the submission form. Optional but encouraged: a deployed URL for the B2B web portal and downloadable debug APK. Keep the repo, URL and video accessible until the end of the finale.
-- Declare earlier code and assets, and list all AI tools used. Declare Theme 2, category 04 (Healthcare, MedTech and Longevity).
+- Declare earlier code and assets, and list all AI tools used. Declare Theme 2, category 04 (Healthcare, MedTech and Longevity) and Theme 4, category 11 (Agentic AI & Autonomous Systems).
 - If shortlisted on 5 Dec: use the 6 to 16 Dec sprint to apply jury feedback and run the Applink go-live checklist (node tools/applink.mjs checklist) against the real project, with live APIs, from the production IP. Two or more members must attend the finale in person.
 
 
@@ -468,8 +489,9 @@ flowchart TD
         ReconciliationJob["CaaS / Subscription Reconciliation Cron"]
     end
 
-    subgraph AI_Pipeline ["AI Vision & Safety-Bounded Explainer"]
-        GeminiOCR["Gemini 2.5 Flash Vision OCR & JSON Structuring"]
+    subgraph AI_Pipeline ["AI Agent Swarm & Safety-Bounded Explainer"]
+        OpenRouter["OpenRouter Gateway (Gemini 2.5 Flash / Qwen 2.5 VL)"]
+        AgentsSDK["OpenAI Agents SDK (@openai/agents Multi-Agent Swarm)"]
         NumericGuard["Deterministic Numeric & Dosage Guard"]
         ReportVault["Report Metric Extractor & Flag Analyzer"]
         SymptomAI["AI Symptom Journal & 999 Red-Flag Interrupt"]
@@ -495,7 +517,8 @@ flowchart TD
     Gateway --> AuthModule
     Gateway --> RBAC
     RBAC --> ScheduleEngine
-    RBAC --> GeminiOCR
+    RBAC --> OpenRouter
+    OpenRouter --> AgentsSDK
     RBAC --> ApplinkClient
 
     ScheduleEngine --> PgBoss
@@ -515,7 +538,7 @@ flowchart TD
     CallbackWorker --> UssdSM
     CallbackWorker --> Postgres
 
-    GeminiOCR --> NumericGuard
+    AgentsSDK --> NumericGuard
     NumericGuard -->|Human Visual Confirmation Required| AndroidApp
     AndroidApp -->|Confirmed Payload Only| ScheduleEngine
 
@@ -570,7 +593,7 @@ sequenceDiagram
     actor User as Patient / Caregiver
     participant App as Native Android App (CameraX)
     participant API as Fastify API
-    participant AI as Gemini 2.5 Flash
+    participant AI as OpenRouter (Gemini 2.5 Flash / Qwen 2.5 VL)
     participant Guard as Deterministic Numeric Guard
     participant Engine as Schedule Engine (packages/schedule-engine)
     participant DB as PostgreSQL
@@ -580,7 +603,7 @@ sequenceDiagram
     App->>App: On-device auto-crop & WebP compression (max 1600px)
     App->>API: POST /api/v1/prescriptions/upload-and-parse (multipart/form-data)
     API->>DB: Store raw image in Encrypted S3; insert prescription (status: 'DRAFT')
-    API->>AI: Gemini Vision (schema-constrained JSON extraction)
+    API->>AI: OpenRouter Vision OCR (schema-constrained JSON extraction)
     AI-->>API: Structured JSON: [{ raw_name, dosage, pattern: "1+0+1", meal: "PC", duration_days: 7 }]
     API->>Guard: Validate numeric bounds, match drug with DGDA generics table
     Guard-->>API: Sanitized draft items with per-field confidence scores
@@ -1230,17 +1253,24 @@ flowchart LR
 
 ---
 
-### 👤 Person 3: AI Pipeline, Medical Catalog & Entitlement Billing
-* **Role**: AI Engineering & Business Logic Architect
+### 👤 Person 3: AI Agent Swarm, Medical Catalog & Entitlement Billing
+* **Role**: AI Agent Architect & Medical Domain Engineer
 * **Builds On Top Of**: Person 2's Schedule Engine and Person 1's Applink Client/Billing tables.
 * **Core Responsibilities**:
-  1. Implement Gemini 2.5 Flash Vision OCR intake service with strict JSON schema parsing and per-field confidence scoring.
-  2. Implement Deterministic Numeric Guard: validates brand against DGDA drug table, checks dosage formats, and prevents AI hallucinatory modifications.
-  3. Build Report Vault extraction service: parses lab metrics (e.g. Blood Glucose, Hemoglobin, Lipid Profile) and compares against printed reference ranges with Bangla glossary explanations.
-  4. Build Symptom Journaling service with deterministic Red-Flag Detector: keywords (chest pain, severe breathlessness) immediately halt AI conversation and trigger the 999 emergency banner.
-  5. Seed Database: 150 verified DGDA generic drug mappings, 10 partner pharmacies, Bangla health tips carousel, and synthetic prescription catalog.
-  6. Implement CaaS Pay-Per-Use billing service (Debit OTP -> Verify -> Entitlement release) and Subscription mirror sync.
+  1. Author `packages/ai`: Configure OpenRouter API client (`baseURL: "https://openrouter.ai/api/v1"`, `OPENROUTER_API_KEY`) and implement OpenRouter Vision extraction (`google/gemini-2.5-flash` with fallback to `qwen/qwen-2.5-vl-72b-instruct`).
+  2. Implement the Multi-Agent Router using **OpenAI Agents SDK (`@openai/agents`)**:
+     - `TriageAgent`: Inbound Bangla classifier handling conversational SMS and voice queries.
+     - `ScheduleQueryAgent`: Equipped with read-only tools querying `dose_events` (`getTodayDoses`, `getNextDose`).
+     - `SymptomJournalAgent`: Interactive slot-filling consultation flow with empathy prompts.
+     - `EmergencyAgent`: Safety-critical agent triggering immediate 999 alert and halting LLM execution.
+     - `GenericFinderAgent`: Tool integration querying local DGDA generic equivalence database.
+  3. Implement Agent Tracing & Telemetry: Captures agent execution steps, handoffs, and tool calls into the `agent_traces` table to feed the live dashboard and generate the Hackathon Proposal Page 8 diagram.
+  4. Implement Deterministic Numeric Guard: validates brand against DGDA drug table, checks dosage formats, and prevents AI hallucinatory modifications.
+  5. Build Report Vault extraction service: parses lab metrics (e.g. Blood Glucose, Hemoglobin, Lipid Profile) and compares against printed reference ranges with Bangla glossary explanations.
+  6. Seed Database: 150 verified DGDA generic drug mappings, 10 partner pharmacies, Bangla health tips carousel, and synthetic prescription catalog.
+  7. Implement CaaS Pay-Per-Use billing service (Debit OTP -> Verify -> Entitlement release) and Subscription mirror sync.
 * **Handover Verification Artifacts**:
+  - Test suite verifying multi-agent handoffs with OpenAI Agents SDK on mock queries and trace generation.
   - Test suite verifying that altered OCR dosages are rejected by the Numeric Guard.
   - CaaS two-step payment test passes end-to-end on mock, releasing the Doctor Summary PDF entitlement.
   - Emergency symptom test verifies 100% detection of critical red-flag symptoms.
