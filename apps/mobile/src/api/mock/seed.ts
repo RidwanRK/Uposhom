@@ -1,0 +1,537 @@
+/**
+ * SYNTHETIC DEMO DATA for the in-app mock API. Drug rows, prices, pharmacies and reports here are
+ * placeholders so the UI can be built and demoed before workstream C ships the hand-verified DGDA
+ * seed data (data/*.json). They are not medical facts: prices are indicative and unverified.
+ */
+import type {
+  DrugBrand,
+  ReportDetail,
+  TimelineEntry,
+  PatternCard,
+  AgentTrace,
+} from '@uposhom/shared';
+
+export const DRUGS: DrugBrand[] = [
+  {
+    id: 'd_seclo20',
+    nameEn: 'Seclo 20',
+    nameBn: 'সেকলো ২০',
+    generic: 'Omeprazole',
+    strength: '20mg',
+    form: 'Capsule',
+    manufacturer: 'Square Pharmaceuticals',
+    indicativePrice: 7,
+  },
+  {
+    id: 'd_omep20',
+    nameEn: 'Omeprazole 20',
+    nameBn: 'ওমিপ্রাজল ২০',
+    generic: 'Omeprazole',
+    strength: '20mg',
+    form: 'Capsule',
+    manufacturer: 'Incepta / Beximco',
+    indicativePrice: 4.5,
+  },
+  {
+    id: 'd_losectil20',
+    nameEn: 'Losectil 20',
+    nameBn: 'লসেক্টিল ২০',
+    generic: 'Omeprazole',
+    strength: '20mg',
+    form: 'Capsule',
+    manufacturer: 'Eskayef',
+    indicativePrice: 5.5,
+  },
+  {
+    id: 'd_napa500',
+    nameEn: 'Napa',
+    nameBn: 'নাপা',
+    generic: 'Paracetamol',
+    strength: '500mg',
+    form: 'Tablet',
+    manufacturer: 'Beximco',
+    indicativePrice: 1.2,
+  },
+  {
+    id: 'd_ace500',
+    nameEn: 'Ace',
+    nameBn: 'এইস',
+    generic: 'Paracetamol',
+    strength: '500mg',
+    form: 'Tablet',
+    manufacturer: 'Square Pharmaceuticals',
+    indicativePrice: 1.1,
+  },
+  {
+    id: 'd_napaextra',
+    nameEn: 'Napa Extra',
+    nameBn: 'নাপা এক্সট্রা',
+    generic: 'Paracetamol + Caffeine',
+    strength: '500mg+65mg',
+    form: 'Tablet',
+    manufacturer: 'Beximco',
+    indicativePrice: 2.5,
+  },
+  {
+    id: 'd_aceplus',
+    nameEn: 'Ace Plus',
+    nameBn: 'এইস প্লাস',
+    generic: 'Paracetamol + Caffeine',
+    strength: '500mg+65mg',
+    form: 'Tablet',
+    manufacturer: 'Square Pharmaceuticals',
+    indicativePrice: 2.4,
+  },
+  {
+    id: 'd_metformin500',
+    nameEn: 'Metformin 500',
+    nameBn: 'মেটফর্মিন ৫০০',
+    generic: 'Metformin',
+    strength: '500mg',
+    form: 'Tablet',
+    manufacturer: 'Generic (various)',
+    indicativePrice: 2,
+  },
+  {
+    id: 'd_glucomin500',
+    nameEn: 'Glucomin 500',
+    nameBn: 'গ্লুকোমিন ৫০০',
+    generic: 'Metformin',
+    strength: '500mg',
+    form: 'Tablet',
+    manufacturer: 'Square Pharmaceuticals',
+    indicativePrice: 2.6,
+  },
+  {
+    id: 'd_amlodipine5',
+    nameEn: 'Amlodipine 5',
+    nameBn: 'অ্যামলোডিপিন ৫',
+    generic: 'Amlodipine',
+    strength: '5mg',
+    form: 'Tablet',
+    manufacturer: 'Generic (various)',
+    indicativePrice: 3,
+  },
+  {
+    id: 'd_amdocal5',
+    nameEn: 'Amdocal 5',
+    nameBn: 'অ্যামডোক্যাল ৫',
+    generic: 'Amlodipine',
+    strength: '5mg',
+    form: 'Tablet',
+    manufacturer: 'Square Pharmaceuticals',
+    indicativePrice: 4,
+  },
+  {
+    id: 'd_cetirizine10',
+    nameEn: 'Cetirizine 10',
+    nameBn: 'সেটিরিজিন ১০',
+    generic: 'Cetirizine',
+    strength: '10mg',
+    form: 'Tablet',
+    manufacturer: 'Generic (various)',
+    indicativePrice: 1.5,
+  },
+  {
+    id: 'd_alatrol10',
+    nameEn: 'Alatrol 10',
+    nameBn: 'অ্যালাট্রল ১০',
+    generic: 'Cetirizine',
+    strength: '10mg',
+    form: 'Tablet',
+    manufacturer: 'Square Pharmaceuticals',
+    indicativePrice: 2,
+  },
+  {
+    id: 'd_montelukast10',
+    nameEn: 'Montelukast 10',
+    nameBn: 'মন্টেলুকাস্ট ১০',
+    generic: 'Montelukast',
+    strength: '10mg',
+    form: 'Tablet',
+    manufacturer: 'Generic (various)',
+    indicativePrice: 9,
+  },
+  {
+    id: 'd_montair10',
+    nameEn: 'Montair 10',
+    nameBn: 'মন্টেয়ার ১০',
+    generic: 'Montelukast',
+    strength: '10mg',
+    form: 'Tablet',
+    manufacturer: 'Square Pharmaceuticals',
+    indicativePrice: 12,
+  },
+  {
+    id: 'd_azithro500',
+    nameEn: 'Azithromycin 500',
+    nameBn: 'অ্যাজিথ্রোমাইসিন ৫০০',
+    generic: 'Azithromycin',
+    strength: '500mg',
+    form: 'Tablet',
+    manufacturer: 'Generic (various)',
+    indicativePrice: 28,
+  },
+  {
+    id: 'd_zimax500',
+    nameEn: 'Zimax 500',
+    nameBn: 'জিম্যাক্স ৫০০',
+    generic: 'Azithromycin',
+    strength: '500mg',
+    form: 'Tablet',
+    manufacturer: 'Square Pharmaceuticals',
+    indicativePrice: 35,
+  },
+  {
+    id: 'd_atorva10',
+    nameEn: 'Atorvastatin 10',
+    nameBn: 'অ্যাটোরভাস্ট্যাটিন ১০',
+    generic: 'Atorvastatin',
+    strength: '10mg',
+    form: 'Tablet',
+    manufacturer: 'Generic (various)',
+    indicativePrice: 6,
+  },
+  {
+    id: 'd_atova10',
+    nameEn: 'Atova 10',
+    nameBn: 'অ্যাটোভা ১০',
+    generic: 'Atorvastatin',
+    strength: '10mg',
+    form: 'Tablet',
+    manufacturer: 'Square Pharmaceuticals',
+    indicativePrice: 8,
+  },
+];
+
+/** Alternate Bangla spellings so variant spellings still find the drug (design.md Screen 6). */
+export const BN_ALIASES: Record<string, string[]> = {
+  d_napa500: ['নাপা', 'ন্যাপা', 'নাপ্পা', 'প্যারাসিটামল'],
+  d_napaextra: ['নাপা এক্সট্রা', 'ন্যাপা এক্সট্রা', 'এক্সট্রা'],
+  d_seclo20: ['সেকলো', 'সেক্লো', 'সেকলু', 'ওমিপ্রাজল'],
+  d_omep20: ['ওমিপ্রাজল', 'ওমেপ্রাজল', 'ওমিপ্রাজোল'],
+  d_ace500: ['এইস', 'এস', 'প্যারাসিটামল'],
+  d_metformin500: ['মেটফরমিন', 'মেটফর্মিন'],
+  d_amlodipine5: ['অ্যামলোডিপিন', 'এমলোডিপিন'],
+  d_cetirizine10: ['সেটিরিজিন', 'সিটিরিজিন'],
+};
+
+export interface SeedPharmacy {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  isPartner: boolean;
+  lat: number;
+  lng: number;
+  /** drugId -> minutes ago the owner last set the status, and the status. */
+  stock: Record<string, { status: 'IN_STOCK' | 'OUT_OF_STOCK'; minutesAgo: number }>;
+}
+
+export const PHARMACIES: SeedPharmacy[] = [
+  {
+    id: 'ph_1',
+    name: 'আরোগ্য ফার্মেসি',
+    address: 'ধানমন্ডি ৩২, ঢাকা',
+    phone: '01710000001',
+    isPartner: true,
+    lat: 23.7465,
+    lng: 90.376,
+    stock: {
+      d_seclo20: { status: 'IN_STOCK', minutesAgo: 120 },
+      d_napa500: { status: 'IN_STOCK', minutesAgo: 60 },
+      d_napaextra: { status: 'IN_STOCK', minutesAgo: 60 },
+      d_omep20: { status: 'IN_STOCK', minutesAgo: 120 },
+    },
+  },
+  {
+    id: 'ph_2',
+    name: 'সুস্থ মেডিসিন কর্নার',
+    address: 'ধানমন্ডি ২৭, ঢাকা',
+    phone: '01710000002',
+    isPartner: true,
+    lat: 23.7561,
+    lng: 90.3745,
+    stock: {
+      d_seclo20: { status: 'OUT_OF_STOCK', minutesAgo: 30 },
+      d_napa500: { status: 'IN_STOCK', minutesAgo: 200 },
+      d_omep20: { status: 'IN_STOCK', minutesAgo: 45 },
+    },
+  },
+  {
+    id: 'ph_3',
+    name: 'লাইফ কেয়ার ফার্মা',
+    address: 'মোহাম্মদপুর বাস স্ট্যান্ড, ঢাকা',
+    phone: '01710000003',
+    isPartner: false,
+    lat: 23.766,
+    lng: 90.3589,
+    stock: {
+      d_seclo20: { status: 'IN_STOCK', minutesAgo: 600 },
+      d_napa500: { status: 'OUT_OF_STOCK', minutesAgo: 90 },
+    },
+  },
+  {
+    id: 'ph_4',
+    name: 'নিরাময় ফার্মেসি',
+    address: 'ফার্মগেট, ঢাকা',
+    phone: '01710000004',
+    isPartner: false,
+    lat: 23.7576,
+    lng: 90.3893,
+    stock: {
+      d_napa500: { status: 'IN_STOCK', minutesAgo: 15 },
+      d_omep20: { status: 'OUT_OF_STOCK', minutesAgo: 15 },
+    },
+  },
+  {
+    id: 'ph_5',
+    name: 'মা ও শিশু ফার্মেসি',
+    address: 'মিরপুর ১০, ঢাকা',
+    phone: '01710000005',
+    isPartner: true,
+    lat: 23.8069,
+    lng: 90.3687,
+    stock: { d_seclo20: { status: 'IN_STOCK', minutesAgo: 300 } },
+  },
+  {
+    id: 'ph_6',
+    name: 'সেবা ড্রাগ হাউস',
+    address: 'উত্তরা সেক্টর ৭, ঢাকা',
+    phone: '01710000006',
+    isPartner: false,
+    lat: 23.8759,
+    lng: 90.3795,
+    stock: {},
+  },
+  {
+    id: 'ph_7',
+    name: 'গুলশান মেডিকেল হল',
+    address: 'গুলশান ১, ঢাকা',
+    phone: '01710000007',
+    isPartner: true,
+    lat: 23.7806,
+    lng: 90.4163,
+    stock: { d_seclo20: { status: 'IN_STOCK', minutesAgo: 20 } },
+  },
+  {
+    id: 'ph_8',
+    name: 'মতিঝিল ওষুধ ঘর',
+    address: 'মতিঝিল, ঢাকা',
+    phone: '01710000008',
+    isPartner: false,
+    lat: 23.733,
+    lng: 90.4172,
+    stock: {},
+  },
+];
+
+export const REPORTS: ReportDetail[] = [
+  {
+    id: 'rep_1',
+    date: '2026-11-14',
+    center: 'ইবনে সিনা ডায়াগনস্টিক',
+    testType: 'রক্তের শর্করা',
+    values: [
+      {
+        test: 'Fasting Blood Glucose (রক্তের শর্করা)',
+        value: '8.5',
+        unit: 'mmol/L',
+        printedRange: '3.9 - 6.1 mmol/L',
+        flag: 'HIGH',
+        explanationBn:
+          'আপনার রক্তের শর্করার মাত্রা স্বাভাবিকের চেয়ে কিছুটা বেশি পাওয়া গেছে। এটি ডায়াবেটিসের লক্ষণ হতে পারে। ওষুধ বা খাদ্যাভ্যাস পরিবর্তনের জন্য চিকিৎসকের পরামর্শ নিন।',
+      },
+      {
+        test: 'HbA1c',
+        value: '6.9',
+        unit: '%',
+        printedRange: '4.0 - 5.6 %',
+        flag: 'HIGH',
+        explanationBn:
+          'গত দুই থেকে তিন মাসের গড় শর্করার মাত্রা স্বাভাবিকের চেয়ে বেশি দেখাচ্ছে। চিকিৎসকের সাথে কথা বলুন।',
+      },
+    ],
+  },
+  {
+    id: 'rep_2',
+    date: '2026-10-02',
+    center: 'পপুলার ডায়াগনস্টিক সেন্টার',
+    testType: 'লিপিড প্রোফাইল',
+    values: [
+      {
+        test: 'Total Cholesterol (মোট কোলেস্টেরল)',
+        value: '182',
+        unit: 'mg/dL',
+        printedRange: '< 200 mg/dL',
+        flag: 'NORMAL',
+        explanationBn: 'আপনার মোট কোলেস্টেরলের মাত্রা ছাপানো স্বাভাবিক সীমার মধ্যে আছে।',
+      },
+      {
+        test: 'LDL Cholesterol (এলডিএল)',
+        value: '88',
+        unit: 'mg/dL',
+        printedRange: '< 100 mg/dL',
+        flag: 'NORMAL',
+        explanationBn: 'এলডিএল কোলেস্টেরল ছাপানো স্বাভাবিক সীমার মধ্যে আছে।',
+      },
+      {
+        test: 'Triglyceride (ট্রাইগ্লিসারাইড)',
+        value: '176',
+        unit: 'mg/dL',
+        printedRange: '< 150 mg/dL',
+        flag: 'HIGH',
+        explanationBn:
+          'ট্রাইগ্লিসারাইডের মাত্রা ছাপানো সীমার চেয়ে কিছুটা বেশি। খাদ্যাভ্যাস নিয়ে চিকিৎসকের পরামর্শ নিন।',
+      },
+    ],
+  },
+  {
+    id: 'rep_3',
+    date: '2026-09-18',
+    center: 'ইবনে সিনা ডায়াগনস্টিক',
+    testType: 'রক্তের পূর্ণাঙ্গ পরীক্ষা (CBC)',
+    values: [
+      {
+        test: 'Hemoglobin (হিমোগ্লোবিন)',
+        value: '10.8',
+        unit: 'g/dL',
+        printedRange: '12.0 - 15.5 g/dL',
+        flag: 'LOW',
+        explanationBn:
+          'হিমোগ্লোবিনের মাত্রা ছাপানো স্বাভাবিক সীমার চেয়ে কম। এর কারণ জানতে চিকিৎসকের সাথে কথা বলুন।',
+      },
+    ],
+  },
+];
+
+export const TIMELINE: TimelineEntry[] = [
+  {
+    id: 't1',
+    date: '2026-11-14',
+    kind: 'PRESCRIPTION',
+    title: 'Seclo 20mg, Napa Extra',
+    therapeuticClass: 'পাকস্থলীর ওষুধ',
+  },
+  {
+    id: 't2',
+    date: '2026-11-02',
+    kind: 'SYMPTOM',
+    title: 'কাশি ও গলা ব্যথা',
+    therapeuticClass: 'শ্বাসতন্ত্র',
+  },
+  {
+    id: 't3',
+    date: '2026-10-21',
+    kind: 'PRESCRIPTION',
+    title: 'Montelukast 10mg, Cetirizine 10mg',
+    therapeuticClass: 'শ্বাসতন্ত্র',
+  },
+  {
+    id: 't4',
+    date: '2026-09-09',
+    kind: 'SYMPTOM',
+    title: 'পেটে জ্বালাপোড়া',
+    therapeuticClass: 'পাকস্থলী',
+  },
+  {
+    id: 't5',
+    date: '2026-02-11',
+    kind: 'PRESCRIPTION',
+    title: 'Azithromycin 500mg',
+    therapeuticClass: 'শ্বাসতন্ত্র',
+  },
+  {
+    id: 't6',
+    date: '2026-01-19',
+    kind: 'SYMPTOM',
+    title: 'শ্বাসের সমস্যা ও কাশি',
+    therapeuticClass: 'শ্বাসতন্ত্র',
+  },
+  {
+    id: 't7',
+    date: '2025-12-28',
+    kind: 'PRESCRIPTION',
+    title: 'Montelukast 10mg',
+    therapeuticClass: 'শ্বাসতন্ত্র',
+  },
+  {
+    id: 't8',
+    date: '2025-01-14',
+    kind: 'PRESCRIPTION',
+    title: 'Cetirizine 10mg',
+    therapeuticClass: 'শ্বাসতন্ত্র',
+  },
+];
+
+export const PATTERNS: PatternCard[] = [
+  {
+    id: 'p1',
+    sentenceBn: 'গত তিন শীতে শ্বাসের সমস্যার জন্য ওষুধ নিতে হয়েছে',
+    monthly: [
+      { month: '2025-01', count: 2 },
+      { month: '2025-12', count: 3 },
+      { month: '2026-01', count: 2 },
+      { month: '2026-02', count: 1 },
+      { month: '2026-11', count: 2 },
+    ],
+    tipBn: 'শীতের শুরুতে গরম কাপড় পরুন এবং ধুলাবালি থেকে দূরে থাকুন। এটি সাধারণ জীবনযাপনের পরামর্শ।',
+  },
+];
+
+export const TRACES: AgentTrace[] = [
+  {
+    id: 'tr_1',
+    createdAt: '2026-11-21T08:41:12+06:00',
+    agent: 'TriageAgent',
+    inputPreview: 'পরের ওষুধ কখন?',
+    handoffs: [{ from: 'TriageAgent', to: 'ScheduleQueryAgent' }],
+    toolCalls: [{ name: 'getNextDose', durationMs: 42 }],
+    latencyMs: 1180,
+  },
+  {
+    id: 'tr_2',
+    createdAt: '2026-11-21T08:12:03+06:00',
+    agent: 'TriageAgent',
+    inputPreview: 'আজ কোন ওষুধ বাকি?',
+    handoffs: [{ from: 'TriageAgent', to: 'ScheduleQueryAgent' }],
+    toolCalls: [{ name: 'getTodayDoses', durationMs: 55 }],
+    latencyMs: 1320,
+  },
+  {
+    id: 'tr_3',
+    createdAt: '2026-11-20T21:30:44+06:00',
+    agent: 'TriageAgent',
+    inputPreview: 'সেকলো এর সস্তা বিকল্প',
+    handoffs: [{ from: 'TriageAgent', to: 'GenericFinderAgent' }],
+    toolCalls: [{ name: 'searchAlternatives', durationMs: 31 }],
+    latencyMs: 1460,
+  },
+  {
+    id: 'tr_4',
+    createdAt: '2026-11-20T19:02:10+06:00',
+    agent: 'TriageAgent',
+    inputPreview: 'বুকে ব্যথা করছে',
+    handoffs: [{ from: 'TriageAgent', to: 'EmergencyAgent' }],
+    toolCalls: [],
+    latencyMs: 640,
+  },
+  {
+    id: 'tr_5',
+    createdAt: '2026-11-20T18:15:00+06:00',
+    agent: 'SymptomJournalAgent',
+    inputPreview: 'দুইদিন ধরে জ্বর',
+    handoffs: [],
+    toolCalls: [{ name: 'saveSymptomLog', durationMs: 28 }],
+    latencyMs: 2210,
+  },
+];
+
+export const FOLLOW_UP_QUESTIONS = [
+  'সমস্যাটি কখন থেকে শুরু হয়েছে?',
+  'কতদিন ধরে এই সমস্যা চলছে?',
+  'সমস্যাটি কতটা তীব্র? (হালকা, মাঝারি, বেশি)',
+  'কোনো কিছুতে কি সমস্যা বাড়ে বা কমে?',
+  'সাথে আর কোনো লক্ষণ আছে কি?',
+  'এখন কোন কোন ওষুধ খাচ্ছেন?',
+];
