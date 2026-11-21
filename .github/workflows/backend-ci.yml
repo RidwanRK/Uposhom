@@ -1,0 +1,189 @@
+name: Backend CI/CD & Production Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'apps/worker/**'
+      - 'packages/**'
+      - 'deploy/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [main]
+
+# Never run two deploys at once.
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test-and-verify:
+    name: Lint, Test & Telco Mock Conformance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Monorepo (full history for the secret scan)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Monorepo Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck & Lint
+        run: |
+          pnpm --filter "@uposhom/*" typecheck
+          pnpm lint
+
+      - name: Test API
+        run: pnpm --filter "@uposhom/api" test
+
+      - name: Test Schedule Engine (100% Branch Coverage)
+        run: pnpm --filter "@uposhom/schedule-engine" test:coverage
+
+      - name: Verify Applink Client Against Local Telco Mock
+        run: |
+          # Skipped until the mock server is copied from the Applink skill into scripts/.
+          if [ ! -f scripts/mock-applink.mjs ]; then
+            echo "::notice::scripts/mock-applink.mjs not present yet, skipping telco mock conformance"
+            exit 0
+          fi
+          node scripts/mock-applink.mjs --quiet &
+          MOCK_PID=$!
+          sleep 2
+          # The only local-versus-live switch is the endpoint variables (no real credentials in CI)
+          export APPLINK_APP_ID=APP_MOCK APPLINK_PASSWORD=mock-not-a-real-password
+          export APPLINK_SMS_SEND_URL=http://127.0.0.1:8089/sms/send
+          export APPLINK_USSD_SEND_URL=http://127.0.0.1:8089/ussd/send
+          export APPLINK_SUBSCRIPTION_SEND_URL=http://127.0.0.1:8089/subscription/send
+          export APPLINK_SUBSCRIPTION_QUERY_BASE_URL=http://127.0.0.1:8089/subscription/query-base
+          export APPLINK_OTP_REQUEST_URL=http://127.0.0.1:8089/otp/request
+          export APPLINK_OTP_VERIFY_URL=http://127.0.0.1:8089/otp/verify
+          export APPLINK_CAAS_DEBIT_URL=http://127.0.0.1:8089/caas/direct/debit
+          export APPLINK_SUBSCRIPTION_CHARGING_INFO_URL=http://127.0.0.1:8089/subscription/getSubscriberChargingInfo
+          export APPLINK_CAAS_OTP_VERIFY_URL=http://127.0.0.1:8089/caas/otp/verify
+          pnpm --filter "@uposhom/applink-client" test
+          curl -s http://127.0.0.1:8089/__report | grep -q 'verdict":"BAD' && { echo "Mock reported a BAD request"; exit 1; } || true
+          kill $MOCK_PID
+
+  build-and-push-images:
+    name: Build & Push Docker Images (GHCR)
+    needs: test-and-verify
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout Monorepo
+        uses: actions/checkout@v4
+
+      # GHCR image names must be lowercase, whatever case the GitHub owner uses.
+      - name: Lowercase the image owner
+        id: owner
+        run: echo "lc=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      # The runner is amd64 but an Oracle Ampere A1 VM is arm64, so build both (pure JS, no native deps).
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/Dockerfile.api
+          platforms: linux/amd64,linux/arm64
+          push: true
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+          tags: |
+            ghcr.io/${{ steps.owner.outputs.lc }}/uposhom-api:latest
+            ghcr.io/${{ steps.owner.outputs.lc }}/uposhom-api:${{ github.sha }}
+
+      - name: Build & push worker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/Dockerfile.worker
+          platforms: linux/amd64,linux/arm64
+          push: true
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,scope=worker,mode=max
+          tags: |
+            ghcr.io/${{ steps.owner.outputs.lc }}/uposhom-worker:latest
+            ghcr.io/${{ steps.owner.outputs.lc }}/uposhom-worker:${{ github.sha }}
+
+  deploy-to-free-vm:
+    name: Continuous Deployment (free VM)
+    needs: build-and-push-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (for deploy/ files)
+        uses: actions/checkout@v4
+
+      - name: Lowercase the image owner
+        id: owner
+        run: echo "lc=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      - name: Copy compose and Caddy config to the VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          source: 'deploy/docker-compose.yml,deploy/Caddyfile'
+          target: '/opt/uposhom'
+          # The .env file lives only on the VM and is never copied or committed.
+
+      - name: Deploy via SSH Key
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /opt/uposhom
+            export IMAGE_TAG=${{ github.sha }}
+            export GHCR_OWNER=${{ steps.owner.outputs.lc }}
+            # one-time on the VM: docker login ghcr.io with a read-only token
+            docker compose -f deploy/docker-compose.yml pull
+            docker compose -f deploy/docker-compose.yml run --rm api node dist/migrate.js
+            docker compose -f deploy/docker-compose.yml up -d
+
+            # Smoke test live health endpoint (retry while the API boots)
+            for i in 1 2 3 4 5 6; do
+              if curl -f -sS http://localhost:3000/healthz; then echo; exit 0; fi
+              sleep 5
+            done
+            echo "healthz smoke test failed"
+            docker compose -f deploy/docker-compose.yml logs --tail=50 api
+            exit 1

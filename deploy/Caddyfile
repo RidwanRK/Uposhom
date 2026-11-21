@@ -1,0 +1,16 @@
+# Automatic HTTPS (Let's Encrypt) and reverse proxy. API_DOMAIN comes from /opt/uposhom/.env,
+# for example api.uposhom.health or a free DuckDNS name such as uposhom.duckdns.org.
+
+{$API_DOMAIN} {
+	encode gzip
+
+	# TODO (when Applink sends its source IP list): restrict the callback routes, e.g.
+	#   @applink path /api/applink/*
+	#   @applink_denied { path /api/applink/*; not remote_ip <ranges> }
+	#   respond @applink_denied 403
+	# Until then every callback URL carries the unguessable APPLINK_CALLBACK_PATH_KEY segment.
+	# Also add rate limits for /api/applink/* here, and check that Docker preserves the real
+	# client IP at Caddy (Day 1 deploy smoke test).
+
+	reverse_proxy api:3000
+}
