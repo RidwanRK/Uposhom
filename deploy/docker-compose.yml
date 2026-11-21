@@ -1,0 +1,74 @@
+# Production stack on the free VM. The CI deploy job copies this file and Caddyfile to
+# /opt/uposhom/deploy/ over SSH, then runs (from /opt/uposhom):
+#   docker compose -f deploy/docker-compose.yml pull
+#   docker compose -f deploy/docker-compose.yml run --rm api node dist/migrate.js
+#   docker compose -f deploy/docker-compose.yml up -d
+#
+# The secrets file is /opt/uposhom/.env (never in the repo). Build it from .env.example.
+# IMAGE_TAG and GHCR_OWNER are exported by the deploy job. Defaults below allow manual runs.
+#
+# Memory is tight on a 1 GB VM: Postgres settings are kept small and swap (2 GB) is added.
+# No Redis: pg-boss runs on Postgres.
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: uposhom-postgres
+    restart: unless-stopped
+    env_file: ../.env # POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+    command: ['postgres', '-c', 'shared_buffers=128MB', '-c', 'max_connections=30']
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: ghcr.io/${GHCR_OWNER:-uposhom}/uposhom-api:${IMAGE_TAG:-latest}
+    container_name: uposhom-api
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: '3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      # Published on loopback only, for the deploy smoke test. Caddy reaches it over the
+      # Docker network, so the API is never exposed directly.
+      - '127.0.0.1:3000:3000'
+
+  worker:
+    image: ghcr.io/${GHCR_OWNER:-uposhom}/uposhom-worker:${IMAGE_TAG:-latest}
+    container_name: uposhom-worker
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2
+    container_name: uposhom-caddy
+    restart: unless-stopped
+    env_file: ../.env # API_DOMAIN
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data # certificates: keep across restarts to avoid Let's Encrypt rate limits
+      - caddy_config:/config
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,11 @@
+{
+  "name": "@uposhom/mobile",
+  "version": "0.0.0",
+  "private": true,
+  "description": "PLACEHOLDER owned by D. Replace this file with the real Expo project (npx create-expo-app).",
+  "scripts": {
+    "typecheck": "echo \"mobile: no Expo project yet\"",
+    "lint": "echo \"mobile: no Expo project yet\"",
+    "test": "echo \"mobile: no Expo project yet\""
+  }
+}

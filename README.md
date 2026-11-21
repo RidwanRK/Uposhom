@@ -2,6 +2,22 @@
 
 An Android app (React Native) designed to simplify medication adherence, medical record management, and preventive health tracking for native Bangla-speaking households.
 
+## 🚀 Getting Started (developers)
+
+Requires Node.js 22 and pnpm 9 or newer.
+
+```bash
+pnpm install              # whole monorepo (node-linker=hoisted for Metro)
+cp .env.example .env      # placeholders only; real values never go in git
+pnpm dev                  # API on http://localhost:3000, check /healthz
+pnpm typecheck && pnpm lint && pnpm test
+```
+
+Layout: `apps/{api,worker,mobile}`, `packages/{schedule-engine,applink-client,ai,shared,db}`, `data/`,
+`scripts/`, `deploy/`. See `Master_Plan.md` section 4.1 for the full tree and section 19 for CI/CD
+and hosting. Workflow is trunk-based: short branches, PR into `main`, CI must pass, and every merge
+to `main` redeploys the live VM.
+
 ## 🎯 Problem & Solution
 
 * **Routine Complexity:** Simplifies multi-medicine tracking, lab reports, and follow-ups—especially for elderly dependents—via a unified **Family Circle** admin account.

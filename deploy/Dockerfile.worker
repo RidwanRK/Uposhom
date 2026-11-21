@@ -1,0 +1,30 @@
+# Built in GitHub Actions and pushed to GHCR. Never built on the VM.
+# Build context is the repo root:  docker build -f deploy/Dockerfile.worker .
+
+FROM node:22-slim AS build
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
+WORKDIR /repo
+
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml .npmrc tsconfig.base.json ./
+COPY apps/api/package.json apps/api/
+COPY apps/worker/package.json apps/worker/
+COPY apps/mobile/package.json apps/mobile/
+COPY packages/schedule-engine/package.json packages/schedule-engine/
+COPY packages/applink-client/package.json packages/applink-client/
+COPY packages/ai/package.json packages/ai/
+COPY packages/shared/package.json packages/shared/
+COPY packages/db/package.json packages/db/
+RUN pnpm install --frozen-lockfile
+
+COPY apps/worker apps/worker
+RUN pnpm --filter @uposhom/worker build \
+ && pnpm --filter @uposhom/worker --prod deploy /out
+
+FROM node:22-slim
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=build /out/node_modules ./node_modules
+COPY --from=build /out/package.json ./package.json
+COPY --from=build /repo/apps/worker/dist ./dist
+USER node
+CMD ["node", "dist/index.js"]
