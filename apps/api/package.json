@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "cron-parser": "^5.10.6",
+    "drizzle-orm": "^0.45.4",
     "fastify": "^5.12.8",
     "jose": "^6.2.18",
     "pg": "^8.23.1",
@@ -23,6 +24,8 @@
   "devDependencies": {
     "@types/pg": "^8.23.1",
     "@uposhom/applink-client": "workspace:*",
+    "@uposhom/db": "workspace:*",
+    "@uposhom/schedule-engine": "workspace:*",
     "@uposhom/shared": "workspace:*",
     "esbuild": "^0.28.2",
     "tsx": "^4.23.15"

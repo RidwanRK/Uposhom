@@ -3,6 +3,8 @@ import { ConfigError, loadConfig } from './config/env.js';
 import { billingFromEnv } from './billing/config.js';
 import { createPool } from './db/pool.js';
 import { runMigrations } from './db/migrate.js';
+import { runDomainMigrations } from '@uposhom/db';
+import { postgresDomain } from './domain/register.js';
 import { createPgBossQueue } from './queue/pgboss.js';
 import { createPhoneCrypto } from './security/phone-crypto.js';
 import { createPostgresStores } from './stores/postgres.js';
@@ -55,7 +57,7 @@ async function main(): Promise<void> {
       ? createPool(config.DATABASE_URL)
       : undefined;
   if (pool && config.PHONE_ENC_KEY) {
-    const applied = await runMigrations(pool);
+    const applied = [...(await runMigrations(pool)), ...(await runDomainMigrations(pool))];
     console.log(JSON.stringify({ level: 'info', msg: 'migrations checked', applied }));
   }
   const stores =
@@ -67,6 +69,7 @@ async function main(): Promise<void> {
     billing: billingFromEnv(config),
     ...(queue ? { queue } : {}),
     ...(stores ? { stores } : {}),
+    ...(stores && pool ? { domain: postgresDomain(pool, config.PHONE_ENC_KEY!) } : {}),
   });
 
   const shutdown = async (signal: string): Promise<void> => {
