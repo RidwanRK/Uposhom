@@ -61,18 +61,32 @@ export function findGenericAlternatives(brandQuery: string): GenericsResponse | 
   const drugs = loadDgdaDrugs();
   const q = brandQuery.toLowerCase().trim();
 
-  // Try bilingual trigram & phonetic matcher first
+  // Try direct bilingual trigram & phonetic matcher first
   const matchResult = matchBrand(q, drugs);
   let original: DgdaDrugRecord | undefined = matchResult.bestMatch?.drug;
 
-  // If no direct match, try stripping query noise words (e.g. "বিকল্প", "medicine", etc.)
-  if (!original) {
-    const cleaned = q
-      .replace(/(বিকল্প|কি|কী|এর|medicine|tablet|tablets|alternative|please|bikalpo|koto|dam)/gi, '')
-      .trim();
+  // If no direct high-confidence match, try stripping query noise words (e.g. "বিকল্প", "কমদামী", "medicine", etc.)
+  if (!original || !matchResult.isHighConfidence) {
+    const noisePattern =
+      /(বিকল্প|কি|কী|এর|কমদামী|কম\s*দামী|ওষুধ|ঔষধ|আছে|দিতে\s*পারেন|চাই|খুঁজছি|বিকল্পসমূহ|medicine|tablet|tablets|alternative|alternatives|please|bikalpo|koto|dam)/gi;
+    const cleaned = q.replace(noisePattern, ' ').replace(/\s+/g, ' ').trim();
     if (cleaned && cleaned !== q) {
       const cleanMatch = matchBrand(cleaned, drugs);
-      original = cleanMatch.bestMatch?.drug;
+      if (cleanMatch.bestMatch) {
+        original = cleanMatch.bestMatch.drug;
+      }
+    }
+  }
+
+  // Also try individual words from cleaned query if still not found
+  if (!original) {
+    const words = q.split(/\s+/).filter((w) => w.length > 2);
+    for (const w of words) {
+      const wordMatch = matchBrand(w, drugs);
+      if (wordMatch.bestMatch && wordMatch.isHighConfidence) {
+        original = wordMatch.bestMatch.drug;
+        break;
+      }
     }
   }
 
