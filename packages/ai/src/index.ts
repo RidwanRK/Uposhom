@@ -44,3 +44,6 @@ export * from './voice/transcribe.js';
 // Symptom Journaling & Clinical Summary
 export * from './journaling/symptom-journal.js';
 export * from './journaling/doctor-summary.js';
+
+// Sickness-Pattern Analytics & Timeline Aggregates
+export * from './analytics/sickness-patterns.js';
