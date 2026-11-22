@@ -29,9 +29,11 @@ export interface CuratedTip {
   id: string;
   category: string;
   titleBn: string;
+  titleEn?: string;
   contentBn: string;
-  season?: string;
-  applicableConditions: string[];
+  contentEn?: string;
+  tags?: string[];
+  applicableConditions?: string[];
 }
 
 let cachedSyntheticHistory: SyntheticHistoryFile | null = null;
@@ -60,12 +62,14 @@ export function loadSyntheticHistory(): SyntheticHistoryFile | null {
 }
 
 /**
- * Loads curated health tips from data/tips.json.
+ * Loads curated health tips from data/health-tips.json.
  */
 export function loadHealthTips(): CuratedTip[] {
   if (cachedTips) return cachedTips;
   try {
     const candidatePaths = [
+      path.resolve(process.cwd(), 'data/health-tips.json'),
+      path.resolve(process.cwd(), '../../data/health-tips.json'),
       path.resolve(process.cwd(), 'data/tips.json'),
       path.resolve(process.cwd(), '../../data/tips.json'),
     ];
@@ -125,7 +129,7 @@ export function detectSicknessPatterns(timeline: TimelineEntry[]): PatternCard[]
     const months = Object.keys(monthlyCounts).sort();
 
     const winterTip =
-      tips.find((t) => t.applicableConditions?.includes('respiratory_symptom'))?.contentBn ||
+      tips.find((t) => t.tags?.includes('antibiotic') || t.category === 'respiratory')?.contentBn ||
       'শীতের শুরুতে ইনফ্লুয়েঞ্জা ও নিউমোনিয়ার টিকা নেওয়ার বিষয়ে আপনার চিকিৎসকের পরামর্শ নিন এবং ধুলোবালি ও ঠান্ডা বাতাস এড়িয়ে চলুন।';
 
     patterns.push({
@@ -148,8 +152,8 @@ export function detectSicknessPatterns(timeline: TimelineEntry[]): PatternCard[]
     const months = Object.keys(monthlyCounts).sort();
 
     const chronicTip =
-      tips.find((t) => t.applicableConditions?.includes('hypertension'))?.contentBn ||
-      'রক্তচাপ স্বাভাবিক থাকলেও চিকিৎসকের অনুমতি ছাড়া নিজে নিজে রক্তচাপের ওষুধ সেবন বন্ধ করবেন না।';
+      tips.find((t) => t.tags?.includes('hypertension') || t.category === 'blood_pressure')?.contentBn ||
+      'উচ্চ রক্তচাপ কোনো দৃশ্যমান লক্ষণ ছাড়াই ক্ষতি করতে পারে। রক্তচাপ স্বাভাবিক থাকলেও চিকিৎসকের নির্দেশ ছাড়া প্রেশারের ওষুধ বাদ দেবেন না।';
 
     patterns.push({
       id: 'pattern-chronic-maintenance',
