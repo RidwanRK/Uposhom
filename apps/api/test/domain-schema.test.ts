@@ -47,6 +47,7 @@ describe.skipIf(!url)('domain schema on Postgres', () => {
       '0000_extensions',
       '0001_domain_tables',
       '0002_invites',
+      '0003_notices',
     ]);
     expect(await runDomainMigrations(pool)).toEqual([]);
 

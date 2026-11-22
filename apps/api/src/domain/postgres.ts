@@ -1,5 +1,8 @@
 import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, lte, ne, sql } from 'drizzle-orm';
 import {
+  agentTraces,
+  appointments,
+  auditLog,
   deviceTokens,
   doseEvents,
   doseLogs,
@@ -7,6 +10,7 @@ import {
   familyCircles,
   invites,
   links,
+  notices,
   prescriptionItems,
   prescriptions,
   profiles,
@@ -384,6 +388,14 @@ export function createPostgresDomainStore(db: Db): DomainStore {
           return toDose(r);
         });
       },
+      async profilesWithDoses(from, to) {
+        const rows = await db
+          .selectDistinct({ profileId: doseEvents.profileId })
+          .from(doseEvents)
+          .where(and(gte(doseEvents.dueAt, from), lt(doseEvents.dueAt, to)))
+          .orderBy(asc(doseEvents.profileId));
+        return rows.map((r) => r.profileId);
+      },
       async listOpen(now, limit) {
         const base = sql`CASE WHEN ${doseEvents.status} = 'SNOOZED' AND ${doseEvents.snoozedUntil} IS NOT NULL THEN ${doseEvents.snoozedUntil} ELSE ${doseEvents.dueAt} END`;
         const rows = await db
@@ -470,6 +482,156 @@ export function createPostgresDomainStore(db: Db): DomainStore {
           .where(and(eq(escalations.notifiedUserId, userId), gte(escalations.sentAt, since)))
           .orderBy(desc(escalations.sentAt), desc(escalations.id));
         return rows.map(toEscalation);
+      },
+    },
+    notices: {
+      async record(row) {
+        const rows = await db
+          .insert(notices)
+          .values(row)
+          .onConflictDoNothing({ target: notices.ref })
+          .returning({ id: notices.id });
+        return rows.length > 0;
+      },
+      async listForUser(userId, since) {
+        return db
+          .select()
+          .from(notices)
+          .where(and(eq(notices.userId, userId), gte(notices.createdAt, since)))
+          .orderBy(desc(notices.createdAt), desc(notices.id));
+      },
+    },
+    traces: {
+      async record(row) {
+        await db.insert(agentTraces).values({
+          id: row.id,
+          userId: row.userId,
+          profileId: row.profileId,
+          channel: row.channel,
+          rootAgent: row.rootAgent,
+          steps: {
+            inputPreview: row.inputPreview,
+            handoffs: row.handoffs,
+            toolCalls: row.toolCalls,
+          },
+          durationMs: row.durationMs,
+          createdAt: row.createdAt,
+        });
+      },
+      async list(limit) {
+        const rows = await db
+          .select()
+          .from(agentTraces)
+          .orderBy(desc(agentTraces.createdAt), desc(agentTraces.id))
+          .limit(limit);
+        return rows.map((r) => {
+          const steps = (r.steps ?? {}) as {
+            inputPreview?: string | null;
+            handoffs?: Array<{ from: string; to: string }>;
+            toolCalls?: Array<{ name: string; durationMs: number }>;
+          };
+          return {
+            id: r.id,
+            userId: r.userId,
+            profileId: r.profileId,
+            channel: r.channel,
+            rootAgent: r.rootAgent,
+            inputPreview: steps.inputPreview ?? null,
+            handoffs: steps.handoffs ?? [],
+            toolCalls: steps.toolCalls ?? [],
+            durationMs: r.durationMs ?? 0,
+            createdAt: r.createdAt,
+          };
+        });
+      },
+    },
+    audit: {
+      async record(row) {
+        await db.insert(auditLog).values(row);
+      },
+      async listForActor(actorUserId) {
+        const rows = await db
+          .select()
+          .from(auditLog)
+          .where(eq(auditLog.actorUserId, actorUserId))
+          .orderBy(desc(auditLog.at), desc(auditLog.id));
+        return rows.map((r) => ({
+          actorUserId: r.actorUserId,
+          action: r.action,
+          subjectType: r.subjectType,
+          subjectId: r.subjectId,
+          profileId: r.profileId,
+          detail: (r.detail ?? null) as Record<string, unknown> | null,
+          at: r.at,
+        }));
+      },
+    },
+    appointments: {
+      async create(row) {
+        await db.insert(appointments).values(row);
+      },
+      async listForProfile(profileId, from) {
+        return db
+          .select()
+          .from(appointments)
+          .where(and(eq(appointments.profileId, profileId), gte(appointments.dueAt, from)))
+          .orderBy(asc(appointments.dueAt), asc(appointments.id));
+      },
+      async listPendingDue(from, to) {
+        return db
+          .select()
+          .from(appointments)
+          .where(
+            and(
+              eq(appointments.reminderState, 'PENDING'),
+              gte(appointments.dueAt, from),
+              lt(appointments.dueAt, to),
+            ),
+          )
+          .orderBy(asc(appointments.dueAt), asc(appointments.id));
+      },
+      async markReminded(id) {
+        const rows = await db
+          .update(appointments)
+          .set({ reminderState: 'REMINDED' })
+          .where(and(eq(appointments.id, id), eq(appointments.reminderState, 'PENDING')))
+          .returning({ id: appointments.id });
+        return rows.length > 0;
+      },
+    },
+    items: {
+      async refillDueBetween(fromDate, toDate) {
+        const rows = await db
+          .select({ item: prescriptionItems, profileId: prescriptions.profileId })
+          .from(prescriptionItems)
+          .innerJoin(prescriptions, eq(prescriptions.id, prescriptionItems.prescriptionId))
+          .where(
+            and(
+              eq(prescriptions.status, 'CONFIRMED'),
+              gte(prescriptionItems.refillDueOn, fromDate),
+              lte(prescriptionItems.refillDueOn, toDate),
+            ),
+          )
+          .orderBy(asc(prescriptionItems.id));
+        return rows.map((r) => ({
+          profileId: r.profileId,
+          item: {
+            id: r.item.id,
+            prescriptionId: r.item.prescriptionId,
+            position: r.item.position,
+            brandName: r.item.brandName,
+            strength: r.item.strength,
+            form: r.item.form,
+            parsedPattern: r.item.parsedPattern,
+            mealRelation: r.item.mealRelation,
+            durationDays: r.item.durationDays,
+            pillCount: r.item.pillCount === null ? null : Number(r.item.pillCount),
+            asNeeded: r.item.asNeeded,
+            isCritical: r.item.isCritical,
+            courseEndsOn: r.item.courseEndsOn,
+            refillDueOn: r.item.refillDueOn,
+          },
+        }));
       },
     },
     async eraseUser(userId) {

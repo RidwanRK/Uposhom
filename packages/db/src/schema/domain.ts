@@ -519,3 +519,33 @@ export const auditLog = pgTable(
     index('audit_log_actor').on(t.actorUserId, t.at),
   ],
 );
+
+export const NOTICE_TYPES = ['REFILL_DUE', 'FOLLOW_UP', 'WEEKLY_DIGEST'] as const;
+
+/**
+ * Inbox items that are not missed-dose alerts (those are `escalations`): refill due, a follow-up
+ * appointment tomorrow, the weekly digest. One row per recipient; `ref` makes each one once-only.
+ */
+export const notices = pgTable(
+  'notices',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    profileId: text('profile_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    type: text('type', { enum: NOTICE_TYPES }).notNull(),
+    title: text('title').notNull(),
+    body: text('body').notNull(),
+    /** What it is about and for whom, e.g. `refill:<item>:<user>`. A second insert is a no-op. */
+    ref: text('ref').notNull().unique(),
+    createdAt: createdAt(),
+    acknowledgedAt: timestamp('acknowledged_at', { withTimezone: true }),
+  },
+  (t) => [
+    index('notices_user').on(t.userId, t.createdAt),
+    check('notices_type', inList('type', NOTICE_TYPES)),
+  ],
+);

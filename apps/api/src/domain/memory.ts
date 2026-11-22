@@ -4,7 +4,11 @@ import type {
   DoseLogRecord,
   DoseRecord,
   DoseView,
+  AppointmentRecord,
+  AuditRecord,
   DeviceRecord,
+  NoticeRecord,
+  TraceRecord,
   EscalationRecord,
   InviteRecord,
   LinkRecord,
@@ -26,6 +30,10 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
   const escalations = new Map<string, EscalationRecord>(); // by idempotency key
   const invites = new Map<string, InviteRecord>();
   const devices = new Map<string, DeviceRecord>(); // by Expo token
+  const notices = new Map<string, NoticeRecord>(); // by ref
+  const traces: TraceRecord[] = [];
+  const audit: AuditRecord[] = [];
+  const appointments = new Map<string, AppointmentRecord>();
 
   const copy = <T>(v: T): T => structuredClone(v);
 
@@ -37,6 +45,8 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
   const removeProfile = (profileId: string) => {
     for (const [id, l] of links) if (l.profileId === profileId) links.delete(id);
     for (const [id, i] of invites) if (i.profileId === profileId) invites.delete(id);
+    for (const [k, n] of notices) if (n.profileId === profileId) notices.delete(k);
+    for (const [id, a] of appointments) if (a.profileId === profileId) appointments.delete(id);
     for (const [id, p] of prescriptions) {
       if (p.profileId !== profileId) continue;
       prescriptions.delete(id);
@@ -215,6 +225,11 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
         logs.push(copy(log));
         return copy(next);
       },
+      async profilesWithDoses(from, to) {
+        const ids = new Set<string>();
+        for (const d of doses.values()) if (d.dueAt >= from && d.dueAt < to) ids.add(d.profileId);
+        return [...ids].sort();
+      },
       async listOpen(now, limit) {
         const base = (d: DoseRecord) => (d.status === 'SNOOZED' && d.snoozedUntil) || d.dueAt;
         return [...doses.values()]
@@ -292,6 +307,77 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
           .map(copy);
       },
     },
+    notices: {
+      async record(row) {
+        if (notices.has(row.ref)) return false;
+        notices.set(row.ref, copy(row));
+        return true;
+      },
+      async listForUser(userId, since) {
+        return [...notices.values()]
+          .filter((n) => n.userId === userId && n.createdAt >= since)
+          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+          .map(copy);
+      },
+    },
+    traces: {
+      async record(row) {
+        traces.push(copy(row));
+      },
+      async list(limit) {
+        return [...traces]
+          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+          .slice(0, limit)
+          .map(copy);
+      },
+    },
+    audit: {
+      async record(row) {
+        audit.push(copy(row));
+      },
+      async listForActor(actorUserId) {
+        return audit
+          .filter((a) => a.actorUserId === actorUserId)
+          .sort((a, b) => b.at.getTime() - a.at.getTime())
+          .map(copy);
+      },
+    },
+    appointments: {
+      async create(row) {
+        if (!profiles.has(row.profileId)) throw new Error('no such profile');
+        appointments.set(row.id, copy(row));
+      },
+      async listForProfile(profileId, from) {
+        return [...appointments.values()]
+          .filter((a) => a.profileId === profileId && a.dueAt >= from)
+          .sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime())
+          .map(copy);
+      },
+      async listPendingDue(from, to) {
+        return [...appointments.values()]
+          .filter((a) => a.reminderState === 'PENDING' && a.dueAt >= from && a.dueAt < to)
+          .sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime())
+          .map(copy);
+      },
+      async markReminded(id) {
+        const a = appointments.get(id);
+        if (!a || a.reminderState !== 'PENDING') return false;
+        a.reminderState = 'REMINDED';
+        return true;
+      },
+    },
+    items: {
+      async refillDueBetween(fromDate, toDate) {
+        const out: Array<{ item: PrescriptionItemRecord; profileId: string }> = [];
+        for (const it of items.values()) {
+          const pre = prescriptions.get(it.prescriptionId);
+          if (!pre || pre.status !== 'CONFIRMED' || !it.refillDueOn) continue;
+          if (it.refillDueOn < fromDate || it.refillDueOn > toDate) continue;
+          out.push({ item: copy(it), profileId: pre.profileId });
+        }
+        return out.sort((a, b) => a.item.id.localeCompare(b.item.id));
+      },
+    },
     async eraseUser(userId) {
       for (const [id, c] of circles) {
         if (c.ownerUserId !== userId) continue;
@@ -300,6 +386,7 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
       }
       for (const [id, l] of links) if (l.userId === userId) links.delete(id);
       for (const [token, d] of devices) if (d.userId === userId) devices.delete(token);
+      for (const [k, n] of notices) if (n.userId === userId) notices.delete(k);
       for (const e of escalations.values())
         if (e.notifiedUserId === userId) e.notifiedUserId = null;
       for (const p of profiles.values()) if (p.userId === userId) p.userId = null;

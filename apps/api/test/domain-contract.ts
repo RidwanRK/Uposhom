@@ -547,5 +547,125 @@ export function domainContract(label: string, make: () => Promise<DomainUnderTes
         expect(await t.store.profiles.linksOf(self.id)).toHaveLength(2);
         expect(await t.store.invites.openForPhone(base.phoneKey, at(5))).toEqual([]);
       }));
+
+    it('keeps one notice per ref and lists a user’s newest first', () =>
+      withStore(async (t) => {
+        const { userId, self } = await owner(t);
+        const row = {
+          id: uid('ntc'),
+          userId,
+          profileId: self.id,
+          type: 'REFILL_DUE' as const,
+          title: 't',
+          body: 'b',
+          ref: uid('ref'),
+          createdAt: at(1),
+          acknowledgedAt: null,
+        };
+        expect(await t.store.notices.record(row)).toBe(true);
+        expect(await t.store.notices.record({ ...row, id: uid('ntc') })).toBe(false);
+        const later = {
+          ...row,
+          id: uid('ntc'),
+          ref: uid('ref'),
+          type: 'WEEKLY_DIGEST' as const,
+          createdAt: at(5),
+        };
+        await t.store.notices.record(later);
+        expect(await t.store.notices.listForUser(userId, at(0))).toEqual([later, row]);
+        expect(await t.store.notices.listForUser(userId, at(2))).toEqual([later]);
+      }));
+
+    it('stores traces and audit rows', () =>
+      withStore(async (t) => {
+        const { userId, self } = await owner(t);
+        const trace = {
+          id: uid('trc'),
+          userId,
+          profileId: self.id,
+          channel: 'SMS',
+          rootAgent: 'TriageAgent',
+          inputPreview: 'next dose?',
+          handoffs: [{ from: 'TriageAgent', to: 'ScheduleQueryAgent' }],
+          toolCalls: [{ name: 'getNextDose', durationMs: 9 }],
+          durationMs: 400,
+          createdAt: at(1),
+        };
+        await t.store.traces.record(trace);
+        await t.store.traces.record({
+          ...trace,
+          id: uid('trc'),
+          inputPreview: null,
+          createdAt: at(2),
+        });
+        const listed = await t.store.traces.list(10);
+        expect(listed.map((x) => x.createdAt)).toEqual([at(2), at(1)]);
+        expect(listed[1]).toEqual(trace);
+        expect(await t.store.traces.list(1)).toHaveLength(1);
+
+        const row = {
+          actorUserId: userId,
+          action: 'READ_AGENT_TRACES',
+          subjectType: 'agent_traces',
+          subjectId: 'list',
+          profileId: null,
+          detail: { count: 2 },
+          at: at(3),
+        };
+        await t.store.audit.record(row);
+        expect(await t.store.audit.listForActor(userId)).toEqual([row]);
+      }));
+
+    it('lists appointments and moves a pending one to reminded exactly once', () =>
+      withStore(async (t) => {
+        const { self } = await owner(t);
+        const a = {
+          id: uid('apt'),
+          profileId: self.id,
+          title: 'Doctor',
+          dueAt: at(600),
+          reminderState: 'PENDING' as const,
+          createdAt: at(0),
+        };
+        await t.store.appointments.create(a);
+        await t.store.appointments.create({ ...a, id: uid('apt'), dueAt: at(60) });
+        expect(
+          (await t.store.appointments.listForProfile(self.id, at(0))).map((x) => x.dueAt),
+        ).toEqual([at(60), at(600)]);
+        expect(await t.store.appointments.listPendingDue(at(100), at(700))).toEqual([a]);
+        expect(await t.store.appointments.markReminded(a.id)).toBe(true);
+        expect(await t.store.appointments.markReminded(a.id)).toBe(false);
+        expect(await t.store.appointments.listPendingDue(at(100), at(700))).toEqual([]);
+      }));
+
+    it('finds refill dates in a range on confirmed prescriptions, and profiles with doses', () =>
+      withStore(async (t) => {
+        const { self } = await owner(t);
+        const { item } = await prescribe(t, self.id, [0, 60]);
+        // prescribe() saves refillDueOn: null; save another confirmed one with a refill date.
+        const id = uid('pre');
+        const withRefill = itemOf(id, { refillDueOn: '2026-11-27' });
+        await t.store.prescriptions.saveConfirmed({
+          prescription: {
+            id,
+            profileId: self.id,
+            status: 'CONFIRMED',
+            startDate: '2026-11-22',
+            createdBy: null,
+            confirmedBy: null,
+            confirmedAt: T0,
+            createdAt: T0,
+          },
+          items: [withRefill],
+          doses: [],
+        });
+        const found = await t.store.items.refillDueBetween('2026-11-25', '2026-11-27');
+        expect(found).toEqual([{ item: withRefill, profileId: self.id }]);
+        expect(await t.store.items.refillDueBetween('2026-11-28', '2026-11-30')).toEqual([]);
+        expect(item.refillDueOn).toBeNull();
+
+        expect(await t.store.doses.profilesWithDoses(at(0), at(61))).toEqual([self.id]);
+        expect(await t.store.doses.profilesWithDoses(at(61), at(100))).toEqual([]);
+      }));
   });
 }

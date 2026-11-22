@@ -18,6 +18,7 @@ import type {
   DoseActionBody,
   DoseActionResponse,
   LinkRole,
+  AgentTrace,
   AlertItem,
   Profile,
   ProfileLink,
@@ -36,7 +37,22 @@ import type {
   MealAnchors,
   PrescriptionItemRecord,
   ProfileRecord,
+  AppointmentRecord,
 } from './types.js';
+
+export interface AppointmentView {
+  id: string;
+  title: string;
+  dueAt: string;
+  reminderState: AppointmentRecord['reminderState'];
+}
+
+const appointmentView = (a: AppointmentRecord): AppointmentView => ({
+  id: a.id,
+  title: a.title,
+  dueAt: toDhakaIso(a.dueAt.getTime()),
+  reminderState: a.reminderState,
+});
 
 const MINUTE = 60_000;
 const DAY = 86_400_000;
@@ -68,7 +84,7 @@ export interface DomainServiceDeps {
   /** From A's user store: the user whose number has this opaque subscriber id. */
   findUserIdBySubscriber: (subscriberId: string) => Promise<string | null>;
   /** From A's user store. `msisdn` is normalised, 8801XXXXXXXXX. */
-  findUser: (userId: string) => Promise<{ id: string; msisdn: string } | null>;
+  findUser: (userId: string) => Promise<{ id: string; msisdn: string; isAdmin: boolean } | null>;
   findUserIdByMsisdn: (msisdn: string) => Promise<string | null>;
   /** A's keyed lookup hash of a normalised number (security/phone-crypto.ts). */
   phoneKey: (msisdn: string) => string;
@@ -892,7 +908,124 @@ export function createDomainService(deps: DomainServiceDeps) {
         acknowledgedAt: e.acknowledgedAt ? toDhakaIso(e.acknowledgedAt.getTime()) : null,
       });
     }
+    // Refill, follow-up and weekly digest notices share the inbox, newest first overall.
+    for (const n of await store.notices.listForUser(userId, new Date(now.getTime() - 7 * DAY))) {
+      const profile = await store.profiles.findById(n.profileId);
+      if (!profile) continue;
+      out.push({
+        id: n.id,
+        type: n.type,
+        createdAt: toDhakaIso(n.createdAt.getTime()),
+        profileId: profile.id,
+        profileName: profile.name,
+        title: n.title,
+        body: n.body,
+        acknowledged: n.acknowledgedAt !== null,
+        acknowledgedAt: n.acknowledgedAt ? toDhakaIso(n.acknowledgedAt.getTime()) : null,
+      });
+    }
+    out.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return { alerts: out };
+  }
+
+  /** POST /profiles/:id/appointments: a follow-up visit, reminded the day before. */
+  async function addAppointment(
+    userId: string,
+    profileId: string,
+    body: { title: string; dueAt: string },
+  ): Promise<AppointmentView> {
+    await access(userId, profileId, true);
+    const title = body.title.trim();
+    const due = /(Z|[+-]\d{2}:\d{2})$/.test(body.dueAt) ? Date.parse(body.dueAt) : Number.NaN;
+    if (!title || title.length > 100)
+      throw new DomainError('INVALID_INPUT', 400, { message: 'TITLE' });
+    if (Number.isNaN(due) || due <= deps.now().getTime()) {
+      throw new DomainError('INVALID_INPUT', 400, { message: 'DUE_AT' });
+    }
+    const row = {
+      id: newId('apt'),
+      profileId,
+      title,
+      dueAt: new Date(due),
+      reminderState: 'PENDING' as const,
+      createdAt: deps.now(),
+    };
+    await store.appointments.create(row);
+    return appointmentView(row);
+  }
+
+  async function listAppointments(
+    userId: string,
+    profileId: string,
+  ): Promise<{ appointments: AppointmentView[] }> {
+    await access(userId, profileId, false);
+    const since = new Date(deps.now().getTime() - DAY);
+    return {
+      appointments: (await store.appointments.listForProfile(profileId, since)).map(
+        appointmentView,
+      ),
+    };
+  }
+
+  /**
+   * GET /admin/traces: the agent-trace viewer. The admin flag is read from the account, not only
+   * the token, and every read goes to the audit log, because traces can quote what people asked.
+   */
+  async function listTraces(userId: string, limit = 50): Promise<{ traces: AgentTrace[] }> {
+    const user = await deps.findUser(userId);
+    if (!user?.isAdmin) throw new DomainError('FORBIDDEN', 403);
+    const n = Math.min(Math.max(Math.trunc(limit) || 50, 1), 200);
+    const rows = await store.traces.list(n);
+    await store.audit.record({
+      actorUserId: userId,
+      action: 'READ_AGENT_TRACES',
+      subjectType: 'agent_traces',
+      subjectId: 'list',
+      profileId: null,
+      detail: { count: rows.length },
+      at: deps.now(),
+    });
+    return {
+      traces: rows.map((t) => ({
+        id: t.id,
+        createdAt: toDhakaIso(t.createdAt.getTime()),
+        agent: t.rootAgent,
+        ...(t.inputPreview ? { inputPreview: t.inputPreview } : {}),
+        handoffs: t.handoffs,
+        toolCalls: t.toolCalls,
+        latencyMs: t.durationMs,
+      })),
+    };
+  }
+
+  /**
+   * For workstream C's trace logger: one row per agent run. The preview is cut to 120 characters;
+   * C decides what goes in it, and it should hold no phone numbers or names.
+   */
+  async function recordTrace(input: {
+    userId?: string | null;
+    profileId?: string | null;
+    channel: 'APP' | 'SMS' | 'VOICE';
+    rootAgent: string;
+    inputPreview?: string | null;
+    handoffs: Array<{ from: string; to: string }>;
+    toolCalls: Array<{ name: string; durationMs: number }>;
+    durationMs: number;
+  }): Promise<string> {
+    const id = newId('trc');
+    await store.traces.record({
+      id,
+      userId: input.userId ?? null,
+      profileId: input.profileId ?? null,
+      channel: input.channel,
+      rootAgent: input.rootAgent.slice(0, 60),
+      inputPreview: input.inputPreview ? input.inputPreview.slice(0, 120) : null,
+      handoffs: input.handoffs.slice(0, 50),
+      toolCalls: input.toolCalls.slice(0, 100),
+      durationMs: Math.max(0, Math.round(input.durationMs)),
+      createdAt: deps.now(),
+    });
+    return id;
   }
 
   return {
@@ -909,6 +1042,10 @@ export function createDomainService(deps: DomainServiceDeps) {
     smsReply,
     acknowledge,
     registerDevice,
+    addAppointment,
+    listAppointments,
+    listTraces,
+    recordTrace,
     alerts,
     eraseUser: (userId: string) => store.eraseUser(userId),
   };

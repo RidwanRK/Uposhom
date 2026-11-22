@@ -19,6 +19,7 @@ import { createPhoneCrypto } from '../security/phone-crypto.js';
 import type { Services } from '../services/index.js';
 import type { Stores } from '../stores/types.js';
 import { domainRoutes } from '../routes/domain.js';
+import { CARE_JOBS, createCareJobs, type CareJobs } from './care-jobs.js';
 import { LADDER_JOB, createLadderRunner, type LadderRunner } from './escalation.js';
 import { createMemoryDomainStore } from './memory.js';
 import { createPostgresDomainStore } from './postgres.js';
@@ -40,6 +41,8 @@ declare module 'fastify' {
     domain: DomainService;
     /** The reminder and escalation ladder (tests call tick() directly). */
     ladder: LadderRunner;
+    /** Refill, follow-up and digest jobs (tests call them directly). */
+    careJobs: CareJobs;
   }
 }
 
@@ -108,7 +111,7 @@ export function createDomainHooks() {
       findUserIdBySubscriber,
       findUser: async (userId) => {
         const user = await stores.users.findById(userId);
-        return user ? { id: user.id, msisdn: user.msisdn } : null;
+        return user ? { id: user.id, msisdn: user.msisdn, isAdmin: user.isAdmin } : null;
       },
       findUserIdByMsisdn: async (msisdn) => (await stores.users.findByMsisdn(msisdn))?.id ?? null,
       phoneKey:
@@ -117,6 +120,15 @@ export function createDomainHooks() {
     });
 
     // The reminder and escalation ladder, every minute, on the same queue as A's jobs.
+    const subscriberOf = async (userId: string) =>
+      (await stores.users.findById(userId))?.subscriberId ?? null;
+    const push = async (msg: PushJobPayload) => {
+      await queue.send(PUSH_QUEUE, msg, {
+        singletonKey: msg.idempotencyKey,
+        retryLimit: PUSH_RETRY_LIMIT,
+        retryDelaySeconds: 10,
+      });
+    };
     const ladder = createLadderRunner({
       store,
       now,
@@ -124,21 +136,36 @@ export function createDomainHooks() {
       sendSms: (msg) => services.sms.enqueue(msg),
       useSms: (userId) => services.entitlements.useSms(userId),
       isPremium,
-      subscriberOf: async (userId) => (await stores.users.findById(userId))?.subscriberId ?? null,
+      subscriberOf,
       findUserIdBySubscriber,
-      push: async (msg) => {
-        await queue.send(PUSH_QUEUE, msg, {
-          singletonKey: msg.idempotencyKey,
-          retryLimit: PUSH_RETRY_LIMIT,
-          retryDelaySeconds: 10,
-        });
-      },
+      push,
       log,
     });
     queue.work(LADDER_JOB.queue, async () => {
       await ladder.tick();
     });
     void queue.schedule(LADDER_JOB.queue, LADDER_JOB.cron, { tz: 'Asia/Dhaka' });
+
+    // Refill and follow-up reminders and the weekly caregiver digest.
+    const care = createCareJobs({
+      store,
+      now,
+      sendSms: (msg) => services.sms.enqueue(msg),
+      useSms: (userId) => services.entitlements.useSms(userId),
+      subscriberOf,
+      push,
+      log,
+    });
+    for (const [def, run] of [
+      [CARE_JOBS.refills, care.refills],
+      [CARE_JOBS.appointments, care.appointments],
+      [CARE_JOBS.digest, care.digest],
+    ] as const) {
+      queue.work(def.queue, async () => {
+        await run();
+      });
+      void queue.schedule(def.queue, def.cron, { tz: 'Asia/Dhaka' });
+    }
 
     // Caregiver pushes go out from their own queue, so a slow Expo never holds up the ladder.
     const sender =
@@ -158,6 +185,7 @@ export function createDomainHooks() {
     ref.ladder = ladder;
     app.decorate('domain', domain);
     app.decorate('ladder', ladder);
+    app.decorate('careJobs', care);
     void app.register(domainRoutes(domain), { prefix: '/api/v1' });
   }
 

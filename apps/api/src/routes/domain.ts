@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import {
   alertsResponse,
+  tracesResponse,
   circleResponse,
   okResponse,
   changeRoleBody,
@@ -25,6 +26,12 @@ const parse = <T>(schema: z.ZodType<T>, value: unknown): T => {
 };
 
 const secondaryBody = z.object({ linkId: z.string().min(1) });
+const appointmentBody = z.object({
+  title: z.string().min(1).max(100),
+  /** ISO 8601 with an offset, e.g. 2026-11-28T10:30:00+06:00 */
+  dueAt: z.string().min(10).max(40),
+});
+const tracesQuery = z.object({ limit: z.coerce.number().int().optional() });
 const deviceBody = z.object({
   expoPushToken: z.string().min(1).max(200),
   platform: z.string().max(20).optional(),
@@ -122,6 +129,22 @@ export function domainRoutes(domain: DomainService) {
     app.post('/devices', async (req) => {
       const body = parse(deviceBody, req.body);
       return okResponse.parse(await domain.registerDevice(userOf(req), body));
+    });
+
+    // Follow-up appointments, reminded the day before. (Not in packages/shared yet: the shapes
+    // are appointmentBody below and { id, title, dueAt, reminderState } back.)
+    app.post<{ Params: { id: string } }>('/profiles/:id/appointments', async (req, reply) => {
+      const body = parse(appointmentBody, req.body);
+      return reply.code(201).send(await domain.addAppointment(userOf(req), req.params.id, body));
+    });
+    app.get<{ Params: { id: string } }>('/profiles/:id/appointments', async (req) =>
+      domain.listAppointments(userOf(req), req.params.id),
+    );
+
+    // Admin-only agent-trace viewer (the admin flag is checked on the account, and audited).
+    app.get('/admin/traces', async (req) => {
+      const q = parse(tracesQuery, req.query);
+      return tracesResponse.parse(await domain.listTraces(userOf(req), q.limit));
     });
   };
 }

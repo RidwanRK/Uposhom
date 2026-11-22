@@ -34,6 +34,19 @@ of the snooze. A bounced reminder for a critical dose alerts the caregivers at o
 | `POST /doses/:id/acknowledge` | A caregiver saw it: no secondary alert follows.                                                                  |
 | `POST /devices`               | `{ expoPushToken, platform }` after sign-in. Push data: `{ type: 'CAREGIVER_ALERT', doseId, profileId, level }`. |
 
+## Follow-ups, refills and the weekly digest
+
+| Endpoint                                           | Notes                                                                                                                          |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `POST /profiles/:id/appointments { title, dueAt }` | `dueAt` is ISO with an offset, in the future. Answers `201 { id, title, dueAt, reminderState }`. Not in `packages/shared` yet. |
+| `GET /profiles/:id/appointments`                   | `{ appointments: [...] }`, from yesterday on, soonest first.                                                                   |
+
+Jobs, all safe to re-run: refill reminders daily at 09:00 (SMS to the patient and an inbox notice, two days before the pills run out); follow-up reminders within 24 hours of the appointment (SMS and notice, once); the weekly digest on Friday at 20:00 (notice and push to caregivers, not the patient). These notices appear in `GET /alerts` as `REFILL_DUE`, `FOLLOW_UP` and `WEEKLY_DIGEST`.
+
+## Admin agent traces
+
+`GET /admin/traces?limit=` (1 to 200, default 50): admins only, checked on the account, and every read goes to `audit_log`. For workstream C, `app.domain.recordTrace({ channel, rootAgent, inputPreview?, handoffs, toolCalls, durationMs, userId?, profileId? })` writes one row per agent run; the preview is cut to 120 characters and should hold no names or numbers.
+
 ## Family members
 
 | Endpoint                                           | Notes                                                                                              |

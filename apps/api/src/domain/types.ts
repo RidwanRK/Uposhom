@@ -128,6 +128,57 @@ export interface EscalationRecord {
   acknowledgedVia: ActionChannel | null;
 }
 
+export type NoticeType = 'REFILL_DUE' | 'FOLLOW_UP' | 'WEEKLY_DIGEST';
+
+export interface NoticeRecord {
+  id: string;
+  userId: string;
+  profileId: string;
+  type: NoticeType;
+  title: string;
+  body: string;
+  /** Once-only key, e.g. `refill:<item>:<user>`. */
+  ref: string;
+  createdAt: Date;
+  acknowledgedAt: Date | null;
+}
+
+export interface TraceRecord {
+  id: string;
+  userId: string | null;
+  profileId: string | null;
+  /** APP, SMS or VOICE. */
+  channel: string;
+  rootAgent: string;
+  /** Kept short and free of personal data by the writer. */
+  inputPreview: string | null;
+  handoffs: Array<{ from: string; to: string }>;
+  toolCalls: Array<{ name: string; durationMs: number }>;
+  durationMs: number;
+  createdAt: Date;
+}
+
+export interface AuditRecord {
+  actorUserId: string | null;
+  action: string;
+  subjectType: string;
+  subjectId: string;
+  profileId: string | null;
+  detail: Record<string, unknown> | null;
+  at: Date;
+}
+
+export type AppointmentState = 'PENDING' | 'REMINDED' | 'DONE' | 'CANCELLED';
+
+export interface AppointmentRecord {
+  id: string;
+  profileId: string;
+  title: string;
+  dueAt: Date;
+  reminderState: AppointmentState;
+  createdAt: Date;
+}
+
 export interface DeviceRecord {
   id: string;
   userId: string;
@@ -234,6 +285,8 @@ export interface DomainStore {
      * before `now`. Oldest first, at most `limit`.
      */
     listOpen(now: Date, limit: number): Promise<DoseRecord[]>;
+    /** Profiles with at least one dose due in [from, to). For the weekly digest. */
+    profilesWithDoses(from: Date, to: Date): Promise<string[]>;
     /**
      * Compare-and-set for the ladder: applies the patch only if the dose is still at `from` (stage
      * and status), so two workers can never both act on one rung. Null when it had moved on.
@@ -263,6 +316,39 @@ export interface DomainStore {
     acknowledge(doseEventId: string, at: Date, via: ActionChannel): Promise<number>;
     /** Alerts sent to this user since the given time, newest first. */
     listForUser(userId: string, since: Date): Promise<EscalationRecord[]>;
+  };
+  notices: {
+    /** False when a notice with the same ref exists already. */
+    record(row: NoticeRecord): Promise<boolean>;
+    /** Sent to this user since the given time, newest first. */
+    listForUser(userId: string, since: Date): Promise<NoticeRecord[]>;
+  };
+  traces: {
+    /** Written by workstream C's trace logger. */
+    record(row: TraceRecord): Promise<void>;
+    /** Newest first. */
+    list(limit: number): Promise<TraceRecord[]>;
+  };
+  audit: {
+    record(row: AuditRecord): Promise<void>;
+    /** Newest first; for tests and support. */
+    listForActor(actorUserId: string): Promise<AuditRecord[]>;
+  };
+  appointments: {
+    create(row: AppointmentRecord): Promise<void>;
+    /** Upcoming and recent ones for the profile, soonest first. */
+    listForProfile(profileId: string, from: Date): Promise<AppointmentRecord[]>;
+    /** PENDING appointments due in [from, to). */
+    listPendingDue(from: Date, to: Date): Promise<AppointmentRecord[]>;
+    /** Compare-and-set from PENDING. False when another run got there first. */
+    markReminded(id: string): Promise<boolean>;
+  };
+  items: {
+    /** Items of CONFIRMED prescriptions whose refill date falls in [fromDate, toDate] (YYYY-MM-DD). */
+    refillDueBetween(
+      fromDate: string,
+      toDate: string,
+    ): Promise<Array<{ item: PrescriptionItemRecord; profileId: string }>>;
   };
   /** Removes every circle the user owns (and so their profiles and doses) and their links. */
   eraseUser(userId: string): Promise<void>;
