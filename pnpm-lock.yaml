@@ -64,10 +64,10 @@ importers:
         specifier: workspace:*
         version: link:../../packages/applink-client
       '@uposhom/db':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../packages/db
       '@uposhom/schedule-engine':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../packages/schedule-engine
       '@uposhom/shared':
         specifier: workspace:*
