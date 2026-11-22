@@ -1,7 +1,8 @@
 /**
- * Prescription Explainer with Strict Deterministic Numeric Guard
+ * Prescription Explainer with Strict Deterministic Numeric Guard & Curated Drug Info
  *
- * Generates simple, respectful lay-Bangla explanations for confirmed prescriptions.
+ * Generates simple, respectful lay-Bangla explanations for confirmed prescriptions
+ * joined with curated clinical advice from data/drug-info.json.
  *
  * Safety Invariants:
  * 1. AI explanations must NEVER fabricate, alter, or add dosage numbers.
@@ -12,13 +13,41 @@
 
 import { type ConfirmItem } from '@uposhom/shared';
 import { validateAiNumericOutput, type NumericGuardResult } from '../guards/numeric-guard.js';
+import { matchBrand } from '../matching/brand-matcher.js';
 import { createOpenRouterClient } from '../client.js';
 import { AI_CONFIG } from '../config.js';
+import fs from 'node:fs';
+import path from 'node:path';
+
+export interface DrugInfoRecord {
+  generic: string;
+  genericBn: string;
+  therapeuticClass: string;
+  purposeBn: string;
+  instructionsBn: string;
+  precautionsBn: string;
+  sideEffectsBn: string;
+  dietaryAdviceBn: string;
+}
+
+export interface ExplainerItemCard {
+  brandName: string;
+  dosageStrength: string;
+  genericName?: string;
+  purposeBn?: string;
+  patternBn: string;
+  mealBn: string;
+  durationDays: number;
+  precautionsBn?: string;
+  dietaryAdviceBn?: string;
+  isCritical: boolean;
+}
 
 export interface ExplainerOptions {
   apiKey?: string;
   useModel?: boolean;
   customExplanation?: string;
+  includeDrugDetails?: boolean;
 }
 
 export interface PrescriptionExplanationResult {
@@ -26,7 +55,58 @@ export interface PrescriptionExplanationResult {
   guarded: boolean;
   usedFallback: boolean;
   rejectedNumbers?: string[];
+  cards: ExplainerItemCard[];
   guardReport: NumericGuardResult;
+}
+
+let cachedDrugInfo: DrugInfoRecord[] | null = null;
+
+export function loadDrugInfoCatalog(): DrugInfoRecord[] {
+  if (cachedDrugInfo) return cachedDrugInfo;
+  try {
+    const candidatePaths = [
+      path.resolve(process.cwd(), 'data/drug-info.json'),
+      path.resolve(process.cwd(), '../../data/drug-info.json'),
+    ];
+    for (const p of candidatePaths) {
+      if (fs.existsSync(p)) {
+        cachedDrugInfo = JSON.parse(fs.readFileSync(p, 'utf-8'));
+        return cachedDrugInfo!;
+      }
+    }
+  } catch {
+    // fallback
+  }
+  return [];
+}
+
+/**
+ * Retrieves curated clinical drug information for a brand name.
+ */
+export function getDrugInfoForBrand(brandName: string): DrugInfoRecord | null {
+  const brandMatch = matchBrand(brandName);
+  if (!brandMatch.bestMatch) return null;
+
+  const genericName = brandMatch.bestMatch.drug.generic.toLowerCase();
+  const drugInfoList = loadDrugInfoCatalog();
+
+  for (const info of drugInfoList) {
+    if (info.generic.toLowerCase() === genericName) {
+      return info;
+    }
+  }
+
+  // Prefix match
+  for (const info of drugInfoList) {
+    if (
+      info.generic.toLowerCase().startsWith(genericName) ||
+      genericName.startsWith(info.generic.toLowerCase())
+    ) {
+      return info;
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -44,7 +124,7 @@ export function formatPatternInBangla(pattern: string): string {
     case '1+0+0':
       return 'সকালে ১টি';
     case '0+1+0':
-      return 'দুপুরে ১টি';
+      return 'দুপরে ১টি';
     case '½+0+½':
     case '1/2+0+1/2':
       return 'সকালে অর্ধেক (০.৫) ও রাতে অর্ধেক (০.৫)';
@@ -78,33 +158,60 @@ export function formatMealRelationInBangla(relation: string): string {
 }
 
 /**
+ * Builds structured explanation cards joined with curated drug_info.
+ */
+export function buildExplainerItemCards(items: ConfirmItem[]): ExplainerItemCard[] {
+  return items.map((item) => {
+    const info = getDrugInfoForBrand(item.brandName);
+    const patternBn = formatPatternInBangla(item.parsedPattern);
+    const mealBn = formatMealRelationInBangla(item.mealRelation);
+
+    return {
+      brandName: item.brandName,
+      dosageStrength: item.dosageStrength,
+      genericName: info?.generic,
+      purposeBn: info?.purposeBn,
+      patternBn,
+      mealBn,
+      durationDays: item.durationDays,
+      precautionsBn: info?.precautionsBn,
+      dietaryAdviceBn: info?.dietaryAdviceBn,
+      isCritical: item.isCritical,
+    };
+  });
+}
+
+/**
  * Generates a 100% deterministic, zero-hallucination lay-Bangla explanation.
  */
-export function generateDeterministicExplanation(items: ConfirmItem[]): string {
+export function generateDeterministicExplanation(
+  items: ConfirmItem[],
+  cards?: ExplainerItemCard[],
+): string {
   if (items.length === 0) {
     return 'প্রেসক্রিপশনে কোনো ওষুধ তালিকাভুক্ত নেই।';
   }
 
+  const itemCards = cards || buildExplainerItemCards(items);
   const lines: string[] = [
     'আপনার প্রেসক্রিপশনের অনুমোদিত ওষুধসমূহের সেবনবিধি নিচে দেওয়া হলো:\n',
   ];
 
-  items.forEach((item, index) => {
-    const patternBn = formatPatternInBangla(item.parsedPattern);
-    const mealBn = formatMealRelationInBangla(item.mealRelation);
-    const criticalTag = item.isCritical ? ' [জরুরি ওষুধ]' : '';
-
+  itemCards.forEach((card, index) => {
+    const criticalTag = card.isCritical ? ' [জরুরি ওষুধ]' : '';
     lines.push(
-      `${index + 1}. ${item.brandName} (${item.dosageStrength})${criticalTag}:\n` +
-        `   • মাত্রা ও সময়: ${patternBn}\n` +
-        `   • নিয়ম: ${mealBn}\n` +
-        `   • মেয়াদকাল: ${item.durationDays} দিন`,
+      `${index + 1}. ${card.brandName} (${card.dosageStrength})${criticalTag}:\n` +
+        (card.purposeBn ? `   • কাজের ধরন: ${card.purposeBn}\n` : '') +
+        `   • মাত্রা ও সময়: ${card.patternBn}\n` +
+        `   • নিয়ম: ${card.mealBn}\n` +
+        `   • মেয়াদকাল: ${card.durationDays} দিন` +
+        (card.precautionsBn ? `\n   • সতর্কতা: ${card.precautionsBn}` : ''),
     );
   });
 
   lines.push(
-    '\nপরামর্শ:\n' +
-      '• প্রতিটি ওষুধ পর্যাপ্ত পানির সাথে গ্রহণ করুন।\n' +
+    '\nসাধারণ পরামর্শ:\n' +
+      '• প্রতিটি ওষুধ পর্যাপ্ত পরিষ্কার পানির সাথে গ্রহণ করুন।\n' +
       '• কোনো ডোজ বাদ পড়লে মনে পড়ার সাথে সাথে গ্রহণ করুন (তবে পরবর্তী ডোজের সময় কাছাকাছি হলে ডাবল ডোজ খাবেন না)।\n' +
       '• যেকোনো শারীরিক অস্বস্তি বা পরিবর্তনের ক্ষেত্রে অবিলম্বে আপনার চিকিৎসকের পরামর্শ নিন।',
   );
@@ -119,7 +226,8 @@ export async function generatePrescriptionExplanation(
   items: ConfirmItem[],
   options: ExplainerOptions = {},
 ): Promise<PrescriptionExplanationResult> {
-  const deterministicText = generateDeterministicExplanation(items);
+  const cards = buildExplainerItemCards(items);
+  const deterministicText = generateDeterministicExplanation(items, cards);
 
   // If testing custom text or LLM simulation
   if (options.customExplanation) {
@@ -130,6 +238,7 @@ export async function generatePrescriptionExplanation(
         guarded: true,
         usedFallback: true,
         rejectedNumbers: guardReport.rejectedNumbers,
+        cards,
         guardReport,
       };
     }
@@ -137,6 +246,7 @@ export async function generatePrescriptionExplanation(
       explanationBn: options.customExplanation,
       guarded: true,
       usedFallback: false,
+      cards,
       guardReport,
     };
   }
@@ -148,11 +258,14 @@ export async function generatePrescriptionExplanation(
       const client = createOpenRouterClient(apiKey);
       const prompt = `
 Explain this confirmed prescription in polite, lay-Bangla for an elderly patient and caregiver.
+Use the following confirmed items and curated drug details:
+${JSON.stringify(cards, null, 2)}
+
 Rules:
 - DO NOT invent, hallucinate, change, or add any dosage numbers, days, or strengths.
-- ONLY reference numbers that exist in this exact input list:
-${JSON.stringify(items, null, 2)}
-- Keep tone empathetic, clear, and reassuring.
+- ONLY reference numbers that exist in this exact input list.
+- Keep tone empathetic, clear, respectful, and reassuring.
+- Do not provide unconfirmed medical diagnoses or suggest changing doses.
 `.trim();
 
       const response = await client.chat.completions.create({
@@ -169,6 +282,7 @@ ${JSON.stringify(items, null, 2)}
           guarded: true,
           usedFallback: true,
           rejectedNumbers: guardReport.rejectedNumbers,
+          cards,
           guardReport,
         };
       }
@@ -177,6 +291,7 @@ ${JSON.stringify(items, null, 2)}
         explanationBn: aiText,
         guarded: true,
         usedFallback: false,
+        cards,
         guardReport,
       };
     } catch {
@@ -190,6 +305,7 @@ ${JSON.stringify(items, null, 2)}
     explanationBn: deterministicText,
     guarded: true,
     usedFallback: false,
+    cards,
     guardReport,
   };
 }
