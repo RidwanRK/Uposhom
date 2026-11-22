@@ -1,0 +1,115 @@
+{
+  "id": "rx-synth-002",
+  "style": "handwritten",
+  "title": "Hypertension & Type 2 Diabetes Maintenance",
+  "patient": {
+    "name": "Begum Jahanara",
+    "age": 62,
+    "gender": "Female",
+    "diagnosis": "HTN + T2DM"
+  },
+  "doctor": {
+    "name": "Dr. Nusrat Jahan",
+    "degrees": "MBBS, MD (Cardiology)",
+    "bmdcReg": "A-38412",
+    "workplace": "National Institute of Cardiovascular Diseases (NICVD)"
+  },
+  "date": "2026-11-20",
+  "rawText": "NICVD, Sher-e-Bangla Nagar, Dhaka\nDr. Nusrat Jahan, MBBS, MD (Cardio)\nBMDC: A-38412    Dt: 20-11-2026\nPt: Jahanara Begum, 62F, BP: 150/90, RBS: 11.2\n\nRx:\n- Tab. Camlod 5mg\n  1+0+0 BDPC (morning after breakfast) -- 1 month (চলবে)\n- Tab. Comet 500mg\n  1+0+1 BDPC (after meals) -- 1 month\n- Tab. Ecosprin 75mg\n  0+1+0 PC (after lunch) -- 1 month\n- Tab. Atova 10mg\n  0+0+1 PC (night) -- 1 month\n\nAdv: Low salt diet, regular walk 30 mins.",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Camlod",
+      "genericName": "Amlodipine",
+      "strength": "5mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "confidence": 0.88,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Comet",
+      "genericName": "Metformin Hydrochloride",
+      "strength": "500mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "confidence": 0.85,
+      "isCritical": true,
+      "pillCount": 60
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Ecosprin",
+      "genericName": "Aspirin",
+      "strength": "75mg",
+      "form": "Tablet",
+      "pattern": "0+1+0",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "confidence": 0.86,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "tempId": "item-4",
+      "brandName": "Atova",
+      "genericName": "Atorvastatin Calcium",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "0+0+1",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "confidence": 0.84,
+      "isCritical": true,
+      "pillCount": 30
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Camlod",
+      "dosageStrength": "5mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "brandName": "Comet",
+      "dosageStrength": "500mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 60
+    },
+    {
+      "brandName": "Ecosprin",
+      "dosageStrength": "75mg",
+      "form": "Tablet",
+      "parsedPattern": "0+1+0",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "brandName": "Atova",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "0+0+1",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    }
+  ]
+}

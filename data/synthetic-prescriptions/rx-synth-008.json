@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-008",
+  "style": "handwritten",
+  "title": "Osteoarthritis Knee & Lumbar Spondylosis",
+  "patient": {
+    "name": "Mrs. Rokeya Begum",
+    "age": 58,
+    "gender": "Female",
+    "diagnosis": "Bilateral Knee OA"
+  },
+  "doctor": {
+    "name": "Dr. K. M. Mizanur Rahman",
+    "degrees": "MBBS, MS (Ortho)",
+    "bmdcReg": "A-28140",
+    "workplace": "NITOR (Pongu Hospital)"
+  },
+  "date": "2026-11-14",
+  "rawText": "National Institute of Traumatology and Orthopaedic Rehabilitation (NITOR)\nDr. K. M. Mizanur Rahman, MS (Ortho)\nBMDC: A-28140    Date: 14/11/2026\nPt: Rokeya Begum, 58F, Severe bilateral knee pain\n\nRx:\n- Tab. Naprosyn 500mg\n  1+0+1 PC (খাবার পর ভরা পেটে ১ গ্লাস পানিসহ) -- ১০ দিন\n- Cap. Maxpro 20mg\n  1+0+1 AC (খাবার ৩০ মিনিট আগে) -- ১৪ দিন\n- Tab. Coralcal-D\n  0+0+1 PC (রাতে খাবার পর) -- ২ মাস\n\nপরামর্শ: উবু হয়ে বা নিচে বসবেন না। হাই কমোড ব্যবহার করবেন।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Naprosyn",
+      "genericName": "Naproxen Sodium",
+      "strength": "500mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 10,
+      "confidence": 0.87,
+      "isCritical": false,
+      "pillCount": 20
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Maxpro",
+      "genericName": "Esomeprazole",
+      "strength": "20mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "BEFORE_MEAL",
+      "durationDays": 14,
+      "confidence": 0.88,
+      "isCritical": false,
+      "pillCount": 28
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Coralcal-D",
+      "genericName": "Calcium Carbonate + Vitamin D3",
+      "strength": "500mg+200IU",
+      "form": "Tablet",
+      "pattern": "0+0+1",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 60,
+      "confidence": 0.86,
+      "isCritical": false,
+      "pillCount": 60
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Naprosyn",
+      "dosageStrength": "500mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 10,
+      "isCritical": false,
+      "pillCount": 20
+    },
+    {
+      "brandName": "Maxpro",
+      "dosageStrength": "20mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "BEFORE_MEAL",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 28
+    },
+    {
+      "brandName": "Coralcal-D",
+      "dosageStrength": "500mg+200IU",
+      "form": "Tablet",
+      "parsedPattern": "0+0+1",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 60,
+      "isCritical": false,
+      "pillCount": 60
+    }
+  ]
+}

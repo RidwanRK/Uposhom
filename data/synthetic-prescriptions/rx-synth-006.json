@@ -1,0 +1,115 @@
+{
+  "id": "rx-synth-006",
+  "style": "handwritten",
+  "title": "Chronic Kidney Disease Stage 3 & HTN",
+  "patient": {
+    "name": "Abdul Karim",
+    "age": 68,
+    "gender": "Male",
+    "diagnosis": "CKD St 3b + HTN"
+  },
+  "doctor": {
+    "name": "Prof. Dr. Harun-Ur-Rashid",
+    "degrees": "MBBS, PhD (Nephrology)",
+    "bmdcReg": "A-15480",
+    "workplace": "Kidney Foundation Hospital & Institute"
+  },
+  "date": "2026-11-16",
+  "rawText": "Kidney Foundation Hospital & Institute, Mirpur-2\nProf. Dr. Harun-Ur-Rashid, MBBS, PhD\nBMDC: A-15480    Dt: 16/11/2026\nPt: Abdul Karim, 68M, S. Creatinine: 1.85, BP: 160/95\n\nRx:\n- Tab. Osartil 50mg\n  1+0+0 BDPC (morning) -- 1 month (CRITICAL)\n- Tab. Bislol 2.5mg\n  1+0+0 BDPC (morning) -- 1 month (CRITICAL)\n- Tab. Edemin 40mg\n  1+0+0 BDPC (সকালে নাস্তার পর) -- 15 days\n- Tab. Calbo-D\n  0+1+0 PC (lunch) -- 1 month\n\nAdv: Strict protein restriction (0.6g/kg/d). Salt < 3g/day. Follow up with S. Creatinine in 1 month.",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Osartil",
+      "genericName": "Losartan Potassium",
+      "strength": "50mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "confidence": 0.87,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Bislol",
+      "genericName": "Bisoprolol Fumarate",
+      "strength": "2.5mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "confidence": 0.85,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Edemin",
+      "genericName": "Furosemide",
+      "strength": "40mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 15,
+      "confidence": 0.88,
+      "isCritical": true,
+      "pillCount": 15
+    },
+    {
+      "tempId": "item-4",
+      "brandName": "Calbo-D",
+      "genericName": "Calcium Carbonate + Vitamin D3",
+      "strength": "500mg+200IU",
+      "form": "Tablet",
+      "pattern": "0+1+0",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "confidence": 0.89,
+      "isCritical": false,
+      "pillCount": 30
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Osartil",
+      "dosageStrength": "50mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "brandName": "Bislol",
+      "dosageStrength": "2.5mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "brandName": "Edemin",
+      "dosageStrength": "40mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 15,
+      "isCritical": true,
+      "pillCount": 15
+    },
+    {
+      "brandName": "Calbo-D",
+      "dosageStrength": "500mg+200IU",
+      "form": "Tablet",
+      "parsedPattern": "0+1+0",
+      "mealRelation": "AFTER_MEAL",
+      "durationDays": 30,
+      "isCritical": false,
+      "pillCount": 30
+    }
+  ]
+}

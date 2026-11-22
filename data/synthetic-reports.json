@@ -1,0 +1,246 @@
+[
+  {
+    "id": "rep-synth-001",
+    "summary": {
+      "id": "rep-synth-001",
+      "date": "2026-11-15",
+      "center": "Popular Diagnostic Centre Ltd., Dhanmondi Branch, Dhaka",
+      "testType": "Diabetic Profile (Fasting Blood Sugar & HbA1c)",
+      "profileId": "prof-sample-001"
+    },
+    "rawText": "POPULAR DIAGNOSTIC CENTRE LTD.\nHouse #16, Road #2, Dhanmondi R/A, Dhaka-1205\nDEPARTMENT OF BIOCHEMISTRY & MOLECULAR BIOLOGY\nPatient Name: Begum Jahanara    Age: 62 Yrs    Sex: Female    Ref By: Prof. Dr. A. K. M. Shamsuddin\nDate: 15/11/2026    Sample ID: POP-BIO-20261115-0894\n\nTEST NAME                            RESULT       UNIT        REFERENCE RANGE\n-------------------------------------------------------------------------------\nFasting Blood Sugar (FBS)            9.20  (H)    mmol/L      3.9 - 6.1\nHbA1c (Glycated Hemoglobin)          8.40  (H)    %           < 5.7 (Good Control: <7.0)\nEstimated Average Glucose (eAG)      194          mg/dL       -\n\nRemarks: High fasting glucose with suboptimal glycemic control over the past 3 months. Clinical correlation advised.",
+    "detail": {
+      "id": "rep-synth-001",
+      "date": "2026-11-15",
+      "center": "Popular Diagnostic Centre Ltd., Dhanmondi Branch, Dhaka",
+      "testType": "Diabetic Profile (Fasting Blood Sugar & HbA1c)",
+      "profileId": "prof-sample-001",
+      "values": [
+        {
+          "test": "Fasting Blood Sugar (রক্তের গ্লুকোজ - খালি পেটে)",
+          "value": "9.20",
+          "unit": "mmol/L",
+          "printedRange": "3.9 - 6.1 mmol/L",
+          "flag": "HIGH",
+          "explanationBn": "খালি পেটে রক্তের শর্করা স্বাভাবিকের চেয়ে বেশি (৯.২০ mmol/L)। ডায়াবেটিস নিয়ন্ত্রণে ওষুধ ও খাদ্যতালিকা পর্যালোচনার জন্য অবিলম্বে আপনার চিকিৎসকের পরামর্শ নিন।"
+        },
+        {
+          "test": "HbA1c (গ্লাইকেটেড হিমোগ্লোবিন - ৩ মাসের গড় শর্করা)",
+          "value": "8.40",
+          "unit": "%",
+          "printedRange": "< 5.7 %",
+          "flag": "HIGH",
+          "explanationBn": "বিগত ৩ মাসের গড় শর্করার মাত্রা নির্দেশক HbA1c উচ্চ (৮.৪০%) রয়েছে। ডায়াবেটিসজনিত জটিলতা এড়াতে সুনির্দিষ্ট ওষুধের মাত্রা সমন্বয় করতে রেজিস্টার্ড চিকিৎসকের শরণাপন্ন হন।"
+        }
+      ]
+    }
+  },
+  {
+    "id": "rep-synth-002",
+    "summary": {
+      "id": "rep-synth-002",
+      "date": "2026-11-16",
+      "center": "Ibn Sina Diagnostic & Consultation Centre, Mirpur, Dhaka",
+      "testType": "Complete Blood Count (CBC) with ESR",
+      "profileId": "prof-sample-002"
+    },
+    "rawText": "IBN SINA DIAGNOSTIC & CONSULTATION CENTRE\nHouse #48, Road #9/A, Mirpur-1, Dhaka-1216\nDEPARTMENT OF HEMATOLOGY\nPatient Name: Md. Rafiqul Islam    Age: 42 Yrs    Sex: Male    Ref By: Dr. Nusrat Jahan\nDate: 16/11/2026    Bill No: IS-DHK-48291\n\nTEST                                RESULT       UNIT            REFERENCE RANGE\n-------------------------------------------------------------------------------\nHemoglobin (Hb)                     10.2  (L)    g/dL            13.0 - 17.0\nESR (Westergren)                    28    (H)    mm/1st hr       0 - 15\nTotal WBC Count                     8,500        /cumm           4,000 - 11,000\nPlatelet Count                      220,000      /cumm           150,000 - 450,000\nNeutrophils                         62           %               40 - 75\nLymphocytes                         31           %               20 - 45\n\nMorphology: Microcytic hypochromic red blood cells. Suggestive of Iron Deficiency Anemia.",
+    "detail": {
+      "id": "rep-synth-002",
+      "date": "2026-11-16",
+      "center": "Ibn Sina Diagnostic & Consultation Centre, Mirpur, Dhaka",
+      "testType": "Complete Blood Count (CBC) with ESR",
+      "profileId": "prof-sample-002",
+      "values": [
+        {
+          "test": "Hemoglobin (হিমোগ্লোবিন - রক্তকণিকা)",
+          "value": "10.2",
+          "unit": "g/dL",
+          "printedRange": "13.0 - 17.0 g/dL",
+          "flag": "LOW",
+          "explanationBn": "হিমোগ্লোবিনের মাত্রা স্বাভাবিকের চেয়ে কম (১০.২ g/dL), যা মৃদু রক্তস্বল্পতা নির্দেশ করে। আয়রন ঘাটতি দূর করতে সুষম খাদ্য ও চিকিৎসকের পরামর্শ প্রয়োজন।"
+        },
+        {
+          "test": "ESR (ইএসআর - রক্ত থিতানোর হার)",
+          "value": "28",
+          "unit": "mm/1st hr",
+          "printedRange": "0 - 15 mm/1st hr",
+          "flag": "HIGH",
+          "explanationBn": "ইএসআর সামান্য বেশি রয়েছে, যা শরীরে কোনো মৃদু প্রদাহ বা সংক্রমণের ইঙ্গিত দিতে পারে। চিকিৎসকের শরণাপন্ন হয়ে কারণ জেনে নিন।"
+        },
+        {
+          "test": "Total WBC Count (শ্বেত রক্তকণিকা)",
+          "value": "8,500",
+          "unit": "/cumm",
+          "printedRange": "4,000 - 11,000 /cumm",
+          "flag": "NORMAL",
+          "explanationBn": "শরীরের রোগ প্রতিরোধক শ্বেত রক্তকণিকার সংখ্যা স্বাভাবিক মাত্রায় রয়েছে।"
+        },
+        {
+          "test": "Platelet Count (প্লাটিলেট বা অনুচক্রিকা)",
+          "value": "220,000",
+          "unit": "/cumm",
+          "printedRange": "150,000 - 450,000 /cumm",
+          "flag": "NORMAL",
+          "explanationBn": "রক্ত জমাট বাঁধার অনুচক্রিকা বা প্লাটিলেটের পরিমাণ সম্পূর্ণ স্বাভাবিক।"
+        }
+      ]
+    }
+  },
+  {
+    "id": "rep-synth-003",
+    "summary": {
+      "id": "rep-synth-003",
+      "date": "2026-11-17",
+      "center": "Square Hospitals Diagnostic Labs, Panthapath, Dhaka",
+      "testType": "Lipid Profile (Fasting Lipid Panel)",
+      "profileId": "prof-sample-003"
+    },
+    "rawText": "SQUARE HOSPITALS LTD.\n18/F, Bir Uttam Qazi Nuruzzaman Sarak, Panthapath, Dhaka-1205\nCLINICAL BIOCHEMISTRY DIVISION\nPatient Name: Alhaj Nurul Huda    Age: 65 Yrs    Sex: Male    Ref By: Prof. Dr. M. G. Azam\nDate: 17/11/2026    Lab Reg: SHL-LP-99381\n\nTEST                                RESULT       UNIT        DESIRABLE RANGE\n-------------------------------------------------------------------------------\nTotal Cholesterol                   245   (H)    mg/dL       < 200\nTriglycerides                       210   (H)    mg/dL       < 150\nHDL Cholesterol (Good)              34    (L)    mg/dL       > 40\nLDL Cholesterol (Bad)               169   (H)    mg/dL       < 100\nCholesterol / HDL Ratio             7.2   (H)    ratio       < 5.0\n\nRemarks: Atherogenic lipid profile with elevated LDL and Low HDL. Statin therapy & lifestyle modification indicated.",
+    "detail": {
+      "id": "rep-synth-003",
+      "date": "2026-11-17",
+      "center": "Square Hospitals Diagnostic Labs, Panthapath, Dhaka",
+      "testType": "Lipid Profile (Fasting Lipid Panel)",
+      "profileId": "prof-sample-003",
+      "values": [
+        {
+          "test": "Total Cholesterol (মোট কোলেস্টেরল)",
+          "value": "245",
+          "unit": "mg/dL",
+          "printedRange": "< 200 mg/dL",
+          "flag": "HIGH",
+          "explanationBn": "রক্তে মোট কোলেস্টেরল মাত্রা বেশি (২৪৫ mg/dL)। এটি হৃদরোগের ঝুঁকি বাড়াতে পারে। চিকিৎসকের পরামর্শ অনুযায়ী লিপিড নিয়ন্ত্রণকারী ওষুধ ও খাদ্যতালিকা মেনে চলুন।"
+        },
+        {
+          "test": "Triglycerides (ট্রাইগ্লিসারাইড - রক্তের চর্বি)",
+          "value": "210",
+          "unit": "mg/dL",
+          "printedRange": "< 150 mg/dL",
+          "flag": "HIGH",
+          "explanationBn": "ট্রাইগ্লিসারাইডের মাত্রা বেশি (২১০ mg/dL)। তৈলাক্ত ও মিষ্টি খাবার পরিহার করে চিকিৎসকের শরণাপন্ন হন।"
+        },
+        {
+          "test": "HDL Cholesterol (উপকারী ভালো কোলেস্টেরল)",
+          "value": "34",
+          "unit": "mg/dL",
+          "printedRange": "> 40 mg/dL",
+          "flag": "LOW",
+          "explanationBn": "উপকারী চর্বি বা এইচডিএল মাত্রা কম (৩৪ mg/dL)। নিয়মিত হাঁটাচলা ও স্বাস্থ্যকর খাবার গ্রহণে চিকিৎসকের মতামত নিন।"
+        },
+        {
+          "test": "LDL Cholesterol (ক্ষতিকর কোলেস্টেরল)",
+          "value": "169",
+          "unit": "mg/dL",
+          "printedRange": "< 100 mg/dL",
+          "flag": "HIGH",
+          "explanationBn": "ক্ষতিকর চর্বি এলডিএল বেশ উচ্চ (১৬৯ mg/dL)। রক্তনালিতে ব্লকেজের ঝুঁকি কমাতে কার্ডিওলজিস্ট বা চিকিৎসকের ব্যবস্থাপত্র অনুযায়ী স্ট্যাটিন গ্রহণ করুন।"
+        }
+      ]
+    }
+  },
+  {
+    "id": "rep-synth-004",
+    "summary": {
+      "id": "rep-synth-004",
+      "date": "2026-11-18",
+      "center": "Labaid Diagnostic, Gulshan-2, Dhaka",
+      "testType": "Renal Function Test (RFT)",
+      "profileId": "prof-sample-004"
+    },
+    "rawText": "LABAID DIAGNOSTIC\nHouse #13/A, Road #35, Gulshan-2, Dhaka-1212\nDEPARTMENT OF CLINICAL PATHOLOGY\nPatient Name: Abdul Karim    Age: 68 Yrs    Sex: Male    Ref By: Prof. Dr. Harun-Ur-Rashid\nDate: 18/11/2026    Barcode: LAB-RFT-77218\n\nTEST                                RESULT       UNIT        REFERENCE RANGE\n-------------------------------------------------------------------------------\nSerum Creatinine                    1.85  (H)    mg/dL       0.70 - 1.20\nBlood Urea                          54.0  (H)    mg/dL       15.0 - 45.0\neGFR (CKD-EPI Formula)              38.5  (L)    mL/min/1.73m2  > 90\nSerum Uric Acid                     7.8   (H)    mg/dL       3.5 - 7.2\n\nImpression: Consistent with Moderate Renal Impairment (CKD Stage 3b). Strict BP & metabolic control needed.",
+    "detail": {
+      "id": "rep-synth-004",
+      "date": "2026-11-18",
+      "center": "Labaid Diagnostic, Gulshan-2, Dhaka",
+      "testType": "Renal Function Test (RFT)",
+      "profileId": "prof-sample-004",
+      "values": [
+        {
+          "test": "Serum Creatinine (সিরাম ক্রিয়েটিনিন - কিডনি কার্যক্ষমতা)",
+          "value": "1.85",
+          "unit": "mg/dL",
+          "printedRange": "0.70 - 1.20 mg/dL",
+          "flag": "HIGH",
+          "explanationBn": "সিরাম ক্রিয়েটিনিন স্বাভাবিকের চেয়ে বেশি (১.৮৫ mg/dL), যা কিডনির ফিল্ট্রেশন কার্যক্ষমতা হ্রাসের ইঙ্গিত দেয়। জরুরি ভিত্তিতে নেফ্রোলজিস্টের পরামর্শ নিন।"
+        },
+        {
+          "test": "Blood Urea (ব্লাড ইউরিয়া)",
+          "value": "54.0",
+          "unit": "mg/dL",
+          "printedRange": "15.0 - 45.0 mg/dL",
+          "flag": "HIGH",
+          "explanationBn": "রক্তে ইউরিয়ার পরিমাণ বেশি রয়েছে। প্রোটিন নিয়ন্ত্রণ ও পর্যাপ্ত পানি পানের বিষয়ে বিশেষজ্ঞ চিকিৎসকের নির্দেশনা মান্য করুন।"
+        },
+        {
+          "test": "eGFR (আনুমানিক গ্লোমেরুলার ফিল্ট্রেশন রেট)",
+          "value": "38.5",
+          "unit": "mL/min/1.73m2",
+          "printedRange": "> 90 mL/min/1.73m2",
+          "flag": "LOW",
+          "explanationBn": "কিডনির রক্ত ছাঁকার গতি স্বাভাবিকের চেয়ে কম (৩৮.৫ mL/min)। চিকিৎসকের নিবিড় তত্ত্বাবধানে থাকা আবশ্যক।"
+        },
+        {
+          "test": "Serum Uric Acid (সিরাম ইউরিক এসিড)",
+          "value": "7.8",
+          "unit": "mg/dL",
+          "printedRange": "3.5 - 7.2 mg/dL",
+          "flag": "HIGH",
+          "explanationBn": "ইউরিক এসিড মাত্রা বেশি রয়েছে। বাতের ব্যথা বা কিডনি সুরক্ষায় চিকিৎসকের পরামর্শ মতো ওষুধ ও খাদ্য পরিবর্তন করুন।"
+        }
+      ]
+    }
+  },
+  {
+    "id": "rep-synth-005",
+    "summary": {
+      "id": "rep-synth-005",
+      "date": "2026-11-19",
+      "center": "Medinova Medical Services Ltd., Dhanmondi, Dhaka",
+      "testType": "Liver Function Test (LFT)",
+      "profileId": "prof-sample-005"
+    },
+    "rawText": "MEDINOVA MEDICAL SERVICES LTD.\nHouse #71/A, Road #5/A, Dhanmondi, Dhaka-1209\nBIOCHEMICAL INVESTIGATION REPORT\nPatient Name: Sourav Roy    Age: 29 Yrs    Sex: Male    Ref By: Dr. Tanvir Ahmed\nDate: 19/11/2026    Reg No: MDN-LFT-1082\n\nTEST                                RESULT       UNIT        REFERENCE RANGE\n-------------------------------------------------------------------------------\nSerum Bilirubin (Total)             0.90         mg/dL       0.2 - 1.2\nSGPT / ALT                          68.0  (H)    U/L         up to 45\nSGOT / AST                          42.0  (H)    U/L         up to 40\nAlkaline Phosphatase (ALP)          95.0         U/L         40 - 130\nTotal Protein                       7.2          g/dL        6.4 - 8.3\n\nRemarks: Mild elevation of transaminases (SGPT/SGOT), likely related to hepatic steatosis/fatty liver. Gastro review advised.",
+    "detail": {
+      "id": "rep-synth-005",
+      "date": "2026-11-19",
+      "center": "Medinova Medical Services Ltd., Dhanmondi, Dhaka",
+      "testType": "Liver Function Test (LFT)",
+      "profileId": "prof-sample-005",
+      "values": [
+        {
+          "test": "Serum Bilirubin (টোটাল বিলিরুবিন)",
+          "value": "0.90",
+          "unit": "mg/dL",
+          "printedRange": "0.2 - 1.2 mg/dL",
+          "flag": "NORMAL",
+          "explanationBn": "বিলিরুবিনের মাত্রা সম্পূর্ণ স্বাভাবিক রয়েছে, জন্ডিসের কোনো লক্ষণ নেই।"
+        },
+        {
+          "test": "SGPT / ALT (লিভার এনজাইম)",
+          "value": "68.0",
+          "unit": "U/L",
+          "printedRange": "up to 45 U/L",
+          "flag": "HIGH",
+          "explanationBn": "লিভারের এনজাইম এসজিপিটি স্বাভাবিকের চেয়ে কিছুটা বেশি (৬৮ U/L)। ফ্যাটি লিভার বা লিভারের মৃদু প্রদাহ থাকতে পারে। চিকিৎসকের শরণাপন্ন হয়ে সঠিক পরামর্শ গ্রহণ করুন।"
+        },
+        {
+          "test": "SGOT / AST (এসজিওটি এনজাইম)",
+          "value": "42.0",
+          "unit": "U/L",
+          "printedRange": "up to 40 U/L",
+          "flag": "HIGH",
+          "explanationBn": "এসজিওটি সামান্য বেশি রয়েছে। সুষম খাদ্যাভ্যাস বজায় রাখতে ও লিভার সুস্থ রাখতে চিকিৎসকের নির্দেশনা অনুসরণ করুন।"
+        },
+        {
+          "test": "Alkaline Phosphatase (অ্যালকালাইন ফসফেটেজ)",
+          "value": "95.0",
+          "unit": "U/L",
+          "printedRange": "40 - 130 U/L",
+          "flag": "NORMAL",
+          "explanationBn": "পিত্তনালি ও লিভারের অ্যালকালাইন ফসফেটেজ মাত্রা স্বাভাবিক।"
+        }
+      ]
+    }
+  }
+]

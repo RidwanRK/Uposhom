@@ -1,0 +1,46 @@
+{
+  "id": "rx-synth-011",
+  "style": "printed",
+  "title": "Primary Hypothyroidism",
+  "patient": {
+    "name": "Rehana Parveen",
+    "age": 38,
+    "gender": "Female",
+    "diagnosis": "Primary Hypothyroidism"
+  },
+  "doctor": {
+    "name": "Dr. Shahjada Selim",
+    "degrees": "MBBS, MD (Endocrinology)",
+    "bmdcReg": "A-32118",
+    "workplace": "BSMMU, Dhaka"
+  },
+  "date": "2026-11-10",
+  "rawText": "BANGABANDHU SHEIKH MUJIB MEDICAL UNIVERSITY\nDepartment of Endocrinology, Shahbag, Dhaka\nDr. Shahjada Selim, MBBS, MD (Endocrinology)\nBMDC: A-32118    Date: 10/11/2026\nPatient: Rehana Parveen, 38Y/F, TSH: 8.9 uIU/mL\n\nRx:\n1. Tab. Thyrox 50mcg (Levothyroxine Sodium)\n   ১+০+০ (সকালে ঘুম থেকে উঠে খালি পেটে অন্তত ৩০ মিনিট পূর্বে ১ গ্লাস পানিসহ) -- ২ মাস\n\nপরামর্শ:\n- ওষুধ খাওয়ার অন্তত ৩০ মিনিট পর সকালের নাস্তা বা চা খাবেন।\n- ২ মাস পর পুনরায় TSH ও FT4 টেস্ট করিয়ে দেখা করবেন।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Thyrox",
+      "genericName": "Levothyroxine Sodium",
+      "strength": "50mcg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "EMPTY_STOMACH",
+      "durationDays": 60,
+      "confidence": 0.96,
+      "isCritical": true,
+      "pillCount": 60
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Thyrox",
+      "dosageStrength": "50mcg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "EMPTY_STOMACH",
+      "durationDays": 60,
+      "isCritical": true,
+      "pillCount": 60
+    }
+  ]
+}

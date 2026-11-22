@@ -1,0 +1,69 @@
+{
+  "id": "rx-synth-003",
+  "style": "printed",
+  "title": "GERD & Non-Ulcer Dyspepsia",
+  "patient": {
+    "name": "Sourav Roy",
+    "age": 29,
+    "gender": "Male",
+    "diagnosis": "GERD with Acid Reflux"
+  },
+  "doctor": {
+    "name": "Dr. Tanvir Ahmed",
+    "degrees": "MBBS, MD (Gastroenterology)",
+    "bmdcReg": "A-44120",
+    "workplace": "Dhaka Medical College Hospital"
+  },
+  "date": "2026-11-19",
+  "rawText": "DHAKA MEDICAL COLLEGE HOSPITAL\nGastroenterology OPD\nDr. Tanvir Ahmed, MBBS, MD (Gastro)\nBMDC: A-44120    Date: 19/11/2026\nPatient: Sourav Roy, 29Y/M\n\nPrescription:\n1. Tab. Sergel 20mg (Esomeprazole)\n   ১+০+১ (খাবার ৩০ মিনিট আগে) -- ১৪ দিন\n2. Tab. Motigut 10mg (Domperidone)\n   ১+১+১ (খাবার ১৫ মিনিট আগে) -- ১০ দিন\n3. Syp. Entacyd Plus\n   ২ চামচ করে দিনে ৩ বার (খাওয়ার ১ ঘণ্টা পর) -- ৭ দিন\n\nউপদেশ:\n- তেল ও ঝাল খাবার এড়িয়ে চলুন।\n- রাতের খাবার খাওয়ার অন্তত ২ ঘণ্টা পর ঘুমাতে যাবেন।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Sergel",
+      "genericName": "Esomeprazole",
+      "strength": "20mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "BEFORE_MEAL",
+      "durationDays": 14,
+      "confidence": 0.95,
+      "isCritical": false,
+      "pillCount": 28
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Motigut",
+      "genericName": "Domperidone",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "1+1+1",
+      "mealRelation": "BEFORE_MEAL",
+      "durationDays": 10,
+      "confidence": 0.94,
+      "isCritical": false,
+      "pillCount": 30
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Sergel",
+      "dosageStrength": "20mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "BEFORE_MEAL",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 28
+    },
+    {
+      "brandName": "Motigut",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "1+1+1",
+      "mealRelation": "BEFORE_MEAL",
+      "durationDays": 10,
+      "isCritical": false,
+      "pillCount": 30
+    }
+  ]
+}

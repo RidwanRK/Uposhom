@@ -1,0 +1,1405 @@
+[
+  {
+    "id": "rx-synth-001",
+    "style": "printed",
+    "title": "Acute Viral Pharyngitis & Fever",
+    "patient": {
+      "name": "Md. Rafiqul Islam",
+      "age": 42,
+      "gender": "Male",
+      "diagnosis": "Acute Pharyngitis & Fever"
+    },
+    "doctor": {
+      "name": "Prof. Dr. A. K. M. Shamsuddin",
+      "degrees": "MBBS, FCPS (Medicine)",
+      "bmdcReg": "A-21940",
+      "workplace": "BSMMU, Dhaka"
+    },
+    "date": "2026-11-20",
+    "rawText": "BANGABANDHU SHEIKH MUJIB MEDICAL UNIVERSITY (BSMMU)\nDepartment of Internal Medicine, Shahbag, Dhaka\nDoctor: Prof. Dr. A. K. M. Shamsuddin, MBBS, FCPS\nBMDC Reg. No: A-21940    Date: 20/11/2026\nPatient: Md. Rafiqul Islam, 42Y/M\n\nRx:\n1. Tab. Napa Extend 665mg\n   ১+০+১ (ভরা পেটে) -- ৫ দিন\n2. Tab. Fexo 120mg\n   ০+০+১ (রাতে খাবার পর) -- ৭ দিন\n3. Cap. Seclo 20mg\n   ১+০+১ (খাবার ৩০ মিনিট পূর্বে) -- ১৪ দিন\n\nAdvice:\n- Drink warm water with honey.\n- Gargle with warm salt water 3 times daily.",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Napa Extend",
+        "genericName": "Paracetamol",
+        "strength": "665mg",
+        "form": "Tablet",
+        "pattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 5,
+        "confidence": 0.96,
+        "isCritical": false,
+        "pillCount": 10
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Fexo",
+        "genericName": "Fexofenadine Hydrochloride",
+        "strength": "120mg",
+        "form": "Tablet",
+        "pattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 7,
+        "confidence": 0.94,
+        "isCritical": false,
+        "pillCount": 7
+      },
+      {
+        "tempId": "item-3",
+        "brandName": "Seclo",
+        "genericName": "Omeprazole",
+        "strength": "20mg",
+        "form": "Capsule",
+        "pattern": "1+0+1",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 14,
+        "confidence": 0.95,
+        "isCritical": false,
+        "pillCount": 28
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Napa Extend",
+        "dosageStrength": "665mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 5,
+        "isCritical": false,
+        "pillCount": 10
+      },
+      {
+        "brandName": "Fexo",
+        "dosageStrength": "120mg",
+        "form": "Tablet",
+        "parsedPattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 7,
+        "isCritical": false,
+        "pillCount": 7
+      },
+      {
+        "brandName": "Seclo",
+        "dosageStrength": "20mg",
+        "form": "Capsule",
+        "parsedPattern": "1+0+1",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 14,
+        "isCritical": false,
+        "pillCount": 28
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-002",
+    "style": "handwritten",
+    "title": "Hypertension & Type 2 Diabetes Maintenance",
+    "patient": {
+      "name": "Begum Jahanara",
+      "age": 62,
+      "gender": "Female",
+      "diagnosis": "HTN + T2DM"
+    },
+    "doctor": {
+      "name": "Dr. Nusrat Jahan",
+      "degrees": "MBBS, MD (Cardiology)",
+      "bmdcReg": "A-38412",
+      "workplace": "National Institute of Cardiovascular Diseases (NICVD)"
+    },
+    "date": "2026-11-20",
+    "rawText": "NICVD, Sher-e-Bangla Nagar, Dhaka\nDr. Nusrat Jahan, MBBS, MD (Cardio)\nBMDC: A-38412    Dt: 20-11-2026\nPt: Jahanara Begum, 62F, BP: 150/90, RBS: 11.2\n\nRx:\n- Tab. Camlod 5mg\n  1+0+0 BDPC (morning after breakfast) -- 1 month (চলবে)\n- Tab. Comet 500mg\n  1+0+1 BDPC (after meals) -- 1 month\n- Tab. Ecosprin 75mg\n  0+1+0 PC (after lunch) -- 1 month\n- Tab. Atova 10mg\n  0+0+1 PC (night) -- 1 month\n\nAdv: Low salt diet, regular walk 30 mins.",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Camlod",
+        "genericName": "Amlodipine",
+        "strength": "5mg",
+        "form": "Tablet",
+        "pattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "confidence": 0.88,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Comet",
+        "genericName": "Metformin Hydrochloride",
+        "strength": "500mg",
+        "form": "Tablet",
+        "pattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "confidence": 0.85,
+        "isCritical": true,
+        "pillCount": 60
+      },
+      {
+        "tempId": "item-3",
+        "brandName": "Ecosprin",
+        "genericName": "Aspirin",
+        "strength": "75mg",
+        "form": "Tablet",
+        "pattern": "0+1+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "confidence": 0.86,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "tempId": "item-4",
+        "brandName": "Atova",
+        "genericName": "Atorvastatin Calcium",
+        "strength": "10mg",
+        "form": "Tablet",
+        "pattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "confidence": 0.84,
+        "isCritical": true,
+        "pillCount": 30
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Camlod",
+        "dosageStrength": "5mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "brandName": "Comet",
+        "dosageStrength": "500mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "isCritical": true,
+        "pillCount": 60
+      },
+      {
+        "brandName": "Ecosprin",
+        "dosageStrength": "75mg",
+        "form": "Tablet",
+        "parsedPattern": "0+1+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "brandName": "Atova",
+        "dosageStrength": "10mg",
+        "form": "Tablet",
+        "parsedPattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "isCritical": true,
+        "pillCount": 30
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-003",
+    "style": "printed",
+    "title": "GERD & Non-Ulcer Dyspepsia",
+    "patient": {
+      "name": "Sourav Roy",
+      "age": 29,
+      "gender": "Male",
+      "diagnosis": "GERD with Acid Reflux"
+    },
+    "doctor": {
+      "name": "Dr. Tanvir Ahmed",
+      "degrees": "MBBS, MD (Gastroenterology)",
+      "bmdcReg": "A-44120",
+      "workplace": "Dhaka Medical College Hospital"
+    },
+    "date": "2026-11-19",
+    "rawText": "DHAKA MEDICAL COLLEGE HOSPITAL\nGastroenterology OPD\nDr. Tanvir Ahmed, MBBS, MD (Gastro)\nBMDC: A-44120    Date: 19/11/2026\nPatient: Sourav Roy, 29Y/M\n\nPrescription:\n1. Tab. Sergel 20mg (Esomeprazole)\n   ১+০+১ (খাবার ৩০ মিনিট আগে) -- ১৪ দিন\n2. Tab. Motigut 10mg (Domperidone)\n   ১+১+১ (খাবার ১৫ মিনিট আগে) -- ১০ দিন\n3. Syp. Entacyd Plus\n   ২ চামচ করে দিনে ৩ বার (খাওয়ার ১ ঘণ্টা পর) -- ৭ দিন\n\nউপদেশ:\n- তেল ও ঝাল খাবার এড়িয়ে চলুন।\n- রাতের খাবার খাওয়ার অন্তত ২ ঘণ্টা পর ঘুমাতে যাবেন।",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Sergel",
+        "genericName": "Esomeprazole",
+        "strength": "20mg",
+        "form": "Tablet",
+        "pattern": "1+0+1",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 14,
+        "confidence": 0.95,
+        "isCritical": false,
+        "pillCount": 28
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Motigut",
+        "genericName": "Domperidone",
+        "strength": "10mg",
+        "form": "Tablet",
+        "pattern": "1+1+1",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 10,
+        "confidence": 0.94,
+        "isCritical": false,
+        "pillCount": 30
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Sergel",
+        "dosageStrength": "20mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+1",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 14,
+        "isCritical": false,
+        "pillCount": 28
+      },
+      {
+        "brandName": "Motigut",
+        "dosageStrength": "10mg",
+        "form": "Tablet",
+        "parsedPattern": "1+1+1",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 10,
+        "isCritical": false,
+        "pillCount": 30
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-004",
+    "style": "handwritten",
+    "title": "Acute Bacterial Sinusitis / Chest Infection",
+    "patient": {
+      "name": "Anisur Rahman",
+      "age": 35,
+      "gender": "Male",
+      "diagnosis": "Acute Bacterial Sinusitis"
+    },
+    "doctor": {
+      "name": "Dr. Md. Faruk Hossain",
+      "degrees": "MBBS, DLO (ENT)",
+      "bmdcReg": "A-31295",
+      "workplace": "Sir Salimullah Medical College & Mitford Hospital"
+    },
+    "date": "2026-11-18",
+    "rawText": "SSMC & Mitford Hospital\nDr. Md. Faruk Hossain, MBBS, DLO (ENT)\nBMDC: A-31295    Date: 18/11/26\nPt: Anisur Rahman, 35M, C/O: Fever, facial headache, purulent discharge 4 days\n\nRx:\n- Tab. Zithrox 500mg\n  1+0+0 AC (খাওয়ার ১ ঘণ্টা আগে) -- ৫ দিন (পুরো কোর্স শেষ করবেন)\n- Tab. Napa 500mg\n  1+1+1 PC (জ্বর বা ব্যথা থাকলে) -- ৫ দিন\n- Tab. Monas 10mg\n  0+0+1 PC (রাতে শোয়ার আগে) -- ১৪ দিন\n\nAdv: Steam inhalation 2-3 times daily.",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Zithrox",
+        "genericName": "Azithromycin",
+        "strength": "500mg",
+        "form": "Tablet",
+        "pattern": "1+0+0",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 5,
+        "confidence": 0.86,
+        "isCritical": true,
+        "pillCount": 5
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Napa",
+        "genericName": "Paracetamol",
+        "strength": "500mg",
+        "form": "Tablet",
+        "pattern": "1+1+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 5,
+        "confidence": 0.89,
+        "isCritical": false,
+        "pillCount": 15
+      },
+      {
+        "tempId": "item-3",
+        "brandName": "Monas",
+        "genericName": "Montelukast Sodium",
+        "strength": "10mg",
+        "form": "Tablet",
+        "pattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 14,
+        "confidence": 0.85,
+        "isCritical": false,
+        "pillCount": 14
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Zithrox",
+        "dosageStrength": "500mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 5,
+        "isCritical": true,
+        "pillCount": 5
+      },
+      {
+        "brandName": "Napa",
+        "dosageStrength": "500mg",
+        "form": "Tablet",
+        "parsedPattern": "1+1+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 5,
+        "isCritical": false,
+        "pillCount": 15
+      },
+      {
+        "brandName": "Monas",
+        "dosageStrength": "10mg",
+        "form": "Tablet",
+        "parsedPattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 14,
+        "isCritical": false,
+        "pillCount": 14
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-005",
+    "style": "printed",
+    "title": "Pediatric Upper Respiratory Tract Infection",
+    "patient": {
+      "name": "Master Ayan Khan",
+      "age": 5,
+      "gender": "Male",
+      "diagnosis": "Viral URI & Rhinorrhea"
+    },
+    "doctor": {
+      "name": "Dr. Shirin Akhter",
+      "degrees": "MBBS, DCH, FCPS (Paediatrics)",
+      "bmdcReg": "A-29402",
+      "workplace": "Dhaka Shishu Hospital"
+    },
+    "date": "2026-11-17",
+    "rawText": "DHAKA SHISHU (CHILDREN) HOSPITAL\nDepartment of Paediatric Medicine\nDr. Shirin Akhter, MBBS, FCPS\nBMDC: A-29402    Date: 17/11/2026\nPatient: Ayan Khan, 5Y/M, Wt: 18 kg\n\nRx:\n1. Syp. Ace 120mg/5ml\n   ১ চামচ করে দিনে ৩ বার (১+১+১) জ্বর থাকলে -- ৩ দিন\n2. Syp. Fenadin 30mg/5ml\n   ১/২ চামচ করে দিনে ২ বার (১/২+০+১/২) -- ৫ দিন\n3. Nasal Drop Normal Saline\n   ১ ফোঁটা করে উভয় নাকে দিনে ৩ বার -- ৫ দিন\n\nপরামর্শ:\n- বাচ্চাকে বেশি করে তরল খাবার দিন।\n- জ্বর ১০২° এর বেশি হলে মাথায় পানি ঢালুন।",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Ace Syrup",
+        "genericName": "Paracetamol",
+        "strength": "120mg/5ml",
+        "form": "Syrup",
+        "pattern": "1+1+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 3,
+        "confidence": 0.94,
+        "isCritical": false,
+        "pillCount": 1
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Fenadin Syrup",
+        "genericName": "Fexofenadine Hydrochloride",
+        "strength": "30mg/5ml",
+        "form": "Syrup",
+        "pattern": "½+0+½",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 5,
+        "confidence": 0.92,
+        "isCritical": false,
+        "pillCount": 1
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Ace Syrup",
+        "dosageStrength": "120mg/5ml",
+        "form": "Syrup",
+        "parsedPattern": "1+1+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 3,
+        "isCritical": false,
+        "pillCount": 1
+      },
+      {
+        "brandName": "Fenadin Syrup",
+        "dosageStrength": "30mg/5ml",
+        "form": "Syrup",
+        "parsedPattern": "½+0+½",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 5,
+        "isCritical": false,
+        "pillCount": 1
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-006",
+    "style": "handwritten",
+    "title": "Chronic Kidney Disease Stage 3 & HTN",
+    "patient": {
+      "name": "Abdul Karim",
+      "age": 68,
+      "gender": "Male",
+      "diagnosis": "CKD St 3b + HTN"
+    },
+    "doctor": {
+      "name": "Prof. Dr. Harun-Ur-Rashid",
+      "degrees": "MBBS, PhD (Nephrology)",
+      "bmdcReg": "A-15480",
+      "workplace": "Kidney Foundation Hospital & Institute"
+    },
+    "date": "2026-11-16",
+    "rawText": "Kidney Foundation Hospital & Institute, Mirpur-2\nProf. Dr. Harun-Ur-Rashid, MBBS, PhD\nBMDC: A-15480    Dt: 16/11/2026\nPt: Abdul Karim, 68M, S. Creatinine: 1.85, BP: 160/95\n\nRx:\n- Tab. Osartil 50mg\n  1+0+0 BDPC (morning) -- 1 month (CRITICAL)\n- Tab. Bislol 2.5mg\n  1+0+0 BDPC (morning) -- 1 month (CRITICAL)\n- Tab. Edemin 40mg\n  1+0+0 BDPC (সকালে নাস্তার পর) -- 15 days\n- Tab. Calbo-D\n  0+1+0 PC (lunch) -- 1 month\n\nAdv: Strict protein restriction (0.6g/kg/d). Salt < 3g/day. Follow up with S. Creatinine in 1 month.",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Osartil",
+        "genericName": "Losartan Potassium",
+        "strength": "50mg",
+        "form": "Tablet",
+        "pattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "confidence": 0.87,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Bislol",
+        "genericName": "Bisoprolol Fumarate",
+        "strength": "2.5mg",
+        "form": "Tablet",
+        "pattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "confidence": 0.85,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "tempId": "item-3",
+        "brandName": "Edemin",
+        "genericName": "Furosemide",
+        "strength": "40mg",
+        "form": "Tablet",
+        "pattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 15,
+        "confidence": 0.88,
+        "isCritical": true,
+        "pillCount": 15
+      },
+      {
+        "tempId": "item-4",
+        "brandName": "Calbo-D",
+        "genericName": "Calcium Carbonate + Vitamin D3",
+        "strength": "500mg+200IU",
+        "form": "Tablet",
+        "pattern": "0+1+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "confidence": 0.89,
+        "isCritical": false,
+        "pillCount": 30
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Osartil",
+        "dosageStrength": "50mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "brandName": "Bislol",
+        "dosageStrength": "2.5mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "brandName": "Edemin",
+        "dosageStrength": "40mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 15,
+        "isCritical": true,
+        "pillCount": 15
+      },
+      {
+        "brandName": "Calbo-D",
+        "dosageStrength": "500mg+200IU",
+        "form": "Tablet",
+        "parsedPattern": "0+1+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "isCritical": false,
+        "pillCount": 30
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-007",
+    "style": "printed",
+    "title": "Adult Bronchial Asthma",
+    "patient": {
+      "name": "Selina Begum",
+      "age": 48,
+      "gender": "Female",
+      "diagnosis": "Moderate Persistent Asthma"
+    },
+    "doctor": {
+      "name": "Dr. Masud Parvez",
+      "degrees": "MBBS, DTCD, MD (Chest Diseases)",
+      "bmdcReg": "A-33510",
+      "workplace": "National Institute of Diseases of the Chest & Hospital (NIDCH)"
+    },
+    "date": "2026-11-15",
+    "rawText": "NATIONAL INSTITUTE OF DISEASES OF THE CHEST & HOSPITAL (NIDCH)\nMohakhali, Dhaka-1212\nDr. Masud Parvez, MBBS, DTCD, MD (Chest)\nBMDC: A-33510    Date: 15/11/2026\nPatient: Selina Begum, 48Y/F\n\nPrescription:\n1. Respihaler 100mcg (Salbutamol Inhaler)\n   ২ পাফ করে দিনে ৩ বার (শ্বাসকষ্টের সময় প্রয়োজনে) -- ১ মাস\n2. Tab. Provair 10mg (Montelukast)\n   ০+০+১ (রাতে খাবার পর) -- ১ মাস\n3. Tab. Bilasten 20mg (Bilastine)\n   ১+০+০ (সকালে খালি পেটে) -- ১৪ দিন\n\nনির্দেশনা:\n- ইনহেলার ব্যবহারের পর ভালো করে মুখ কুলি করবেন।\n- ধুলোবালি, ঠান্ডা বাতাস ও অ্যালার্জি উদ্রেককারী পরিবেশ এড়িয়ে চলুন।",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Respihaler",
+        "genericName": "Salbutamol",
+        "strength": "100mcg/puff",
+        "form": "Inhaler",
+        "pattern": "1+1+1",
+        "mealRelation": "NO_RELATION",
+        "durationDays": 30,
+        "confidence": 0.95,
+        "isCritical": true,
+        "pillCount": 1
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Provair",
+        "genericName": "Montelukast Sodium",
+        "strength": "10mg",
+        "form": "Tablet",
+        "pattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "confidence": 0.94,
+        "isCritical": false,
+        "pillCount": 30
+      },
+      {
+        "tempId": "item-3",
+        "brandName": "Bilasten",
+        "genericName": "Bilastine",
+        "strength": "20mg",
+        "form": "Tablet",
+        "pattern": "1+0+0",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 14,
+        "confidence": 0.93,
+        "isCritical": false,
+        "pillCount": 14
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Respihaler",
+        "dosageStrength": "100mcg/puff",
+        "form": "Inhaler",
+        "parsedPattern": "1+1+1",
+        "mealRelation": "NO_RELATION",
+        "durationDays": 30,
+        "isCritical": true,
+        "pillCount": 1
+      },
+      {
+        "brandName": "Provair",
+        "dosageStrength": "10mg",
+        "form": "Tablet",
+        "parsedPattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "isCritical": false,
+        "pillCount": 30
+      },
+      {
+        "brandName": "Bilasten",
+        "dosageStrength": "20mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 14,
+        "isCritical": false,
+        "pillCount": 14
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-008",
+    "style": "handwritten",
+    "title": "Osteoarthritis Knee & Lumbar Spondylosis",
+    "patient": {
+      "name": "Mrs. Rokeya Begum",
+      "age": 58,
+      "gender": "Female",
+      "diagnosis": "Bilateral Knee OA"
+    },
+    "doctor": {
+      "name": "Dr. K. M. Mizanur Rahman",
+      "degrees": "MBBS, MS (Ortho)",
+      "bmdcReg": "A-28140",
+      "workplace": "NITOR (Pongu Hospital)"
+    },
+    "date": "2026-11-14",
+    "rawText": "National Institute of Traumatology and Orthopaedic Rehabilitation (NITOR)\nDr. K. M. Mizanur Rahman, MS (Ortho)\nBMDC: A-28140    Date: 14/11/2026\nPt: Rokeya Begum, 58F, Severe bilateral knee pain\n\nRx:\n- Tab. Naprosyn 500mg\n  1+0+1 PC (খাবার পর ভরা পেটে ১ গ্লাস পানিসহ) -- ১০ দিন\n- Cap. Maxpro 20mg\n  1+0+1 AC (খাবার ৩০ মিনিট আগে) -- ১৪ দিন\n- Tab. Coralcal-D\n  0+0+1 PC (রাতে খাবার পর) -- ২ মাস\n\nপরামর্শ: উবু হয়ে বা নিচে বসবেন না। হাই কমোড ব্যবহার করবেন।",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Naprosyn",
+        "genericName": "Naproxen Sodium",
+        "strength": "500mg",
+        "form": "Tablet",
+        "pattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 10,
+        "confidence": 0.87,
+        "isCritical": false,
+        "pillCount": 20
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Maxpro",
+        "genericName": "Esomeprazole",
+        "strength": "20mg",
+        "form": "Tablet",
+        "pattern": "1+0+1",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 14,
+        "confidence": 0.88,
+        "isCritical": false,
+        "pillCount": 28
+      },
+      {
+        "tempId": "item-3",
+        "brandName": "Coralcal-D",
+        "genericName": "Calcium Carbonate + Vitamin D3",
+        "strength": "500mg+200IU",
+        "form": "Tablet",
+        "pattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 60,
+        "confidence": 0.86,
+        "isCritical": false,
+        "pillCount": 60
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Naprosyn",
+        "dosageStrength": "500mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 10,
+        "isCritical": false,
+        "pillCount": 20
+      },
+      {
+        "brandName": "Maxpro",
+        "dosageStrength": "20mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+1",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 14,
+        "isCritical": false,
+        "pillCount": 28
+      },
+      {
+        "brandName": "Coralcal-D",
+        "dosageStrength": "500mg+200IU",
+        "form": "Tablet",
+        "parsedPattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 60,
+        "isCritical": false,
+        "pillCount": 60
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-009",
+    "style": "printed",
+    "title": "Acute Uncomplicated Urinary Tract Infection (UTI)",
+    "patient": {
+      "name": "Tasnim Fatima",
+      "age": 26,
+      "gender": "Female",
+      "diagnosis": "Acute Cystitis / UTI"
+    },
+    "doctor": {
+      "name": "Dr. Fahmida Sultana",
+      "degrees": "MBBS, FCPS (Gynae & Obs)",
+      "bmdcReg": "A-39915",
+      "workplace": "Dhaka Medical College Hospital"
+    },
+    "date": "2026-11-13",
+    "rawText": "DHAKA MEDICAL COLLEGE HOSPITAL\nDepartment of Obstetrics & Gynaecology\nDr. Fahmida Sultana, MBBS, FCPS\nBMDC: A-39915    Date: 13/11/2026\nPatient: Tasnim Fatima, 26Y/F, Dysuria & frequency\n\nRx:\n1. Tab. Ciprocin 500mg (Ciprofloxacin)\n   ১+০+১ (ভরা পেটে) -- ৭ দিন (কোর্স সম্পন্ন করুন)\n2. Tab. Urispas 200mg (Flavoxate)\n   ১+১+১ (খাবার পর) -- ৫ দিন\n3. Tab. Napa 500mg\n   ১+১+১ (ব্যথা হলে) -- ৩ দিন\n\nউপদেশ:\n- প্রতিদিন অন্তত ৩-৪ লিটার বিশুদ্ধ পানি পান করুন।\n- প্রস্রাব আটকে রাখবেন না।",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Ciprocin",
+        "genericName": "Ciprofloxacin",
+        "strength": "500mg",
+        "form": "Tablet",
+        "pattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 7,
+        "confidence": 0.95,
+        "isCritical": true,
+        "pillCount": 14
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Urispas",
+        "genericName": "Flavoxate Hydrochloride",
+        "strength": "200mg",
+        "form": "Tablet",
+        "pattern": "1+1+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 5,
+        "confidence": 0.93,
+        "isCritical": false,
+        "pillCount": 15
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Ciprocin",
+        "dosageStrength": "500mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 7,
+        "isCritical": true,
+        "pillCount": 14
+      },
+      {
+        "brandName": "Urispas",
+        "dosageStrength": "200mg",
+        "form": "Tablet",
+        "parsedPattern": "1+1+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 5,
+        "isCritical": false,
+        "pillCount": 15
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-010",
+    "style": "handwritten",
+    "title": "Post-PCI / Ischemic Heart Disease Secondary Prevention",
+    "patient": {
+      "name": "Alhaj Nurul Huda",
+      "age": 65,
+      "gender": "Male",
+      "diagnosis": "Post-PCI to LAD Stent"
+    },
+    "doctor": {
+      "name": "Prof. Dr. M. G. Azam",
+      "degrees": "MBBS, FCPS, MD, FACC",
+      "bmdcReg": "A-18230",
+      "workplace": "National Heart Foundation Hospital & Research Institute"
+    },
+    "date": "2026-11-12",
+    "rawText": "National Heart Foundation, Mirpur-2, Dhaka\nProf. Dr. M. G. Azam, MBBS, FCPS, MD, FACC\nBMDC: A-18230    Date: 12/11/2026\nPt: Nurul Huda, 65M, S/P PCI with DES to LAD (2 months ago)\n\nRx:\n- Tab. Plagrin 75mg\n  0+1+0 PC (lunch) -- 3 months (DO NOT STOP)\n- Tab. Solprin 75mg\n  1+0+0 PC (breakfast) -- 3 months (DO NOT STOP)\n- Tab. Bisocor 2.5mg\n  1+0+0 BDPC (morning) -- 3 months\n- Tab. Rostar 10mg\n  0+0+1 PC (night) -- 3 months\n- Cap. Losectil 20mg\n  1+0+0 AC (morning before food) -- 1 month\n\nAdv: Regular ECG and Lipid Profile in 3 months.",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Plagrin",
+        "genericName": "Clopidogrel Bisulfate",
+        "strength": "75mg",
+        "form": "Tablet",
+        "pattern": "0+1+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 90,
+        "confidence": 0.88,
+        "isCritical": true,
+        "pillCount": 90
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Solprin",
+        "genericName": "Aspirin",
+        "strength": "75mg",
+        "form": "Tablet",
+        "pattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 90,
+        "confidence": 0.86,
+        "isCritical": true,
+        "pillCount": 90
+      },
+      {
+        "tempId": "item-3",
+        "brandName": "Bisocor",
+        "genericName": "Bisoprolol Fumarate",
+        "strength": "2.5mg",
+        "form": "Tablet",
+        "pattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 90,
+        "confidence": 0.87,
+        "isCritical": true,
+        "pillCount": 90
+      },
+      {
+        "tempId": "item-4",
+        "brandName": "Rostar",
+        "genericName": "Rosuvastatin Calcium",
+        "strength": "10mg",
+        "form": "Tablet",
+        "pattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 90,
+        "confidence": 0.85,
+        "isCritical": true,
+        "pillCount": 90
+      },
+      {
+        "tempId": "item-5",
+        "brandName": "Losectil",
+        "genericName": "Omeprazole",
+        "strength": "20mg",
+        "form": "Capsule",
+        "pattern": "1+0+0",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 30,
+        "confidence": 0.89,
+        "isCritical": false,
+        "pillCount": 30
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Plagrin",
+        "dosageStrength": "75mg",
+        "form": "Tablet",
+        "parsedPattern": "0+1+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 90,
+        "isCritical": true,
+        "pillCount": 90
+      },
+      {
+        "brandName": "Solprin",
+        "dosageStrength": "75mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 90,
+        "isCritical": true,
+        "pillCount": 90
+      },
+      {
+        "brandName": "Bisocor",
+        "dosageStrength": "2.5mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 90,
+        "isCritical": true,
+        "pillCount": 90
+      },
+      {
+        "brandName": "Rostar",
+        "dosageStrength": "10mg",
+        "form": "Tablet",
+        "parsedPattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 90,
+        "isCritical": true,
+        "pillCount": 90
+      },
+      {
+        "brandName": "Losectil",
+        "dosageStrength": "20mg",
+        "form": "Capsule",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 30,
+        "isCritical": false,
+        "pillCount": 30
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-011",
+    "style": "printed",
+    "title": "Primary Hypothyroidism",
+    "patient": {
+      "name": "Rehana Parveen",
+      "age": 38,
+      "gender": "Female",
+      "diagnosis": "Primary Hypothyroidism"
+    },
+    "doctor": {
+      "name": "Dr. Shahjada Selim",
+      "degrees": "MBBS, MD (Endocrinology)",
+      "bmdcReg": "A-32118",
+      "workplace": "BSMMU, Dhaka"
+    },
+    "date": "2026-11-10",
+    "rawText": "BANGABANDHU SHEIKH MUJIB MEDICAL UNIVERSITY\nDepartment of Endocrinology, Shahbag, Dhaka\nDr. Shahjada Selim, MBBS, MD (Endocrinology)\nBMDC: A-32118    Date: 10/11/2026\nPatient: Rehana Parveen, 38Y/F, TSH: 8.9 uIU/mL\n\nRx:\n1. Tab. Thyrox 50mcg (Levothyroxine Sodium)\n   ১+০+০ (সকালে ঘুম থেকে উঠে খালি পেটে অন্তত ৩০ মিনিট পূর্বে ১ গ্লাস পানিসহ) -- ২ মাস\n\nপরামর্শ:\n- ওষুধ খাওয়ার অন্তত ৩০ মিনিট পর সকালের নাস্তা বা চা খাবেন।\n- ২ মাস পর পুনরায় TSH ও FT4 টেস্ট করিয়ে দেখা করবেন।",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Thyrox",
+        "genericName": "Levothyroxine Sodium",
+        "strength": "50mcg",
+        "form": "Tablet",
+        "pattern": "1+0+0",
+        "mealRelation": "EMPTY_STOMACH",
+        "durationDays": 60,
+        "confidence": 0.96,
+        "isCritical": true,
+        "pillCount": 60
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Thyrox",
+        "dosageStrength": "50mcg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "EMPTY_STOMACH",
+        "durationDays": 60,
+        "isCritical": true,
+        "pillCount": 60
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-012",
+    "style": "handwritten",
+    "title": "Post-Extraction Dental Infection & Pain",
+    "patient": {
+      "name": "Suman Chowdhury",
+      "age": 31,
+      "gender": "Male",
+      "diagnosis": "Post-Dental Extraction"
+    },
+    "doctor": {
+      "name": "Dr. Asif Iqbal",
+      "degrees": "BDS, FCPS (Oral & Maxillofacial)",
+      "bmdcReg": "D-4102",
+      "workplace": "Dhaka Dental College & Hospital"
+    },
+    "date": "2026-11-08",
+    "rawText": "Dhaka Dental College & Hospital, Mirpur-14\nDr. Asif Iqbal, BDS, FCPS\nBMDC: D-4102    Date: 08/11/2026\nPt: Suman Chowdhury, 31M, S/P molar extraction\n\nRx:\n- Cap. Triocim 200mg\n  1+0+1 PC (খাবার পর) -- ৫ দিন (কোর্স শেষ করবেন)\n- Tab. Torax 10mg\n  1+0+1 PC (তীব্র ব্যথা হলে) -- ৩ দিন\n- Tab. Trupan 20mg\n  1+0+1 AC (খাবার পূর্বে) -- ৭ দিন\n\nAdv: Avoid hot liquids for 24h. Warm salt water rinse from tomorrow.",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Triocim",
+        "genericName": "Cefixime",
+        "strength": "200mg",
+        "form": "Capsule",
+        "pattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 5,
+        "confidence": 0.88,
+        "isCritical": true,
+        "pillCount": 10
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Torax",
+        "genericName": "Ketorolac Tromethamine",
+        "strength": "10mg",
+        "form": "Tablet",
+        "pattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 3,
+        "confidence": 0.86,
+        "isCritical": false,
+        "pillCount": 6
+      },
+      {
+        "tempId": "item-3",
+        "brandName": "Trupan",
+        "genericName": "Pantoprazole",
+        "strength": "20mg",
+        "form": "Tablet",
+        "pattern": "1+0+1",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 7,
+        "confidence": 0.87,
+        "isCritical": false,
+        "pillCount": 14
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Triocim",
+        "dosageStrength": "200mg",
+        "form": "Capsule",
+        "parsedPattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 5,
+        "isCritical": true,
+        "pillCount": 10
+      },
+      {
+        "brandName": "Torax",
+        "dosageStrength": "10mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 3,
+        "isCritical": false,
+        "pillCount": 6
+      },
+      {
+        "brandName": "Trupan",
+        "dosageStrength": "20mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+1",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 7,
+        "isCritical": false,
+        "pillCount": 14
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-013",
+    "style": "printed",
+    "title": "Type 2 Diabetes & Diabetic Nephropathy",
+    "patient": {
+      "name": "Syed Golam Kibria",
+      "age": 59,
+      "gender": "Male",
+      "diagnosis": "T2DM + Microalbuminuria"
+    },
+    "doctor": {
+      "name": "Prof. Dr. Faruque Pathan",
+      "degrees": "MBBS, MD (Endo)",
+      "bmdcReg": "A-16782",
+      "workplace": "BIRDEM General Hospital"
+    },
+    "date": "2026-11-05",
+    "rawText": "BIRDEM GENERAL HOSPITAL\nDepartment of Endocrinology & Metabolism, Shahbag, Dhaka\nProf. Dr. Faruque Pathan, MBBS, MD\nBMDC: A-16782    Date: 05/11/2026\nPatient: Syed Golam Kibria, 59Y/M, HbA1c: 7.9%\n\nRx:\n1. Tab. Daomet 500mg (Metformin)\n   ১+০+১ (ভরা পেটে) -- ১ মাস\n2. Tab. Comprid 80mg (Gliclazide)\n   ১+০+০ (সকালের নাস্তার ২০ মিনিট পূর্বে) -- ১ মাস\n3. Tab. Angilock 50mg (Losartan)\n   ১+০+০ (সকালে নাস্তার পর) -- ১ মাস\n4. Tab. Lipicon 10mg (Atorvastatin)\n   ০+০+১ (রাতে খাবার পর) -- ১ মাস\n5. Cap. Nexum 20mg (Esomeprazole)\n   ১+০+০ (সকালে খালি পেটে) -- ১ মাস\n\nপরামর্শ: চিনি ও মিষ্টি সম্পূর্ণ বর্জন করুন। প্রতিদিন ৪৫ মিনিট হাঁটবেন।",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Daomet",
+        "genericName": "Metformin Hydrochloride",
+        "strength": "500mg",
+        "form": "Tablet",
+        "pattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "confidence": 0.95,
+        "isCritical": true,
+        "pillCount": 60
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Comprid",
+        "genericName": "Gliclazide",
+        "strength": "80mg",
+        "form": "Tablet",
+        "pattern": "1+0+0",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 30,
+        "confidence": 0.94,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "tempId": "item-3",
+        "brandName": "Angilock",
+        "genericName": "Losartan Potassium",
+        "strength": "50mg",
+        "form": "Tablet",
+        "pattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "confidence": 0.95,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "tempId": "item-4",
+        "brandName": "Lipicon",
+        "genericName": "Atorvastatin Calcium",
+        "strength": "10mg",
+        "form": "Tablet",
+        "pattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "confidence": 0.94,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "tempId": "item-5",
+        "brandName": "Nexum",
+        "genericName": "Esomeprazole",
+        "strength": "20mg",
+        "form": "Tablet",
+        "pattern": "1+0+0",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 30,
+        "confidence": 0.93,
+        "isCritical": false,
+        "pillCount": 30
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Daomet",
+        "dosageStrength": "500mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "isCritical": true,
+        "pillCount": 60
+      },
+      {
+        "brandName": "Comprid",
+        "dosageStrength": "80mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 30,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "brandName": "Angilock",
+        "dosageStrength": "50mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "brandName": "Lipicon",
+        "dosageStrength": "10mg",
+        "form": "Tablet",
+        "parsedPattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 30,
+        "isCritical": true,
+        "pillCount": 30
+      },
+      {
+        "brandName": "Nexum",
+        "dosageStrength": "20mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 30,
+        "isCritical": false,
+        "pillCount": 30
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-014",
+    "style": "handwritten",
+    "title": "Acute Gastroenteritis & Food Poisoning",
+    "patient": {
+      "name": "Tariqul Hassan",
+      "age": 24,
+      "gender": "Male",
+      "diagnosis": "Acute Gastroenteritis"
+    },
+    "doctor": {
+      "name": "Dr. M. A. Kashem",
+      "degrees": "MBBS, CCD",
+      "bmdcReg": "A-36201",
+      "workplace": "Popular Medical College Hospital"
+    },
+    "date": "2026-11-03",
+    "rawText": "Popular Medical College Hospital, Dhanmondi\nDr. M. A. Kashem, MBBS, CCD\nBMDC: A-36201    Date: 03/11/2026\nPt: Tariqul Hassan, 24M, Loose motions 6 times, vomiting 3 times\n\nRx:\n- Tab. Neofloxin 500mg\n  1+0+1 PC -- ৫ দিন (কোর্স শেষ করবেন)\n- Sachet ORSaline-N\n  প্রতিবার পাতলা পায়খানার পর ১ গ্লাস (২৫০-৫০০ মিলি) তৈরি করে খাবেন -- ৩ দিন\n- Tab. Omidon 10mg\n  1+1+1 AC (বমি বমি ভাব থাকলে) -- ৩ দিন\n- Tab. Baby Zinc 20mg\n  1+0+0 PC -- ১০ দিন\n\nAdv: ডাবের পানি ও রাইস স্যালাইন খেতে পারেন। তেল ও মসলাযুক্ত খাবার বাদ দিন।",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Neofloxin",
+        "genericName": "Ciprofloxacin",
+        "strength": "500mg",
+        "form": "Tablet",
+        "pattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 5,
+        "confidence": 0.88,
+        "isCritical": true,
+        "pillCount": 10
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Omidon",
+        "genericName": "Domperidone",
+        "strength": "10mg",
+        "form": "Tablet",
+        "pattern": "1+1+1",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 3,
+        "confidence": 0.89,
+        "isCritical": false,
+        "pillCount": 9
+      },
+      {
+        "tempId": "item-3",
+        "brandName": "Baby Zinc",
+        "genericName": "Zinc Sulfate Monohydrate",
+        "strength": "20mg",
+        "form": "Tablet",
+        "pattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 10,
+        "confidence": 0.87,
+        "isCritical": false,
+        "pillCount": 10
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Neofloxin",
+        "dosageStrength": "500mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 5,
+        "isCritical": true,
+        "pillCount": 10
+      },
+      {
+        "brandName": "Omidon",
+        "dosageStrength": "10mg",
+        "form": "Tablet",
+        "parsedPattern": "1+1+1",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 3,
+        "isCritical": false,
+        "pillCount": 9
+      },
+      {
+        "brandName": "Baby Zinc",
+        "dosageStrength": "20mg",
+        "form": "Tablet",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 10,
+        "isCritical": false,
+        "pillCount": 10
+      }
+    ]
+  },
+  {
+    "id": "rx-synth-015",
+    "style": "printed",
+    "title": "Allergic Rhinitis & Atopic Dermatitis",
+    "patient": {
+      "name": "Nazia Mehzabin",
+      "age": 22,
+      "gender": "Female",
+      "diagnosis": "Allergic Rhinitis"
+    },
+    "doctor": {
+      "name": "Dr. Lubna Khondker",
+      "degrees": "MBBS, DDV, FCPS (Dermatology)",
+      "bmdcReg": "A-27845",
+      "workplace": "BSMMU, Dhaka"
+    },
+    "date": "2026-11-01",
+    "rawText": "BANGABANDHU SHEIKH MUJIB MEDICAL UNIVERSITY\nDepartment of Dermatology & Venereology\nDr. Lubna Khondker, MBBS, DDV, FCPS\nBMDC: A-27845    Date: 01/11/2026\nPatient: Nazia Mehzabin, 22Y/F, Sneezing, itchy eyes & skin rash\n\nRx:\n1. Tab. Rino 120mg (Fexofenadine)\n   ০+০+১ (রাতে খাবার পর) -- ১৪ দিন\n2. Tab. Monas 10mg (Montelukast)\n   ০+০+১ (রাতে খাবার পর) -- ১৪ দিন\n3. Cap. Seclo 20mg\n   ১+০+০ (সকালে খালি পেটে) -- ১৪ দিন\n\nপরামর্শ: ঠান্ডা জল, আইসক্রিম ও ধুলাবালি থেকে দূরে থাকুন।",
+    "extractedItems": [
+      {
+        "tempId": "item-1",
+        "brandName": "Rino",
+        "genericName": "Fexofenadine Hydrochloride",
+        "strength": "120mg",
+        "form": "Tablet",
+        "pattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 14,
+        "confidence": 0.95,
+        "isCritical": false,
+        "pillCount": 14
+      },
+      {
+        "tempId": "item-2",
+        "brandName": "Monas",
+        "genericName": "Montelukast Sodium",
+        "strength": "10mg",
+        "form": "Tablet",
+        "pattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 14,
+        "confidence": 0.94,
+        "isCritical": false,
+        "pillCount": 14
+      },
+      {
+        "tempId": "item-3",
+        "brandName": "Seclo",
+        "genericName": "Omeprazole",
+        "strength": "20mg",
+        "form": "Capsule",
+        "pattern": "1+0+0",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 14,
+        "confidence": 0.96,
+        "isCritical": false,
+        "pillCount": 14
+      }
+    ],
+    "confirmedItems": [
+      {
+        "brandName": "Rino",
+        "dosageStrength": "120mg",
+        "form": "Tablet",
+        "parsedPattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 14,
+        "isCritical": false,
+        "pillCount": 14
+      },
+      {
+        "brandName": "Monas",
+        "dosageStrength": "10mg",
+        "form": "Tablet",
+        "parsedPattern": "0+0+1",
+        "mealRelation": "AFTER_MEAL",
+        "durationDays": 14,
+        "isCritical": false,
+        "pillCount": 14
+      },
+      {
+        "brandName": "Seclo",
+        "dosageStrength": "20mg",
+        "form": "Capsule",
+        "parsedPattern": "1+0+0",
+        "mealRelation": "BEFORE_MEAL",
+        "durationDays": 14,
+        "isCritical": false,
+        "pillCount": 14
+      }
+    ]
+  }
+]
