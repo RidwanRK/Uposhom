@@ -23,6 +23,7 @@ export * from './agents/schedule-agent.js';
 export * from './agents/generic-agent.js';
 export * from './agents/symptom-agent.js';
 export * from './agents/triage-agent.js';
+export * from './agents/router.js';
 
 // Vision & Document Intake
 export * from './vision/ocr-extract.js';

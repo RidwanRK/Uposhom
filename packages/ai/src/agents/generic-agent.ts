@@ -13,6 +13,7 @@ import { Agent, tool } from '@openai/agents';
 import { z } from 'zod';
 import { createOpenRouterAgentModel } from '../client.js';
 import type { GenericsResponse, DrugBrand } from '@uposhom/shared';
+import { matchBrand } from '../matching/brand-matcher.js';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -60,15 +61,32 @@ export function findGenericAlternatives(brandQuery: string): GenericsResponse | 
   const drugs = loadDgdaDrugs();
   const q = brandQuery.toLowerCase().trim();
 
-  // Find original brand (match on nameEn, nameBn, or bnAliases)
-  const original = drugs.find((d) => {
-    return (
-      d.nameEn.toLowerCase() === q ||
-      d.nameEn.toLowerCase().startsWith(q) ||
-      d.nameBn.includes(q) ||
-      d.bnAliases.some((alias) => alias.toLowerCase().includes(q))
-    );
-  });
+  // Try bilingual trigram & phonetic matcher first
+  const matchResult = matchBrand(q, drugs);
+  let original: DgdaDrugRecord | undefined = matchResult.bestMatch?.drug;
+
+  // If no direct match, try stripping query noise words (e.g. "বিকল্প", "medicine", etc.)
+  if (!original) {
+    const cleaned = q
+      .replace(/(বিকল্প|কি|কী|এর|medicine|tablet|tablets|alternative|please|bikalpo|koto|dam)/gi, '')
+      .trim();
+    if (cleaned && cleaned !== q) {
+      const cleanMatch = matchBrand(cleaned, drugs);
+      original = cleanMatch.bestMatch?.drug;
+    }
+  }
+
+  // Fallback to substring / alias match
+  if (!original) {
+    original = drugs.find((d) => {
+      return (
+        d.nameEn.toLowerCase() === q ||
+        d.nameEn.toLowerCase().startsWith(q) ||
+        d.nameBn.includes(q) ||
+        d.bnAliases.some((alias) => alias.toLowerCase().includes(q))
+      );
+    });
+  }
 
   if (!original) return null;
 
