@@ -94,7 +94,7 @@ export async function runTriageRouter(
 
   // Step 2: Classify Inbound Intent
   const classification = classifyInboundIntent(inputMessage);
-  let reply = '';
+  let reply: string;
   let finalAgent = classification.targetAgent;
 
   if (classification.intent === 'SCHEDULE') {

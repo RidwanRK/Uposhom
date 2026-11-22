@@ -10,7 +10,7 @@
  * - Numeric Guard: Validates that any AI-generated explanation does not fabricate unauthorized numbers.
  */
 
-import { type ReportDetail, type ReportValue } from '@uposhom/shared';
+import { type ReportDetail } from '@uposhom/shared';
 import { findGlossaryEntry, determineRangeFlag } from '../vision/report-vault.js';
 import { extractNumbers, type NumericGuardResult } from '../guards/numeric-guard.js';
 
@@ -159,7 +159,7 @@ export function explainDiagnosticReport(
 
     const isAbnormal = flag === 'HIGH' || flag === 'LOW';
 
-    let guidanceBn = '';
+    let guidanceBn: string;
     if (flag === 'HIGH') {
       guidanceBn = `স্বাভাবিক মাত্রার চেয়ে বেশি (${val.value} ${val.unit}, স্বাভাবিক রেফারেন্স সীমা: ${val.printedRange})। ফলাফল পর্যালোচনার জন্য চিকিৎসকের পরামর্শ নিন।`;
     } else if (flag === 'LOW') {
@@ -191,7 +191,7 @@ export function explainDiagnosticReport(
   const normalCount = normalItems.length;
 
   // Build deterministic safe explanation template
-  let deterministicSummary = '';
+  let deterministicSummary: string;
   if (abnormalCount > 0) {
     const abnormalNames = [...highFlaggedItems, ...lowFlaggedItems].map((i) => i.test);
     const normalNote = normalCount > 0 ? ` অপর ${normalCount} টি সূচক স্বাভাবিক রয়েছে।` : '';
