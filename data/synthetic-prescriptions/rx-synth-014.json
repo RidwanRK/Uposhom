@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-014",
+  "style": "handwritten",
+  "title": "Acute Gastroenteritis & Food Poisoning",
+  "patient": {
+    "name": "Tariqul Hassan",
+    "age": 24,
+    "gender": "Male",
+    "diagnosis": "Acute Gastroenteritis"
+  },
+  "doctor": {
+    "name": "Dr. M. A. Kashem",
+    "degrees": "MBBS, CCD",
+    "bmdcReg": "A-36201",
+    "workplace": "Popular Medical College Hospital"
+  },
+  "date": "2026-11-03",
+  "rawText": "Popular Medical College Hospital, Dhanmondi\nDr. M. A. Kashem, MBBS, CCD\nBMDC: A-36201    Date: 03/11/2026\nPt: Tariqul Hassan, 24M, Loose motions 6 times, vomiting 3 times\n\nRx:\n- Tab. Neofloxin 500mg\n  1+0+1 PC -- ৫ দিন (কোর্স শেষ করবেন)\n- Sachet ORSaline-N\n  প্রতিবার পাতলা পায়খানার পর ১ গ্লাস (২৫০-৫০০ মিলি) তৈরি করে খাবেন -- ৩ দিন\n- Tab. Omidon 10mg\n  1+1+1 AC (বমি বমি ভাব থাকলে) -- ৩ দিন\n- Tab. Baby Zinc 20mg\n  1+0+0 PC -- ১০ দিন\n\nAdv: ডাবের পানি ও রাইস স্যালাইন খেতে পারেন। তেল ও মসলাযুক্ত খাবার বাদ দিন।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Neofloxin",
+      "genericName": "Ciprofloxacin",
+      "strength": "500mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "confidence": 0.88,
+      "isCritical": true,
+      "pillCount": 10
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Omidon",
+      "genericName": "Domperidone",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "1+1+1",
+      "mealRelation": "AC",
+      "durationDays": 3,
+      "confidence": 0.89,
+      "isCritical": false,
+      "pillCount": 9
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Baby Zinc",
+      "genericName": "Zinc Sulfate Monohydrate",
+      "strength": "20mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "PC",
+      "durationDays": 10,
+      "confidence": 0.87,
+      "isCritical": false,
+      "pillCount": 10
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Neofloxin",
+      "dosageStrength": "500mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "isCritical": true,
+      "pillCount": 10
+    },
+    {
+      "brandName": "Omidon",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "1+1+1",
+      "mealRelation": "AC",
+      "durationDays": 3,
+      "isCritical": false,
+      "pillCount": 9
+    },
+    {
+      "brandName": "Baby Zinc",
+      "dosageStrength": "20mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "PC",
+      "durationDays": 10,
+      "isCritical": false,
+      "pillCount": 10
+    }
+  ]
+}

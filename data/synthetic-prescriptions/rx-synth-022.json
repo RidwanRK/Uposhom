@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-022",
+  "style": "printed",
+  "title": "Severe Acute Migraine & Nausea",
+  "patient": {
+    "name": "Tania Sultana",
+    "age": 28,
+    "gender": "Female",
+    "diagnosis": "Migraine with Persistent Nausea"
+  },
+  "doctor": {
+    "name": "Dr. Ashraful Islam",
+    "degrees": "MBBS, MD (Medicine)",
+    "bmdcReg": "A-37820",
+    "workplace": "United Hospital, Gulshan"
+  },
+  "date": "2026-11-14",
+  "rawText": "UNITED HOSPITAL LTD.\nPlot 15, Road 71, Gulshan-2, Dhaka\nDr. Ashraful Islam, MBBS, MD\nBMDC: A-37820    Date: 14/11/2026\nPatient: Tania Sultana, 28Y/F\n\nRx:\n1. Tab. Emistat 8mg (Ondansetron)\n   ১+০+১ (খাবার ৩০ মিনিট আগে AC) -- ৩ দিন\n2. Tab. Naprosyn 500mg (Naproxen)\n   ১+০+১ (ভরা পেটে PC) -- ৫ দিন\n3. Cap. Nexum 20mg (Esomeprazole)\n   ১+০+০ (সকালে খালি পেটে AC) -- ১৪ দিন\n\nনির্দেশনা:\n- পরিমিত ঘুম ও পর্যাপ্ত পানি নিশ্চিত করুন।\n- একটানা মোবাইল বা কম্পিউটার স্ক্রিনের দিকে তাকাবেন না।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Emistat",
+      "genericName": "Ondansetron",
+      "strength": "8mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 3,
+      "confidence": 0.95,
+      "isCritical": false,
+      "pillCount": 6
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Naprosyn",
+      "genericName": "Naproxen Sodium",
+      "strength": "500mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "confidence": 0.94,
+      "isCritical": false,
+      "pillCount": 10
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Nexum",
+      "genericName": "Esomeprazole",
+      "strength": "20mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "confidence": 0.96,
+      "isCritical": false,
+      "pillCount": 14
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Emistat",
+      "dosageStrength": "8mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 3,
+      "isCritical": false,
+      "pillCount": 6
+    },
+    {
+      "brandName": "Naprosyn",
+      "dosageStrength": "500mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "isCritical": false,
+      "pillCount": 10
+    },
+    {
+      "brandName": "Nexum",
+      "dosageStrength": "20mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 14
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-004",
+  "style": "handwritten",
+  "title": "Acute Bacterial Sinusitis / Chest Infection",
+  "patient": {
+    "name": "Anisur Rahman",
+    "age": 35,
+    "gender": "Male",
+    "diagnosis": "Acute Bacterial Sinusitis"
+  },
+  "doctor": {
+    "name": "Dr. Md. Faruk Hossain",
+    "degrees": "MBBS, DLO (ENT)",
+    "bmdcReg": "A-31295",
+    "workplace": "Sir Salimullah Medical College & Mitford Hospital"
+  },
+  "date": "2026-11-18",
+  "rawText": "SSMC & Mitford Hospital\nDr. Md. Faruk Hossain, MBBS, DLO (ENT)\nBMDC: A-31295    Date: 18/11/26\nPt: Anisur Rahman, 35M, C/O: Fever, facial headache, purulent discharge 4 days\n\nRx:\n- Tab. Zithrox 500mg\n  1+0+0 AC (খাওয়ার ১ ঘণ্টা আগে) -- ৫ দিন (পুরো কোর্স শেষ করবেন)\n- Tab. Napa 500mg\n  1+1+1 PC (জ্বর বা ব্যথা থাকলে) -- ৫ দিন\n- Tab. Monas 10mg\n  0+0+1 PC (রাতে শোয়ার আগে) -- ১৪ দিন\n\nAdv: Steam inhalation 2-3 times daily.",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Zithrox",
+      "genericName": "Azithromycin",
+      "strength": "500mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 5,
+      "confidence": 0.86,
+      "isCritical": true,
+      "pillCount": 5
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Napa",
+      "genericName": "Paracetamol",
+      "strength": "500mg",
+      "form": "Tablet",
+      "pattern": "1+1+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "confidence": 0.89,
+      "isCritical": false,
+      "pillCount": 15
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Monas",
+      "genericName": "Montelukast Sodium",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 14,
+      "confidence": 0.85,
+      "isCritical": false,
+      "pillCount": 14
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Zithrox",
+      "dosageStrength": "500mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 5,
+      "isCritical": true,
+      "pillCount": 5
+    },
+    {
+      "brandName": "Napa",
+      "dosageStrength": "500mg",
+      "form": "Tablet",
+      "parsedPattern": "1+1+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "isCritical": false,
+      "pillCount": 15
+    },
+    {
+      "brandName": "Monas",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 14
+    }
+  ]
+}

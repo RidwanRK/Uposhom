@@ -1,0 +1,138 @@
+{
+  "id": "rx-synth-013",
+  "style": "printed",
+  "title": "Type 2 Diabetes & Diabetic Nephropathy",
+  "patient": {
+    "name": "Syed Golam Kibria",
+    "age": 59,
+    "gender": "Male",
+    "diagnosis": "T2DM + Microalbuminuria"
+  },
+  "doctor": {
+    "name": "Prof. Dr. Faruque Pathan",
+    "degrees": "MBBS, MD (Endo)",
+    "bmdcReg": "A-16782",
+    "workplace": "BIRDEM General Hospital"
+  },
+  "date": "2026-11-05",
+  "rawText": "BIRDEM GENERAL HOSPITAL\nDepartment of Endocrinology & Metabolism, Shahbag, Dhaka\nProf. Dr. Faruque Pathan, MBBS, MD\nBMDC: A-16782    Date: 05/11/2026\nPatient: Syed Golam Kibria, 59Y/M, HbA1c: 7.9%\n\nRx:\n1. Tab. Daomet 500mg (Metformin)\n   ১+০+১ (ভরা পেটে) -- ১ মাস\n2. Tab. Comprid 80mg (Gliclazide)\n   ১+০+০ (সকালের নাস্তার ২০ মিনিট পূর্বে) -- ১ মাস\n3. Tab. Angilock 50mg (Losartan)\n   ১+০+০ (সকালে নাস্তার পর) -- ১ মাস\n4. Tab. Lipicon 10mg (Atorvastatin)\n   ০+০+১ (রাতে খাবার পর) -- ১ মাস\n5. Cap. Nexum 20mg (Esomeprazole)\n   ১+০+০ (সকালে খালি পেটে) -- ১ মাস\n\nপরামর্শ: চিনি ও মিষ্টি সম্পূর্ণ বর্জন করুন। প্রতিদিন ৪৫ মিনিট হাঁটবেন।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Daomet",
+      "genericName": "Metformin Hydrochloride",
+      "strength": "500mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.95,
+      "isCritical": true,
+      "pillCount": 60
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Comprid",
+      "genericName": "Gliclazide",
+      "strength": "80mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 30,
+      "confidence": 0.94,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Angilock",
+      "genericName": "Losartan Potassium",
+      "strength": "50mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.95,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "tempId": "item-4",
+      "brandName": "Lipicon",
+      "genericName": "Atorvastatin Calcium",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.94,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "tempId": "item-5",
+      "brandName": "Nexum",
+      "genericName": "Esomeprazole",
+      "strength": "20mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 30,
+      "confidence": 0.93,
+      "isCritical": false,
+      "pillCount": 30
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Daomet",
+      "dosageStrength": "500mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 60
+    },
+    {
+      "brandName": "Comprid",
+      "dosageStrength": "80mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "brandName": "Angilock",
+      "dosageStrength": "50mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "brandName": "Lipicon",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "brandName": "Nexum",
+      "dosageStrength": "20mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 30,
+      "isCritical": false,
+      "pillCount": 30
+    }
+  ]
+}

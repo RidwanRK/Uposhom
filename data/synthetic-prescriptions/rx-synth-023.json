@@ -1,0 +1,69 @@
+{
+  "id": "rx-synth-023",
+  "style": "handwritten",
+  "title": "Severe Chronic Amoebiasis & Intestinal Spasm",
+  "patient": {
+    "name": "Zakir Hossain",
+    "age": 39,
+    "gender": "Male",
+    "diagnosis": "Amoebic Colitis"
+  },
+  "doctor": {
+    "name": "Dr. M. N. Huda",
+    "degrees": "MBBS, DTM&H, FCPS",
+    "bmdcReg": "A-22190",
+    "workplace": "Mymensingh Medical College Hospital"
+  },
+  "date": "2026-11-13",
+  "rawText": "MMCH Medicine Ward\nDr. M. N. Huda, MBBS, FCPS\nBMDC: A-22190    Date: 13/11/2026\nPt: Zakir Hossain, 39M, Pain abdomen with mucus stool\n\nRx:\n- Tab. Filmet 400mg (Metronidazole)\n  1+1+1 TDS PC (ভরা পেটে) -- ৭ দিন (কোর্স শেষ করবেন) (CRITICAL)\n- Tab. Motigut 10mg\n  1+1+1 AC -- ৫ দিন\n- Sachet ORSaline-N\n  প্রতিবার পাতলা মলত্যাগের পর ১ গ্লাস -- ৩ দিন\n\nAdv: Boil drinking water properly. Wash hands before eating.",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Filmet",
+      "genericName": "Metronidazole",
+      "strength": "400mg",
+      "form": "Tablet",
+      "pattern": "1+1+1",
+      "mealRelation": "PC",
+      "durationDays": 7,
+      "confidence": 0.88,
+      "isCritical": true,
+      "pillCount": 21
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Motigut",
+      "genericName": "Domperidone",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "1+1+1",
+      "mealRelation": "AC",
+      "durationDays": 5,
+      "confidence": 0.89,
+      "isCritical": false,
+      "pillCount": 15
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Filmet",
+      "dosageStrength": "400mg",
+      "form": "Tablet",
+      "parsedPattern": "1+1+1",
+      "mealRelation": "PC",
+      "durationDays": 7,
+      "isCritical": true,
+      "pillCount": 21
+    },
+    {
+      "brandName": "Motigut",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "1+1+1",
+      "mealRelation": "AC",
+      "durationDays": 5,
+      "isCritical": false,
+      "pillCount": 15
+    }
+  ]
+}

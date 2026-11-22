@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-020",
+  "style": "printed",
+  "title": "Severe Dyslipidemia & Metabolic Syndrome (At Bedtime HS)",
+  "patient": {
+    "name": "Mahbubur Rahman",
+    "age": 53,
+    "gender": "Male",
+    "diagnosis": "Hypercholesterolemia & Hypertriglyceridemia"
+  },
+  "doctor": {
+    "name": "Dr. Quazi Deen Mohammad",
+    "degrees": "MBBS, MD, FCPS",
+    "bmdcReg": "A-12800",
+    "workplace": "Square Hospital Ltd., Dhaka"
+  },
+  "date": "2026-11-16",
+  "rawText": "SQUARE HOSPITAL LTD., DHAKA\nExecutive Health Checkup & Preventive Medicine\nDr. Quazi Deen Mohammad, MBBS, FCPS\nBMDC: A-12800    Date: 16/11/2026\nPatient: Mahbubur Rahman, 53Y/M, Total Chol: 260, LDL: 175\n\nRx:\n1. Tab. Rovator 10mg (Rosuvastatin)\n   ০+০+১ (রাতে খাবার পর শোয়ার আগে HS) -- ৯০ দিন (CRITICAL)\n2. Tab. Telma 40mg (Telmisartan)\n   ১+০+০ (সকালে নাস্তার পর) -- ৯০ দিন (CRITICAL)\n3. Cap. Seclo 20mg (Omeprazole)\n   ১+০+০ (সকালে খালি পেটে AC) -- ৩০ দিন\n\nউপদেশ:\n- চর্বিযুক্ত মাংস ও ডিমের কুসুম বর্জন করুন।\n- সপ্তাহে অন্তত ৫ দিন ৩০-৪০ মিনিট ঘাম ঝরিয়ে দ্রুত হাঁটুন।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Rovator",
+      "genericName": "Rosuvastatin Calcium",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 90,
+      "confidence": 0.96,
+      "isCritical": true,
+      "pillCount": 90
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Telma",
+      "genericName": "Telmisartan",
+      "strength": "40mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "PC",
+      "durationDays": 90,
+      "confidence": 0.95,
+      "isCritical": true,
+      "pillCount": 90
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Seclo",
+      "genericName": "Omeprazole",
+      "strength": "20mg",
+      "form": "Capsule",
+      "pattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 30,
+      "confidence": 0.97,
+      "isCritical": false,
+      "pillCount": 30
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Rovator",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 90,
+      "isCritical": true,
+      "pillCount": 90
+    },
+    {
+      "brandName": "Telma",
+      "dosageStrength": "40mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "PC",
+      "durationDays": 90,
+      "isCritical": true,
+      "pillCount": 90
+    },
+    {
+      "brandName": "Seclo",
+      "dosageStrength": "20mg",
+      "form": "Capsule",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 30,
+      "isCritical": false,
+      "pillCount": 30
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "id": "rx-synth-018",
+  "style": "printed",
+  "title": "Severe Chronic Heart Failure (Fractional Dose ½+0+½)",
+  "patient": {
+    "name": "Haji Delwar Hossain",
+    "age": 71,
+    "gender": "Male",
+    "diagnosis": "Heart Failure with reduced EF (HFrEF)"
+  },
+  "doctor": {
+    "name": "Prof. Dr. Syed Ali Ahsan",
+    "degrees": "MBBS, MD, FACC, FSCAI",
+    "bmdcReg": "A-14290",
+    "workplace": "BSMMU Cardiology"
+  },
+  "date": "2026-11-18",
+  "rawText": "BANGABANDHU SHEIKH MUJIB MEDICAL UNIVERSITY\nHeart Failure Clinic, Shahbag, Dhaka\nProf. Dr. Syed Ali Ahsan, MBBS, MD\nBMDC: A-14290    Date: 18/11/2026\nPatient: Haji Delwar Hossain, 71Y/M, EF: 32%\n\nRx:\n1. Tab. Bisocor 2.5mg (Bisoprolol)\n   ১/২+০+০ (সকালে নাস্তার পর অর্ধেক ট্যাবলেট) -- ৩০ দিন (CRITICAL)\n2. Tab. Edemin 40mg (Furosemide)\n   ১/২+০+০ (সকালে নাস্তার পর) -- ৩০ দিন (CRITICAL)\n3. Tab. Angilock 50mg (Losartan)\n   ০+০+১/২ (রাতে খাবার পর অর্ধেক) -- ৩০ দিন (CRITICAL)\n4. Tab. Ecosprin 75mg (Aspirin)\n   ০+১+০ (দুপুরে খাবার পর) -- ৩০ দিন (CRITICAL)\n\nপরামর্শ: প্রতিদিন সকালে ওজন মাপুন। শ্বাসকষ্ট বা পা ফুলে গেলে জরুরি নম্বরে কল করুন।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Bisocor",
+      "genericName": "Bisoprolol Fumarate",
+      "strength": "2.5mg",
+      "form": "Tablet",
+      "pattern": "½+0+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.95,
+      "isCritical": true,
+      "pillCount": 15
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Edemin",
+      "genericName": "Furosemide",
+      "strength": "40mg",
+      "form": "Tablet",
+      "pattern": "½+0+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.94,
+      "isCritical": true,
+      "pillCount": 15
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Angilock",
+      "genericName": "Losartan Potassium",
+      "strength": "50mg",
+      "form": "Tablet",
+      "pattern": "0+0+½",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.93,
+      "isCritical": true,
+      "pillCount": 15
+    },
+    {
+      "tempId": "item-4",
+      "brandName": "Ecosprin",
+      "genericName": "Aspirin",
+      "strength": "75mg",
+      "form": "Tablet",
+      "pattern": "0+1+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.96,
+      "isCritical": true,
+      "pillCount": 30
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Bisocor",
+      "dosageStrength": "2.5mg",
+      "form": "Tablet",
+      "parsedPattern": "½+0+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 15
+    },
+    {
+      "brandName": "Edemin",
+      "dosageStrength": "40mg",
+      "form": "Tablet",
+      "parsedPattern": "½+0+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 15
+    },
+    {
+      "brandName": "Angilock",
+      "dosageStrength": "50mg",
+      "form": "Tablet",
+      "parsedPattern": "0+0+½",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 15
+    },
+    {
+      "brandName": "Ecosprin",
+      "dosageStrength": "75mg",
+      "form": "Tablet",
+      "parsedPattern": "0+1+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    }
+  ]
+}

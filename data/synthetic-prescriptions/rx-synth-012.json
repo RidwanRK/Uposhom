@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-012",
+  "style": "handwritten",
+  "title": "Post-Extraction Dental Infection & Pain",
+  "patient": {
+    "name": "Suman Chowdhury",
+    "age": 31,
+    "gender": "Male",
+    "diagnosis": "Post-Dental Extraction"
+  },
+  "doctor": {
+    "name": "Dr. Asif Iqbal",
+    "degrees": "BDS, FCPS (Oral & Maxillofacial)",
+    "bmdcReg": "D-4102",
+    "workplace": "Dhaka Dental College & Hospital"
+  },
+  "date": "2026-11-08",
+  "rawText": "Dhaka Dental College & Hospital, Mirpur-14\nDr. Asif Iqbal, BDS, FCPS\nBMDC: D-4102    Date: 08/11/2026\nPt: Suman Chowdhury, 31M, S/P molar extraction\n\nRx:\n- Cap. Triocim 200mg\n  1+0+1 PC (খাবার পর) -- ৫ দিন (কোর্স শেষ করবেন)\n- Tab. Torax 10mg\n  1+0+1 PC (তীব্র ব্যথা হলে) -- ৩ দিন\n- Tab. Trupan 20mg\n  1+0+1 AC (খাবার পূর্বে) -- ৭ দিন\n\nAdv: Avoid hot liquids for 24h. Warm salt water rinse from tomorrow.",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Triocim",
+      "genericName": "Cefixime",
+      "strength": "200mg",
+      "form": "Capsule",
+      "pattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "confidence": 0.88,
+      "isCritical": true,
+      "pillCount": 10
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Torax",
+      "genericName": "Ketorolac Tromethamine",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 3,
+      "confidence": 0.86,
+      "isCritical": false,
+      "pillCount": 6
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Trupan",
+      "genericName": "Pantoprazole",
+      "strength": "20mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 7,
+      "confidence": 0.87,
+      "isCritical": false,
+      "pillCount": 14
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Triocim",
+      "dosageStrength": "200mg",
+      "form": "Capsule",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "isCritical": true,
+      "pillCount": 10
+    },
+    {
+      "brandName": "Torax",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 3,
+      "isCritical": false,
+      "pillCount": 6
+    },
+    {
+      "brandName": "Trupan",
+      "dosageStrength": "20mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 7,
+      "isCritical": false,
+      "pillCount": 14
+    }
+  ]
+}

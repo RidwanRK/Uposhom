@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-001",
+  "style": "printed",
+  "title": "Acute Viral Pharyngitis & Fever",
+  "patient": {
+    "name": "Md. Rafiqul Islam",
+    "age": 42,
+    "gender": "Male",
+    "diagnosis": "Acute Pharyngitis & Fever"
+  },
+  "doctor": {
+    "name": "Prof. Dr. A. K. M. Shamsuddin",
+    "degrees": "MBBS, FCPS (Medicine)",
+    "bmdcReg": "A-21940",
+    "workplace": "BSMMU, Dhaka"
+  },
+  "date": "2026-11-20",
+  "rawText": "BANGABANDHU SHEIKH MUJIB MEDICAL UNIVERSITY (BSMMU)\nDepartment of Internal Medicine, Shahbag, Dhaka\nDoctor: Prof. Dr. A. K. M. Shamsuddin, MBBS, FCPS\nBMDC Reg. No: A-21940    Date: 20/11/2026\nPatient: Md. Rafiqul Islam, 42Y/M\n\nRx:\n1. Tab. Napa Extend 665mg\n   ১+০+১ (ভরা পেটে) -- ৫ দিন\n2. Tab. Fexo 120mg\n   ০+০+১ (রাতে খাবার পর) -- ৭ দিন\n3. Cap. Seclo 20mg\n   ১+০+১ (খাবার ৩০ মিনিট পূর্বে) -- ১৪ দিন\n\nAdvice:\n- Drink warm water with honey.\n- Gargle with warm salt water 3 times daily.",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Napa Extend",
+      "genericName": "Paracetamol",
+      "strength": "665mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "confidence": 0.96,
+      "isCritical": false,
+      "pillCount": 10
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Fexo",
+      "genericName": "Fexofenadine Hydrochloride",
+      "strength": "120mg",
+      "form": "Tablet",
+      "pattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 7,
+      "confidence": 0.94,
+      "isCritical": false,
+      "pillCount": 7
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Seclo",
+      "genericName": "Omeprazole",
+      "strength": "20mg",
+      "form": "Capsule",
+      "pattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "confidence": 0.95,
+      "isCritical": false,
+      "pillCount": 28
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Napa Extend",
+      "dosageStrength": "665mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "isCritical": false,
+      "pillCount": 10
+    },
+    {
+      "brandName": "Fexo",
+      "dosageStrength": "120mg",
+      "form": "Tablet",
+      "parsedPattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 7,
+      "isCritical": false,
+      "pillCount": 7
+    },
+    {
+      "brandName": "Seclo",
+      "dosageStrength": "20mg",
+      "form": "Capsule",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 28
+    }
+  ]
+}

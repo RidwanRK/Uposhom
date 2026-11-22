@@ -1,0 +1,69 @@
+{
+  "id": "rx-synth-019",
+  "style": "handwritten",
+  "title": "Severe Community-Acquired Pneumonia (TDS Antibiotic)",
+  "patient": {
+    "name": "Kamal Hossain",
+    "age": 45,
+    "gender": "Male",
+    "diagnosis": "Right Lower Lobe Pneumonia"
+  },
+  "doctor": {
+    "name": "Dr. Mohammad Ali",
+    "degrees": "MBBS, MD (Pulmonology)",
+    "bmdcReg": "A-30912",
+    "workplace": "Kurmitola General Hospital"
+  },
+  "date": "2026-11-17",
+  "rawText": "Kurmitola General Hospital, Dhaka Cantonment\nDr. Mohammad Ali, MBBS, MD\nBMDC: A-30912    Date: 17/11/2026\nPt: Kamal Hossain, 45M, High fever 103F, cough with rust sputum\n\nRx:\n- Tab. Moxaclav 625mg\n  1+1+1 TDS PC (ভরা পেটে প্রতি ৮ ঘণ্টা পর পর) -- ৭ দিন (কোর্স শেষ করবেন) (CRITICAL)\n- Tab. Fast XR 665mg\n  1+0+1 BDPC (জ্বর থাকলে) -- ৫ দিন\n- Syp. Brofex\n  2 tsf TDS PC -- ৭ দিন\n\nAdv: CXR P/A view repeat after 2 weeks.",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Moxaclav",
+      "genericName": "Amoxicillin + Clavulanic Acid",
+      "strength": "625mg",
+      "form": "Tablet",
+      "pattern": "1+1+1",
+      "mealRelation": "PC",
+      "durationDays": 7,
+      "confidence": 0.88,
+      "isCritical": true,
+      "pillCount": 21
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Fast XR",
+      "genericName": "Paracetamol",
+      "strength": "665mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "confidence": 0.89,
+      "isCritical": false,
+      "pillCount": 10
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Moxaclav",
+      "dosageStrength": "625mg",
+      "form": "Tablet",
+      "parsedPattern": "1+1+1",
+      "mealRelation": "PC",
+      "durationDays": 7,
+      "isCritical": true,
+      "pillCount": 21
+    },
+    {
+      "brandName": "Fast XR",
+      "dosageStrength": "665mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "isCritical": false,
+      "pillCount": 10
+    }
+  ]
+}

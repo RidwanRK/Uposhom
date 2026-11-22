@@ -1,0 +1,69 @@
+{
+  "id": "rx-synth-005",
+  "style": "printed",
+  "title": "Pediatric Upper Respiratory Tract Infection",
+  "patient": {
+    "name": "Master Ayan Khan",
+    "age": 5,
+    "gender": "Male",
+    "diagnosis": "Viral URI & Rhinorrhea"
+  },
+  "doctor": {
+    "name": "Dr. Shirin Akhter",
+    "degrees": "MBBS, DCH, FCPS (Paediatrics)",
+    "bmdcReg": "A-29402",
+    "workplace": "Dhaka Shishu Hospital"
+  },
+  "date": "2026-11-17",
+  "rawText": "DHAKA SHISHU (CHILDREN) HOSPITAL\nDepartment of Paediatric Medicine\nDr. Shirin Akhter, MBBS, FCPS\nBMDC: A-29402    Date: 17/11/2026\nPatient: Ayan Khan, 5Y/M, Wt: 18 kg\n\nRx:\n1. Syp. Ace 120mg/5ml\n   ১ চামচ করে দিনে ৩ বার (১+১+১) জ্বর থাকলে -- ৩ দিন\n2. Syp. Fenadin 30mg/5ml\n   ১/২ চামচ করে দিনে ২ বার (১/২+০+১/২) -- ৫ দিন\n3. Nasal Drop Normal Saline\n   ১ ফোঁটা করে উভয় নাকে দিনে ৩ বার -- ৫ দিন\n\nপরামর্শ:\n- বাচ্চাকে বেশি করে তরল খাবার দিন।\n- জ্বর ১০২° এর বেশি হলে মাথায় পানি ঢালুন।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Ace Syrup",
+      "genericName": "Paracetamol",
+      "strength": "120mg/5ml",
+      "form": "Syrup",
+      "pattern": "1+1+1",
+      "mealRelation": "PC",
+      "durationDays": 3,
+      "confidence": 0.94,
+      "isCritical": false,
+      "pillCount": 1
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Fenadin Syrup",
+      "genericName": "Fexofenadine Hydrochloride",
+      "strength": "30mg/5ml",
+      "form": "Syrup",
+      "pattern": "½+0+½",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "confidence": 0.92,
+      "isCritical": false,
+      "pillCount": 1
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Ace Syrup",
+      "dosageStrength": "120mg/5ml",
+      "form": "Syrup",
+      "parsedPattern": "1+1+1",
+      "mealRelation": "PC",
+      "durationDays": 3,
+      "isCritical": false,
+      "pillCount": 1
+    },
+    {
+      "brandName": "Fenadin Syrup",
+      "dosageStrength": "30mg/5ml",
+      "form": "Syrup",
+      "parsedPattern": "½+0+½",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "isCritical": false,
+      "pillCount": 1
+    }
+  ]
+}
