@@ -24,6 +24,14 @@ export interface UserStore {
   findByMsisdn(msisdn: string): Promise<UserRecord | null>;
   /** Callbacks identify people by the opaque subscriber id, never by the typed number. */
   findBySubscriberId(subscriberId: string): Promise<UserRecord | null>;
+  /**
+   * Erases everything the Applink side holds about this person (right to delete): sessions,
+   * consents, OTP sessions, the SMS log and subscription mirror for their subscriber id,
+   * entitlements and usage counters, and the account itself. Charges are ANONYMISED, not deleted:
+   * the ledger is needed to investigate a dispute and then holds no link to a person. A STOP
+   * entry is kept on purpose so the number is never messaged again.
+   */
+  erase(userId: string): Promise<void>;
   /** Insert or update by msisdn. `accountType` is only applied on insert. */
   upsertVerified(input: {
     msisdn: string;
@@ -248,7 +256,8 @@ export type ChargeStatus =
 
 export interface ChargeRecord {
   externalTrxId: string;
-  userId: string;
+  /** Null once the account has been erased: the charge stays as an anonymous ledger entry. */
+  userId: string | null;
   subscriberId: string;
   purpose: string;
   /** Decimal BDT string such as "5.00". */
@@ -270,8 +279,8 @@ export interface ChargeStore {
   create(
     input: Pick<
       ChargeRecord,
-      'externalTrxId' | 'userId' | 'subscriberId' | 'purpose' | 'amount' | 'currency'
-    >,
+      'externalTrxId' | 'subscriberId' | 'purpose' | 'amount' | 'currency'
+    > & { userId: string },
     now: Date,
   ): Promise<ChargeRecord>;
   get(externalTrxId: string): Promise<ChargeRecord | null>;

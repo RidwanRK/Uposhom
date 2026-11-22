@@ -53,6 +53,11 @@ const envSchema = z
     // the other secrets: without it every stored number is unreadable.
     PHONE_ENC_KEY: optionalString,
 
+    // Shown on the public terms, privacy and support pages. Applink checks that a support contact
+    // is published before approving the application, so set both before registering.
+    SUPPORT_EMAIL: optionalString,
+    SUPPORT_PHONE: optionalString,
+
     // Slack or Discord incoming-webhook URL. Alerts fire on configuration-class Applink errors,
     // charges that need a human, failed Base Size checks and dead-lettered jobs. Optional.
     ALERT_WEBHOOK_URL: optionalUrl,
@@ -78,6 +83,9 @@ const envSchema = z
 
     // Keyword subscribers put at the start of an MO SMS (UPOSHOM 1). Confirm with Applink.
     SMS_KEYWORD: z.string().trim().min(1).default('UPOSHOM'),
+    // Outbound SMS per second Applink allows this application (E1318). Ask Applink for the figure;
+    // unset means no spacing between sends.
+    SMS_MAX_PER_SECOND: optionalCount,
     // Only a provisioned alias works as the SMS sender (else E1331). Unset uses the default.
     APPLINK_SMS_SOURCE_ADDRESS: optionalString,
 

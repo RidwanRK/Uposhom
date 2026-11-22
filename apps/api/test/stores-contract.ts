@@ -529,6 +529,101 @@ export function storesContract(label: string, make: () => Promise<StoresUnderTes
         expect(await s.optOuts.suppressionFor(b)).toBe('STOP');
       }));
 
+    it('erase: removes everything about a person, anonymises charges, keeps the STOP entry', () =>
+      withStores(async (s) => {
+        const m = msisdn();
+        const sid = uniq('tel:880');
+        const u = await s.users.upsertVerified({
+          msisdn: m,
+          accountType: 'INDIVIDUAL',
+          subscriberId: sid,
+          subscriptionStatus: 'REGISTERED',
+        });
+        const other = await user(s);
+
+        // Everything a person leaves behind.
+        await s.sessions.create({ userId: u.id, refreshHash: uniq('h'), expiresAt: at(1000) });
+        await s.consents.record(
+          { userId: u.id, kind: 'FAMILY_CIRCLE_V1', channel: 'APP', ip: '1.2.3.4', wording: 'w' },
+          at(0),
+        );
+        await s.consents.record(
+          { msisdn: m, kind: 'SIGNUP_OTP_V1', channel: 'APP', ip: null },
+          at(0),
+        );
+        await s.otpSessions.create({
+          msisdn: m,
+          purpose: 'SIGNUP',
+          referenceNo: 'r',
+          expiresAt: at(300),
+        });
+        const sms = await s.smsLog.create(
+          { idempotencyKey: uniq('i'), subscriberId: sid, purpose: 'p', critical: false },
+          at(0),
+        );
+        await s.subscriptions.upsert(
+          { subscriberId: sid, userId: u.id, status: 'REGISTERED' },
+          at(0),
+        );
+        const trx = uniq('trx');
+        await s.charges.create(
+          {
+            externalTrxId: trx,
+            userId: u.id,
+            subscriberId: sid,
+            purpose: 'SCAN',
+            amount: '5.00',
+            currency: 'BDT',
+          },
+          at(0),
+        );
+        await s.entitlements.grant(
+          { userId: u.id, feature: 'SCAN', quantity: 1, chargeId: trx },
+          at(0),
+        );
+        await s.usage.increment(u.id, 'SCAN', '2026-11');
+        await s.optOuts.suppress({ subscriberId: sid, reason: 'STOP', source: 'APP' }, at(0));
+
+        // Someone else's data must be untouched.
+        const otherSms = await s.smsLog.create(
+          {
+            idempotencyKey: uniq('i'),
+            subscriberId: other.subscriberId ?? 'x',
+            purpose: 'p',
+            critical: false,
+          },
+          at(0),
+        );
+        await s.usage.increment(other.id, 'SCAN', '2026-11');
+
+        await s.users.erase(u.id);
+
+        expect(await s.users.findById(u.id)).toBeNull();
+        expect(await s.users.findByMsisdn(m)).toBeNull();
+        expect(await s.users.findBySubscriberId(sid)).toBeNull();
+        expect(await s.otpSessions.findOpen(m, at(10))).toBeNull();
+        expect(await s.consents.hasKind(u.id, 'FAMILY_CIRCLE_V1')).toBe(false);
+        expect(await s.smsLog.findByIdempotencyKey(sms.record.idempotencyKey)).toBeNull();
+        expect(await s.subscriptions.get(sid)).toBeNull();
+        expect(await s.entitlements.available(u.id, 'SCAN')).toBe(0);
+        expect(await s.usage.get(u.id, 'SCAN', '2026-11')).toBe(0);
+
+        // The ledger survives, with no link to a person.
+        expect(await s.charges.get(trx)).toMatchObject({
+          userId: null,
+          subscriberId: 'erased',
+          amount: '5.00',
+          purpose: 'SCAN',
+        });
+        // The opt-out is kept so the number is never messaged again.
+        expect(await s.optOuts.suppressionFor(sid)).toBe('STOP');
+
+        expect(await s.smsLog.findByIdempotencyKey(otherSms.record.idempotencyKey)).not.toBeNull();
+        expect(await s.usage.get(other.id, 'SCAN', '2026-11')).toBe(1);
+        await s.users.erase(u.id); // erasing twice is harmless
+        await s.users.erase('usr_does_not_exist');
+      }));
+
     it('opt-outs: clearStop lifts a STOP but never a block or a dead number', () =>
       withStores(async (s) => {
         const stop = uniq('tel:880');

@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { okResponse, optOutBody } from '@uposhom/shared';
 import { ApiError } from '../errors.js';
 import type { SubscriptionService } from '../billing/subscriptions.js';
+import type { PrivacyService } from '../privacy/erase.js';
 import type { UnregisterService } from '../subscription/unregister.js';
 import type { UserStore } from '../stores/types.js';
 import { useApiErrors } from './billing.js';
@@ -17,10 +18,19 @@ export function optOutRoutes(deps: {
   users: UserStore;
   unregister: UnregisterService;
   subscriptions: SubscriptionService;
+  privacy: PrivacyService;
 }) {
   return async function register(app: FastifyInstance): Promise<void> {
     useApiErrors(app);
     app.addHook('preHandler', app.authenticate);
+
+    // Delete my data. Needs a step-up token: the phone is re-proved first.
+    app.delete('/', { preHandler: app.requireStepUp }, async (req, reply) => {
+      const user = await deps.users.findById(req.auth?.userId ?? '');
+      if (!user) throw new ApiError('UNAUTHENTICATED', 401);
+      await deps.privacy.eraseAccount(user);
+      return reply.send(okResponse.parse({ success: true }));
+    });
 
     app.post('/opt-out', async (req, reply) => {
       const body = optOutBody.safeParse(req.body);

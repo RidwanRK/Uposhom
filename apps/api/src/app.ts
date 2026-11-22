@@ -18,6 +18,7 @@ import { applinkCallbackRoutes } from './routes/applink-callbacks.js';
 import { authRoutes } from './routes/auth.js';
 import { billingRoutes } from './routes/billing.js';
 import { caasRoutes } from './routes/caas.js';
+import { legalRoutes } from './routes/legal.js';
 import { optOutRoutes } from './routes/optout.js';
 import { createMemoryStores } from './stores/memory.js';
 import type { Stores } from './stores/types.js';
@@ -30,8 +31,11 @@ export type AppConfig = Pick<Config, 'NODE_ENV'> &
       | 'APPLINK_APP_ID'
       | 'APPLINK_PASSWORD'
       | 'SMS_KEYWORD'
+      | 'SMS_MAX_PER_SECOND'
       | 'APPLINK_SMS_SOURCE_ADDRESS'
       | 'ALERT_WEBHOOK_URL'
+      | 'SUPPORT_EMAIL'
+      | 'SUPPORT_PHONE'
       | 'JWT_SECRET'
       | 'APPLINK_OTP_REQUEST_URL'
       | 'APPLINK_OTP_VERIFY_URL'
@@ -150,6 +154,9 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
     now: deps.now ?? (() => new Date()),
     smsKeyword: config.SMS_KEYWORD ?? 'UPOSHOM',
     smsSourceAddress: config.APPLINK_SMS_SOURCE_ADDRESS,
+    smsMinIntervalMs: config.SMS_MAX_PER_SECOND
+      ? Math.ceil(1000 / config.SMS_MAX_PER_SECOND)
+      : undefined,
   });
   app.decorate('services', services);
   app.addHook('onReady', () => queue.start());
@@ -188,11 +195,23 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
   void app.register(caasRoutes({ users: stores.users, caas: services.caas }), {
     prefix: '/api/v1/billing/caas',
   });
+  // Public pages Applink checks before approval: terms, privacy and the support contact.
+  void app.register(
+    legalRoutes({
+      appName: 'Uposhom',
+      supportEmail: config.SUPPORT_EMAIL,
+      supportPhone: config.SUPPORT_PHONE,
+      smsKeyword: config.SMS_KEYWORD ?? 'UPOSHOM',
+      billing: deps.billing ?? DEFAULT_BILLING,
+      lastUpdated: '22 November 2026',
+    }),
+  );
   void app.register(
     optOutRoutes({
       users: stores.users,
       unregister: services.unregister,
       subscriptions: services.subscriptions,
+      privacy: services.privacy,
     }),
     { prefix: '/api/v1/account' },
   );

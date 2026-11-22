@@ -308,7 +308,8 @@ export function createCaasService(deps: ServiceDeps) {
         now,
       );
       const grant = billing.grants[charge.purpose as CaasPurpose];
-      if (grant) {
+      // A charge whose owner erased their account has nobody to grant a credit to.
+      if (grant && charge.userId) {
         // Idempotent on the charge: a replay cannot grant a second credit.
         await stores.entitlements.grant(
           {

@@ -175,4 +175,15 @@ CREATE TABLE usage_counters (
 );
 `,
   },
+  {
+    id: '0003_charges_outlive_users',
+    sql: `
+-- Erasing an account anonymises its charges instead of deleting them: the ledger is the record
+-- needed to investigate a charging dispute, and it then holds no link to a person.
+ALTER TABLE charges ALTER COLUMN user_id DROP NOT NULL;
+ALTER TABLE charges DROP CONSTRAINT charges_user_id_fkey;
+ALTER TABLE charges ADD CONSTRAINT charges_user_id_fkey
+  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL;
+`,
+  },
 ];

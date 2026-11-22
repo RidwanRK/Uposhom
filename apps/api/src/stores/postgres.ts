@@ -88,7 +88,7 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
 
   const charge = (r: Row): ChargeRecord => ({
     externalTrxId: r['external_trx_id'] as string,
-    userId: r['user_id'] as string,
+    userId: (r['user_id'] as string | null) ?? null,
     subscriberId: r['subscriber_id'] as string,
     purpose: r['purpose'] as string,
     amount: r['amount'] as string,
@@ -133,6 +133,31 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
           phone.lookupHash(msisdn),
         ]);
         return rows[0] ? user(rows[0]) : null;
+      },
+      async erase(userId) {
+        await tx(pool, async (c) => {
+          const { rows } = await c.query(
+            'SELECT subscriber_id, msisdn_hash FROM users WHERE id = $1',
+            [userId],
+          );
+          const u = rows[0];
+          if (!u) return;
+          const sub = (u['subscriber_id'] as string | null) ?? null;
+          const hash = u['msisdn_hash'] as string;
+          await c.query('DELETE FROM consents WHERE user_id = $1 OR msisdn_hash = $2', [
+            userId,
+            hash,
+          ]);
+          await c.query('DELETE FROM otp_sessions WHERE msisdn_hash = $1', [hash]);
+          if (sub) {
+            await c.query('DELETE FROM sms_log WHERE subscriber_id = $1', [sub]);
+            await c.query('DELETE FROM subscriptions_mirror WHERE subscriber_id = $1', [sub]);
+          }
+          await c.query('DELETE FROM subscriptions_mirror WHERE user_id = $1', [userId]);
+          // Anonymise the ledger, then let the cascade remove sessions, entitlements and counters.
+          await c.query("UPDATE charges SET subscriber_id = 'erased' WHERE user_id = $1", [userId]);
+          await c.query('DELETE FROM users WHERE id = $1', [userId]);
+        });
       },
       async findBySubscriberId(subscriberId) {
         const { rows } = await pool.query('SELECT * FROM users WHERE subscriber_id = $1', [

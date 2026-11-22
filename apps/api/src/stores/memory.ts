@@ -42,6 +42,38 @@ export function createMemoryStores(): Stores {
       async findByMsisdn(msisdn) {
         return [...users.values()].find((u) => u.msisdn === msisdn) ?? null;
       },
+      async erase(userId) {
+        const user = users.get(userId);
+        if (!user) return;
+        const sub = user.subscriberId;
+        for (const [id, s] of sessions) if (s.userId === userId) sessions.delete(id);
+        for (let i = consents.length - 1; i >= 0; i--) {
+          if (
+            consents[i]?.userId === userId ||
+            (consents[i]?.msisdn && consents[i]?.msisdn === user.msisdn)
+          ) {
+            consents.splice(i, 1);
+          }
+        }
+        for (const [id, s] of otpSessions) if (s.msisdn === user.msisdn) otpSessions.delete(id);
+        if (sub) {
+          for (const [k, r] of smsLog) if (r.subscriberId === sub) smsLog.delete(k);
+          subscriptions.delete(sub);
+        }
+        for (const sRow of [...subscriptions.values()])
+          if (sRow.userId === userId) subscriptions.delete(sRow.subscriberId);
+        for (const c of charges.values()) {
+          if (c.userId === userId) {
+            c.userId = null;
+            c.subscriberId = 'erased';
+          }
+        }
+        for (let i = entitlements.length - 1; i >= 0; i--) {
+          if (entitlements[i]?.userId === userId) entitlements.splice(i, 1);
+        }
+        for (const k of [...usage.keys()]) if (k.startsWith(`${userId}|`)) usage.delete(k);
+        users.delete(userId);
+      },
       async findBySubscriberId(subscriberId) {
         return [...users.values()].find((u) => u.subscriberId === subscriberId) ?? null;
       },

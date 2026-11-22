@@ -183,6 +183,17 @@ curl https://<your-subdomain>.duckdns.org/healthz      # {"status":"ok"}
 
 The first HTTPS request can take 10 to 30 seconds while Caddy obtains its certificate.
 
+**Restarting by hand** (for example after editing `.env`) needs two things CI normally supplies:
+the image owner, and a fresh image. Without them Compose looks for `ghcr.io/uposhom/...` and then
+reuses a stale local `latest`:
+
+```bash
+cd /opt/uposhom
+export GHCR_OWNER=<github-owner-in-lowercase>
+docker compose -f deploy/docker-compose.yml pull
+docker compose -f deploy/docker-compose.yml up -d
+```
+
 ## Troubleshooting
 
 | Symptom | Cause and fix |
@@ -204,8 +215,88 @@ docker compose -f deploy/docker-compose.yml logs --tail=50 api caddy worker
 docker compose -f deploy/docker-compose.yml up -d
 ```
 
+## 7. Move the data from memory to Postgres
+
+Until this is done, users, sessions, the SMS log and the billing ledger live in the API process and
+are lost on every restart. Do it once, before real users:
+
+```bash
+cd /opt/uposhom
+echo "PHONE_ENC_KEY=$(openssl rand -hex 32)" >> .env      # AES key for stored phone numbers
+echo "STORE_DRIVER=postgres" >> .env
+echo "QUEUE_DRIVER=pgboss"  >> .env
+```
+
+- **Back up `PHONE_ENC_KEY` in the password manager first.** Without it every stored number is
+  unreadable and every lookup by number misses. Never change it after users exist.
+- The API creates its tables on boot, and `node dist/migrate.js` (run by every deploy) does the same
+  and is safe to repeat. pg-boss creates its own `pgboss` schema.
+- Restart with the commands in section 6. Check `docker compose logs api` for
+  `migrations checked`, then `/healthz`.
+- Do both switches together: pg-boss replays unfinished jobs after a restart, and that is only safe
+  once the SMS log and sessions survive restarts too.
+
+## 8. Backups to Cloudflare R2
+
+`deploy/backup.sh` dumps Postgres, encrypts it with AES-256 as it streams (an unencrypted copy
+never touches the disk), uploads it to R2, checks the uploaded size, and prunes copies older than 14
+days. `deploy/restore.sh` restores a backup into a scratch database, prints row counts, and drops it.
+
+One-time setup on the VM:
+
+```bash
+sudo apt install -y rclone
+# 1. The passphrase. Keep a copy in the password manager: a backup nobody can decrypt is worth nothing.
+openssl rand -base64 32 > /opt/uposhom/backup.pass && chmod 600 /opt/uposhom/backup.pass
+# 2. R2 credentials (Cloudflare dashboard: R2, create a bucket, then an Object Read & Write API
+#    token scoped to that bucket only). Start from deploy/backup.env.example.
+cp /opt/uposhom/deploy/backup.env.example /opt/uposhom/backup.env
+nano /opt/uposhom/backup.env && chmod 600 /opt/uposhom/backup.env
+# 3. Try it by hand, then schedule it for 02:00 Dhaka (20:00 UTC).
+bash /opt/uposhom/deploy/backup.sh
+( crontab -l 2>/dev/null; echo '0 20 * * * bash /opt/uposhom/deploy/backup.sh >> /var/log/uposhom-backup.log 2>&1' ) | crontab -
+```
+
+**Prove it restores, once, before the demo:**
+
+```bash
+bash /opt/uposhom/deploy/restore.sh /opt/uposhom/backups/<latest>.dump.enc
+bash /opt/uposhom/deploy/restore.sh r2:backups/<latest>.dump.enc      # and from R2
+```
+
+You want `OK: the backup restores` and sensible row counts. The scripts are tested against a real
+Postgres (encrypt, restore, wrong passphrase refused, loose permissions refused); the R2 upload step
+needs your credentials, so run it by hand once and read the output.
+
+## 9. When Applink's reply arrives
+
+1. Put the credentials and the endpoint URLs in `/opt/uposhom/.env` (names are in `.env.example`:
+   `APPLINK_APP_ID`, `APPLINK_PASSWORD`, `APPLINK_SMS_SEND_URL`, `APPLINK_SUBSCRIPTION_SEND_URL`,
+   `APPLINK_SUBSCRIPTION_QUERY_BASE_URL`, `APPLINK_SUBSCRIPTION_CHARGING_INFO_URL`,
+   `APPLINK_OTP_REQUEST_URL`, `APPLINK_OTP_VERIFY_URL`, and the two CaaS URLs, which must be set
+   together or not at all), then restart (section 6).
+2. Prove the connection first. Base Size costs nothing and touches no one, and it checks the
+   credentials, the provisioning and the VM's egress IP in one call:
+   ```bash
+   docker compose -f deploy/docker-compose.yml exec api node dist/applink-smoke.js
+   ```
+   Each failure prints the next step (E1303: allow-list the VM's IP; E1313: check the credentials;
+   E1309: ask Applink to enable the API).
+3. Register the four callback URLs in the Applink portal (they carry the secret key; read it with
+   `grep APPLINK_CALLBACK_PATH_KEY /opt/uposhom/.env`), then check they answer from outside:
+   ```bash
+   scripts/replay-callbacks.sh https://<your-domain> <callback-key>
+   ```
+4. Add the phones you will test with to Applink's whitelist, or every other number gets E1343.
+5. When Applink sends its source IP ranges, restrict the callback paths in Caddy by adding to
+   `/opt/uposhom/.env`: `APPLINK_ALLOWED_IPS=<range> <range> ...` (space separated), then
+   `docker compose -f deploy/docker-compose.yml up -d caddy`. Unset it allows everyone, so nothing
+   breaks until you know the list.
+6. Optional but recommended: `ALERT_WEBHOOK_URL=<slack or discord incoming webhook>` so a wrong IP or
+   bad credentials, a charge that needs a human, or a dead-lettered job reaches you.
+
 ## Still to add
 
-- Scheduled Postgres backup to Cloudflare R2 (cron on the VM). Not set up yet; until then the only copy of the data is the VM disk.
-- Applink source-IP restriction in the Caddyfile once Applink publishes its ranges.
+- A free UptimeRobot HTTP monitor on `https://<domain>/healthz` (5 minute interval). It needs an
+  account, so it cannot be scripted from here.
 - Optionally a minimal service account for the VM instead of the default compute account.

@@ -3,6 +3,7 @@ import { createEntitlementService } from '../billing/entitlements.js';
 import { createSubscriptionService } from '../billing/subscriptions.js';
 import { dedupeKey, type CallbackSink } from '../callbacks/events.js';
 import { createJobs } from '../jobs/index.js';
+import { createPrivacyService } from '../privacy/erase.js';
 import { createMoHandler, type MoPayload } from '../sms/mo.js';
 import { createReportHandler, type ReportPayload } from '../sms/report.js';
 import { SMS_SEND_QUEUE, createSmsService, type SmsSendPayload } from '../sms/send-job.js';
@@ -35,6 +36,7 @@ export function createServices(deps: ServiceDeps) {
   const subscriptions = createSubscriptionService(deps, unregister);
   const entitlements = createEntitlementService(deps, subscriptions);
   const caas = createCaasService(deps);
+  const privacy = createPrivacyService(deps, unregister);
   const jobs = createJobs(deps, caas, subscriptions);
   jobs.register();
 
@@ -63,7 +65,7 @@ export function createServices(deps: ServiceDeps) {
     },
   };
 
-  return { sms, unregister, subscriptions, entitlements, caas, jobs, sink };
+  return { sms, unregister, subscriptions, entitlements, caas, jobs, privacy, sink };
 }
 
 export type Services = ReturnType<typeof createServices>;

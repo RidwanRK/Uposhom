@@ -3,6 +3,7 @@ import { ApiError } from '../errors.js';
 import type { ServiceDeps } from '../services/deps.js';
 import type { UnregisterService } from '../subscription/unregister.js';
 import type { SubscriptionPlan, UserRecord } from '../stores/types.js';
+import { resolveSubscriber } from '../sms/identity.js';
 import { planConsentKind } from './config.js';
 
 /** Only these two mean the subscriber can use the service. */
@@ -197,19 +198,20 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
     source?: 'NOTIFICATION' | 'SWEEP';
   }): Promise<void> {
     const status = data.status.trim().toUpperCase().replace(/\.$/, '');
-    const user = await stores.users.findBySubscriberId(data.subscriberId);
+    // Key the mirror, and any opt-out, by the id we stored, whichever form the notification used.
+    const { id: subscriberId, user } = await resolveSubscriber(stores, data.subscriberId);
     const now = deps.now();
 
     if (!user) {
       // Stored and flagged, never unlocked: no account, no consent, no Register of ours.
       log.warn(
-        { subscriber: maskAddress(data.subscriberId), status },
+        { subscriber: maskAddress(subscriberId), status },
         'subscription notification for unknown subscriber',
       );
     }
     await stores.subscriptions.upsert(
       {
-        subscriberId: data.subscriberId,
+        subscriberId,
         ...(user ? { userId: user.id } : {}),
         status,
         ...(data.frequency ? { frequency: data.frequency } : {}),
@@ -221,13 +223,10 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
 
     if (status === 'UNREGISTERED') {
       // Someone left through a channel we do not control: honour it like any other STOP.
-      await stores.optOuts.suppress(
-        { subscriberId: data.subscriberId, reason: 'STOP', source: 'NOTIFICATION' },
-        now,
-      );
+      await stores.optOuts.suppress({ subscriberId, reason: 'STOP', source: 'NOTIFICATION' }, now);
     }
     log.info(
-      { subscriber: maskAddress(data.subscriberId), status },
+      { subscriber: maskAddress(subscriberId), status },
       'subscription notification applied',
     );
   }

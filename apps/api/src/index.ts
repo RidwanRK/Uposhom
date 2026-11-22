@@ -29,6 +29,26 @@ async function main(): Promise<void> {
         })
       : undefined;
 
+  if (config.NODE_ENV === 'production' && !config.SUPPORT_EMAIL && !config.SUPPORT_PHONE) {
+    // Applink checks for a published support contact before approving the application.
+    console.warn(
+      JSON.stringify({
+        level: 'warn',
+        msg: 'SUPPORT_EMAIL and SUPPORT_PHONE are not set: /support and the legal pages show no contact',
+      }),
+    );
+  }
+
+  if (config.NODE_ENV === 'production' && (!config.APPLINK_APP_ID || !config.APPLINK_PASSWORD)) {
+    // The app still boots (so /healthz and the callbacks work), but OTP, SMS and billing fail closed.
+    console.warn(
+      JSON.stringify({
+        level: 'warn',
+        msg: 'Applink credentials are not set: OTP sign-up, SMS and billing are disabled until they are',
+      }),
+    );
+  }
+
   // Postgres stores: migrate first (idempotent, under an advisory lock), then serve.
   const pool =
     config.STORE_DRIVER === 'postgres' && config.DATABASE_URL

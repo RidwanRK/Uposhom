@@ -2,7 +2,17 @@ import { createApplinkClient, type ApplinkClient, type ServiceName } from '@upos
 import { noopAlerter, type Alerter } from './ops/alerts.js';
 import type { Config } from './config/env.js';
 
-const ENDPOINT_VARS: Record<ServiceName, keyof Config> = {
+type EndpointVar =
+  | 'APPLINK_SMS_SEND_URL'
+  | 'APPLINK_SUBSCRIPTION_SEND_URL'
+  | 'APPLINK_SUBSCRIPTION_QUERY_BASE_URL'
+  | 'APPLINK_SUBSCRIPTION_CHARGING_INFO_URL'
+  | 'APPLINK_OTP_REQUEST_URL'
+  | 'APPLINK_OTP_VERIFY_URL'
+  | 'APPLINK_CAAS_DEBIT_URL'
+  | 'APPLINK_CAAS_OTP_VERIFY_URL';
+
+const ENDPOINT_VARS: Record<ServiceName, EndpointVar> = {
   smsSend: 'APPLINK_SMS_SEND_URL',
   subscriptionSend: 'APPLINK_SUBSCRIPTION_SEND_URL',
   subscriptionQueryBase: 'APPLINK_SUBSCRIPTION_QUERY_BASE_URL',
@@ -20,16 +30,13 @@ const ENDPOINT_VARS: Record<ServiceName, keyof Config> = {
  */
 export function createApplinkFromConfig(
   config: Partial<Pick<Config, 'APPLINK_APP_ID' | 'APPLINK_PASSWORD'>> &
-    Partial<Record<(typeof ENDPOINT_VARS)[ServiceName], string | undefined>>,
+    Partial<Record<EndpointVar, string | undefined>>,
   alerts: Alerter = noopAlerter,
 ): ApplinkClient | undefined {
   if (!config.APPLINK_APP_ID || !config.APPLINK_PASSWORD) return undefined;
   const endpoints: Partial<Record<ServiceName, string>> = {};
-  for (const [service, variable] of Object.entries(ENDPOINT_VARS) as [
-    ServiceName,
-    keyof Config,
-  ][]) {
-    const url = config[variable as keyof typeof config];
+  for (const [service, variable] of Object.entries(ENDPOINT_VARS) as [ServiceName, EndpointVar][]) {
+    const url = config[variable];
     if (typeof url === 'string' && url) endpoints[service] = url;
   }
   return createApplinkClient({
