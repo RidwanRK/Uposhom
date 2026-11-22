@@ -102,7 +102,7 @@ export async function harness(
   );
   await app.ready();
   const bearerFor = async (user: UserRecord) => ({
-    authorization: `Bearer ${await createTokenService('x'.repeat(40)).signAccess({
+    authorization: `Bearer ${await createTokenService('x'.repeat(40), () => clock.now).signAccess({
       userId: user.id,
       role: user.accountType === 'PHARMACY' ? 'PHARMACY_OWNER' : 'FAMILY_ADMIN',
       isAdmin: user.isAdmin,
@@ -132,7 +132,7 @@ export async function harness(
         subscriptionStatus: 'REGISTERED',
       }),
     bearer: async (user) => ({
-      authorization: `Bearer ${await createTokenService('x'.repeat(40)).signAccess({
+      authorization: `Bearer ${await createTokenService('x'.repeat(40), () => clock.now).signAccess({
         userId: user.id,
         role: user.accountType === 'PHARMACY' ? 'PHARMACY_OWNER' : 'FAMILY_ADMIN',
         isAdmin: user.isAdmin,

@@ -187,7 +187,10 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
   );
 
   // Without a configured secret (development and tests only) tokens last as long as the process.
-  const tokens = createTokenService(config.JWT_SECRET ?? randomBytes(32).toString('hex'));
+  const tokens = createTokenService(
+    config.JWT_SECRET ?? randomBytes(32).toString('hex'),
+    deps.now,
+  );
   registerAuthGuard(app, tokens);
   const otp = createOtpService({
     stores,

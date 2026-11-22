@@ -34,7 +34,7 @@ export async function domainHarness(opts: { store?: DomainStore; push?: PushSend
     },
   );
   await app.ready();
-  const tokens = createTokenService(SECRET);
+  const tokens = createTokenService(SECRET, () => clock.now);
   const bearer = async (user: UserRecord) => ({
     authorization: `Bearer ${await tokens.signAccess({
       userId: user.id,
