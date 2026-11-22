@@ -3,7 +3,8 @@ import { ConfigError, loadConfig } from './config/env.js';
 import { billingFromEnv } from './billing/config.js';
 import { createPool } from './db/pool.js';
 import { runMigrations } from './db/migrate.js';
-import { runDomainMigrations } from '@uposhom/db';
+import { createDb, runDomainMigrations } from '@uposhom/db';
+import { createPostgresDomainStore } from './domain/postgres.js';
 import { createPgBossQueue } from './queue/pgboss.js';
 import { createPhoneCrypto } from './security/phone-crypto.js';
 import { createPostgresStores } from './stores/postgres.js';
@@ -69,6 +70,8 @@ async function main(): Promise<void> {
     billing: billingFromEnv(config),
     ...(queue ? { queue } : {}),
     ...(stores ? { stores } : {}),
+    // Same pool, same switch: the domain tables live beside A's in Postgres.
+    ...(stores && pool ? { domain: createPostgresDomainStore(createDb(pool)) } : {}),
   });
 
   const shutdown = async (signal: string): Promise<void> => {

@@ -21,6 +21,10 @@ import { caasRoutes } from './routes/caas.js';
 import { legalRoutes } from './routes/legal.js';
 import { optOutRoutes } from './routes/optout.js';
 import { createMemoryStores } from './stores/memory.js';
+import { createMemoryDomainStore } from './domain/memory.js';
+import { createDomainService, type DomainService } from './domain/service.js';
+import type { DomainStore } from './domain/types.js';
+import { domainRoutes } from './routes/domain.js';
 import type { Stores } from './stores/types.js';
 
 export type AppConfig = Pick<Config, 'NODE_ENV'> &
@@ -53,8 +57,13 @@ export interface AppDeps {
   applink?: ApplinkClient | undefined;
   callbackSink?: CallbackSink;
   queue?: JobQueue;
-  /** Seams to the domain layer (workstream B). Defaults change no state. */
+  /**
+   * Seams to the domain layer (workstream B). Defaults to the real domain service below; tests of
+   * the platform alone pass no-op ports.
+   */
   ports?: DomainPorts;
+  /** Workstream B's persistence. Defaults to memory; index.ts passes Postgres. */
+  domain?: DomainStore;
   /** Plan prices, charge amounts and allowances. Defaults are placeholders from the plan. */
   billing?: BillingConfig;
   /** Where operational alerts go. Defaults to the webhook in ALERT_WEBHOOK_URL, else nowhere. */
@@ -68,6 +77,8 @@ declare module 'fastify' {
   interface FastifyInstance {
     /** Platform services other workstreams call, for example `app.services.sms.enqueue(...)`. */
     services: Services;
+    /** Workstream B's domain service: circles, prescriptions, doses. */
+    domain: DomainService;
   }
 }
 
@@ -139,11 +150,22 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
   // Everything the platform does after a callback or for an outbound message runs on a queue.
   // Day 2 uses the in-memory queue; pg-boss replaces it once the Postgres stores land.
   const queue = deps.queue ?? createMemoryQueue();
+  const now = deps.now ?? (() => new Date());
+
+  // The domain service needs A's subscription check, and A's services need the domain ports, so
+  // the ports call the domain service through a reference set right after both exist.
+  const domainRef: { current?: DomainService } = {};
+  const domainPorts: DomainPorts = {
+    doseReply: (input) => domainRef.current!.smsReply(input),
+    eraseDomainData: (userId) => domainRef.current!.eraseUser(userId),
+    // B's escalation worker takes this over; until then a failed reminder changes nothing.
+    onSmsDeliveryFailure: defaultDomainPorts.onSmsDeliveryFailure,
+  };
   const services = createServices({
     stores,
     applink,
     queue,
-    ports: deps.ports ?? defaultDomainPorts,
+    ports: deps.ports ?? domainPorts,
     billing: deps.billing ?? DEFAULT_BILLING,
     alerts,
     log: {
@@ -151,7 +173,7 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
       warn: (obj, msg) => app.log.warn(obj, msg),
       error: (obj, msg) => app.log.error(obj, msg),
     },
-    now: deps.now ?? (() => new Date()),
+    now,
     smsKeyword: config.SMS_KEYWORD ?? 'UPOSHOM',
     smsSourceAddress: config.APPLINK_SMS_SOURCE_ADDRESS,
     smsMinIntervalMs: config.SMS_MAX_PER_SECOND
@@ -159,6 +181,18 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
       : undefined,
   });
   app.decorate('services', services);
+  const domain = createDomainService({
+    store: deps.domain ?? createMemoryDomainStore(),
+    now,
+    isPremium: async (userId) => {
+      const user = await stores.users.findById(userId);
+      return user ? services.subscriptions.isPremium(user) : false;
+    },
+    findUserIdBySubscriber: async (subscriberId) =>
+      (await stores.users.findBySubscriberId(subscriberId))?.id ?? null,
+  });
+  domainRef.current = domain;
+  app.decorate('domain', domain);
   app.addHook('onReady', () => queue.start());
   app.addHook('onClose', () => queue.stop());
 
@@ -206,6 +240,7 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
       lastUpdated: '22 November 2026',
     }),
   );
+  void app.register(domainRoutes(domain), { prefix: '/api/v1' });
   void app.register(
     optOutRoutes({
       users: stores.users,
