@@ -61,16 +61,38 @@ export interface OtpSessionStore {
 
 export interface ConsentRecord {
   id: string;
-  msisdn: string;
-  /** What was shown and accepted, for example 'SIGNUP_OTP_V1'. */
+  /** Set once the person has an account. Sign-up consent is recorded before that, by number. */
+  userId: string | null;
+  msisdn: string | null;
+  /** What was shown and accepted, for example 'SIGNUP_OTP_V1' or 'FAMILY_CIRCLE_V1'. */
   kind: string;
   channel: 'APP' | 'SMS';
   ip: string | null;
+  /** The exact wording shown on screen, kept as consent evidence. */
+  wording: string | null;
+  amount: string | null;
+  currency: string | null;
+  frequency: string | null;
   createdAt: Date;
 }
 
 export interface ConsentStore {
-  record(input: Omit<ConsentRecord, 'id' | 'createdAt'>, now: Date): Promise<ConsentRecord>;
+  record(
+    input: {
+      userId?: string;
+      msisdn?: string;
+      kind: string;
+      channel: 'APP' | 'SMS';
+      ip: string | null;
+      wording?: string;
+      amount?: string;
+      currency?: string;
+      frequency?: string;
+    },
+    now: Date,
+  ): Promise<ConsentRecord>;
+  /** True if the user has recorded this kind of consent at least once. Part of the Premium gate. */
+  hasKind(userId: string, kind: string): Promise<boolean>;
 }
 
 export interface SessionRecord {
@@ -168,6 +190,120 @@ export interface OptOutStore {
   suppressionFor(subscriberId: string): Promise<SuppressionReason | null>;
 }
 
+export type SubscriptionPlan = 'FAMILY_CIRCLE' | 'PHARMACY';
+
+export interface SubscriptionRecord {
+  subscriberId: string;
+  userId: string | null;
+  /** As Applink reports it: REGISTERED, TRIAL, REG_PENDING, TEMPORARY_BLOCKED, UNREGISTERED, INITIAL. */
+  status: string;
+  frequency: string | null;
+  plan: SubscriptionPlan | null;
+  /** When WE called Register for the plan. Without it a REGISTERED status never unlocks Premium. */
+  registerRequestedAt: Date | null;
+  lastConfirmedAt: Date | null;
+  confirmedBy: 'NOTIFICATION' | 'REGISTER_RESPONSE' | 'SWEEP' | null;
+  updatedAt: Date;
+}
+
+export interface SubscriptionStore {
+  get(subscriberId: string): Promise<SubscriptionRecord | null>;
+  findByUserId(userId: string): Promise<SubscriptionRecord | null>;
+  /** Merge: fields left undefined are untouched. Creates the row if it does not exist. */
+  upsert(
+    patch: {
+      subscriberId: string;
+      userId?: string | null;
+      status?: string;
+      frequency?: string | null;
+      plan?: SubscriptionPlan | null;
+      registerRequestedAt?: Date | null;
+      confirmedAt?: Date | null;
+      confirmedBy?: SubscriptionRecord['confirmedBy'];
+    },
+    now: Date,
+  ): Promise<SubscriptionRecord>;
+  /** Rows never confirmed, or not confirmed since `before`: the nightly sweep's work list. */
+  listStale(before: Date, limit: number): Promise<SubscriptionRecord[]>;
+}
+
+export type ChargeStatus =
+  | 'PENDING' // ledger row written, Applink not yet called
+  | 'OTP_SENT' // step 1 returned P1003: the OTP is with the subscriber, nothing is charged
+  | 'PROCESSING' // step 2 accepted: submitted, awaiting the charging notification
+  | 'PARTIAL' // a partial charging notification arrived
+  | 'SETTLED' // fully paid: fulfilled
+  | 'FAILED'
+  | 'INSUFFICIENT_BALANCE'
+  | 'EXPIRED';
+
+export interface ChargeRecord {
+  externalTrxId: string;
+  userId: string;
+  subscriberId: string;
+  purpose: string;
+  /** Decimal BDT string such as "5.00". */
+  amount: string;
+  currency: string;
+  status: ChargeStatus;
+  requestCorrelator: string | null;
+  internalTrxId: string | null;
+  referenceId: string | null;
+  paidAmount: string | null;
+  balanceDue: string | null;
+  otpAttempts: number;
+  fulfilledAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ChargeStore {
+  create(
+    input: Pick<
+      ChargeRecord,
+      'externalTrxId' | 'userId' | 'subscriberId' | 'purpose' | 'amount' | 'currency'
+    >,
+    now: Date,
+  ): Promise<ChargeRecord>;
+  get(externalTrxId: string): Promise<ChargeRecord | null>;
+  update(
+    externalTrxId: string,
+    patch: Partial<
+      Pick<
+        ChargeRecord,
+        | 'status'
+        | 'requestCorrelator'
+        | 'internalTrxId'
+        | 'referenceId'
+        | 'paidAmount'
+        | 'balanceDue'
+        | 'fulfilledAt'
+      >
+    >,
+    now: Date,
+  ): Promise<ChargeRecord | null>;
+  incrementOtpAttempts(externalTrxId: string): Promise<number>;
+  /** Charges still unsettled and untouched since `olderThan`: the reconciliation work list. */
+  listOpen(olderThan: Date, limit: number): Promise<ChargeRecord[]>;
+}
+
+export interface EntitlementStore {
+  /** Idempotent on chargeId: a settled charge grants its entitlement exactly once. */
+  grant(
+    input: { userId: string; feature: string; quantity: number; chargeId: string },
+    now: Date,
+  ): Promise<{ granted: boolean }>;
+  /** Unused credits for the feature. */
+  available(userId: string, feature: string): Promise<number>;
+  /** Takes one credit if there is one. Atomic: two requests cannot spend the same credit. */
+  consume(userId: string, feature: string): Promise<boolean>;
+}
+
+export interface UsageStore {
+  get(userId: string, counter: string, period: string): Promise<number>;
+  increment(userId: string, counter: string, period: string, by?: number): Promise<number>;
+}
+
 export interface Stores {
   users: UserStore;
   otpSessions: OtpSessionStore;
@@ -175,6 +311,10 @@ export interface Stores {
   sessions: SessionStore;
   dedupe: DedupeStore;
   smsLog: SmsLogStore;
+  subscriptions: SubscriptionStore;
+  charges: ChargeStore;
+  entitlements: EntitlementStore;
+  usage: UsageStore;
   optOuts: OptOutStore;
   rateLimit: RateLimitStore;
 }

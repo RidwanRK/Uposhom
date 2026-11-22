@@ -33,6 +33,13 @@ const envSchema = z
     // jobs against an sms_log and sessions that restarted empty.
     QUEUE_DRIVER: z.enum(['memory', 'pgboss']).default('memory'),
 
+    // Where users, sessions, the SMS log and the billing ledger live. `memory` forgets everything on
+    // restart (development and tests). `postgres` needs DATABASE_URL and PHONE_ENC_KEY.
+    STORE_DRIVER: z.enum(['memory', 'postgres']).default('memory'),
+    // AES-256 key for phone numbers: 64 hex characters (`openssl rand -hex 32`). Back it up with
+    // the other secrets: without it every stored number is unreadable.
+    PHONE_ENC_KEY: optionalString,
+
     // HMAC secret for access tokens (at least 32 characters). Mandatory in production.
     JWT_SECRET: optionalString,
 
@@ -65,6 +72,23 @@ const envSchema = z
         path: ['APPLINK_CALLBACK_PATH_KEY'],
         message: 'must be set in production (unguessable callback path segment)',
       });
+    }
+
+    if (env.STORE_DRIVER === 'postgres') {
+      if (env.DATABASE_URL === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['DATABASE_URL'],
+          message: 'must be set when STORE_DRIVER=postgres',
+        });
+      }
+      if (!/^[0-9a-fA-F]{64}$/.test(env.PHONE_ENC_KEY ?? '')) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['PHONE_ENC_KEY'],
+          message: 'must be 64 hex characters when STORE_DRIVER=postgres (openssl rand -hex 32)',
+        });
+      }
     }
 
     if (env.QUEUE_DRIVER === 'pgboss' && env.DATABASE_URL === undefined) {

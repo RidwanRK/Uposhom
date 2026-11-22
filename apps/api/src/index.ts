@@ -1,6 +1,10 @@
 import { buildApp } from './app.js';
 import { ConfigError, loadConfig } from './config/env.js';
+import { createPool } from './db/pool.js';
+import { runMigrations } from './db/migrate.js';
 import { createPgBossQueue } from './queue/pgboss.js';
+import { createPhoneCrypto } from './security/phone-crypto.js';
+import { createPostgresStores } from './stores/postgres.js';
 
 async function main(): Promise<void> {
   let config;
@@ -24,12 +28,27 @@ async function main(): Promise<void> {
         })
       : undefined;
 
-  const app = buildApp(config, queue ? { queue } : {});
+  // Postgres stores: migrate first (idempotent, under an advisory lock), then serve.
+  const pool =
+    config.STORE_DRIVER === 'postgres' && config.DATABASE_URL
+      ? createPool(config.DATABASE_URL)
+      : undefined;
+  if (pool && config.PHONE_ENC_KEY) {
+    const applied = await runMigrations(pool);
+    console.log(JSON.stringify({ level: 'info', msg: 'migrations checked', applied }));
+  }
+  const stores =
+    pool && config.PHONE_ENC_KEY
+      ? createPostgresStores(pool, createPhoneCrypto(config.PHONE_ENC_KEY))
+      : undefined;
+
+  const app = buildApp(config, { ...(queue ? { queue } : {}), ...(stores ? { stores } : {}) });
 
   const shutdown = async (signal: string): Promise<void> => {
     app.log.info({ signal }, 'shutting down');
     try {
       await app.close();
+      await pool?.end();
       process.exit(0);
     } catch (err) {
       app.log.error(err, 'error during shutdown');
