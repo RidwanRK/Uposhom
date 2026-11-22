@@ -3,8 +3,11 @@ import type {
   ConsentRecord,
   OtpSessionRecord,
   SessionRecord,
+  SmsLogRecord,
   Stores,
+  SuppressionReason,
   UserRecord,
+  UssdSessionRecord,
 } from './types.js';
 
 /** In-memory stores: Day 1 only. State is lost on restart, so this is not for production data. */
@@ -15,6 +18,9 @@ export function createMemoryStores(): Stores {
   const sessions = new Map<string, SessionRecord>();
   const seen = new Map<string, number>();
   const hits = new Map<string, number[]>();
+  const smsLog = new Map<string, SmsLogRecord>();
+  const suppressed = new Map<string, SuppressionReason>();
+  const ussd = new Map<string, UssdSessionRecord>();
 
   return {
     users: {
@@ -23,6 +29,9 @@ export function createMemoryStores(): Stores {
       },
       async findByMsisdn(msisdn) {
         return [...users.values()].find((u) => u.msisdn === msisdn) ?? null;
+      },
+      async findBySubscriberId(subscriberId) {
+        return [...users.values()].find((u) => u.subscriberId === subscriberId) ?? null;
       },
       async upsertVerified(input) {
         const existing = [...users.values()].find((u) => u.msisdn === input.msisdn);
@@ -114,6 +123,73 @@ export function createMemoryStores(): Stores {
         if (seen.has(key)) return false;
         seen.set(key, now.getTime());
         return true;
+      },
+    },
+
+    smsLog: {
+      async create(input, now) {
+        const existing = smsLog.get(input.idempotencyKey);
+        if (existing) return { record: existing, created: false };
+        const record: SmsLogRecord = {
+          id: randomUUID(),
+          ...input,
+          status: 'PENDING',
+          requestId: null,
+          applinkStatusCode: null,
+          deliveryStatus: null,
+          createdAt: now,
+          updatedAt: now,
+        };
+        smsLog.set(input.idempotencyKey, record);
+        return { record, created: true };
+      },
+      async findByIdempotencyKey(key) {
+        return smsLog.get(key) ?? null;
+      },
+      async findByRequestId(requestId) {
+        return [...smsLog.values()].find((r) => r.requestId === requestId) ?? null;
+      },
+      async update(id, patch, now) {
+        const row = [...smsLog.values()].find((r) => r.id === id);
+        if (!row) return null;
+        Object.assign(row, patch, { updatedAt: now });
+        return row;
+      },
+      async recentForSubscriber(subscriberId, limit) {
+        return [...smsLog.values()]
+          .filter((r) => r.subscriberId === subscriberId)
+          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+          .slice(0, limit);
+      },
+    },
+
+    optOuts: {
+      async suppress(input) {
+        // STOP outranks the others: it is a withdrawn consent, not a delivery problem.
+        if (suppressed.get(input.subscriberId) !== 'STOP') {
+          suppressed.set(input.subscriberId, input.reason);
+        }
+      },
+      async suppressionFor(subscriberId) {
+        return suppressed.get(subscriberId) ?? null;
+      },
+    },
+
+    ussdSessions: {
+      async get(sessionId, now) {
+        const s = ussd.get(sessionId);
+        if (!s) return null;
+        if (s.expiresAt <= now) {
+          ussd.delete(sessionId);
+          return null;
+        }
+        return s;
+      },
+      async put(record) {
+        ussd.set(record.sessionId, record);
+      },
+      async delete(sessionId) {
+        ussd.delete(sessionId);
       },
     },
 

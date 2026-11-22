@@ -35,6 +35,11 @@ const envSchema = z
     APPLINK_APP_ID: optionalString,
     APPLINK_PASSWORD: optionalString,
 
+    // Keyword subscribers put at the start of an MO SMS (UPOSHOM 1). Confirm with Applink.
+    SMS_KEYWORD: z.string().trim().min(1).default('UPOSHOM'),
+    // Only a provisioned alias works as the SMS sender (else E1331). Unset uses the default.
+    APPLINK_SMS_SOURCE_ADDRESS: optionalString,
+
     // Unguessable path segment for the five callback URLs. Mandatory in production.
     APPLINK_CALLBACK_PATH_KEY: z.string().default(''),
 

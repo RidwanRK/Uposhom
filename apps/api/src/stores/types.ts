@@ -22,6 +22,8 @@ export interface UserRecord {
 export interface UserStore {
   findById(id: string): Promise<UserRecord | null>;
   findByMsisdn(msisdn: string): Promise<UserRecord | null>;
+  /** Callbacks identify people by the opaque subscriber id, never by the typed number. */
+  findBySubscriberId(subscriberId: string): Promise<UserRecord | null>;
   /** Insert or update by msisdn. `accountType` is only applied on insert. */
   upsertVerified(input: {
     msisdn: string;
@@ -103,11 +105,93 @@ export interface RateLimitStore {
   ): Promise<{ allowed: boolean; retryAfterSeconds: number }>;
 }
 
+export type SmsStatus =
+  | 'PENDING' // row written, Applink not (successfully) called yet: safe to retry
+  | 'SUBMITTED' // Applink accepted it; delivery reports update deliveryStatus
+  | 'FAILED' // rejected for this recipient, will not be retried
+  | 'UNKNOWN' // transport failure after sending: it may have gone out, never re-sent blindly
+  | 'SKIPPED'; // suppressed (opted out, dead or blocked number)
+
+export type DeliveryStatus =
+  'DELIVERED' | 'EXPIRED' | 'DELETED' | 'UNDELIVERABLE' | 'ACCEPTED' | 'UNKNOWN' | 'REJECTED';
+
+/** No message bodies: sms_log holds identifiers and statuses only. */
+export interface SmsLogRecord {
+  id: string;
+  idempotencyKey: string;
+  subscriberId: string;
+  purpose: string;
+  critical: boolean;
+  status: SmsStatus;
+  /** Applink's requestId, which delivery reports carry. */
+  requestId: string | null;
+  applinkStatusCode: string | null;
+  deliveryStatus: DeliveryStatus | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SmsLogStore {
+  /** Idempotent on idempotencyKey: an existing row is returned with created false. */
+  create(
+    input: Pick<SmsLogRecord, 'idempotencyKey' | 'subscriberId' | 'purpose' | 'critical'>,
+    now: Date,
+  ): Promise<{ record: SmsLogRecord; created: boolean }>;
+  findByIdempotencyKey(key: string): Promise<SmsLogRecord | null>;
+  findByRequestId(requestId: string): Promise<SmsLogRecord | null>;
+  update(
+    id: string,
+    patch: Partial<
+      Pick<SmsLogRecord, 'status' | 'requestId' | 'applinkStatusCode' | 'deliveryStatus'>
+    >,
+    now: Date,
+  ): Promise<SmsLogRecord | null>;
+  /** Most recent sends to a subscriber, newest first. */
+  recentForSubscriber(subscriberId: string, limit: number): Promise<SmsLogRecord[]>;
+}
+
+export type SuppressionReason =
+  | 'STOP' // the subscriber opted out (SMS, USSD, app or operator notification)
+  | 'DEAD_NUMBER' // repeated UNDELIVERABLE
+  | 'BLOCKED'; // Applink E1342: blacklisted, no further messages
+
+export interface OptOutStore {
+  suppress(
+    input: {
+      subscriberId: string;
+      reason: SuppressionReason;
+      source: 'SMS' | 'USSD' | 'APP' | 'NOTIFICATION' | 'SYSTEM';
+    },
+    now: Date,
+  ): Promise<void>;
+  /** The reason a number is suppressed, or null when we may message it. */
+  suppressionFor(subscriberId: string): Promise<SuppressionReason | null>;
+}
+
+export type UssdState = 'MAIN_MENU' | 'STOP_CONFIRM';
+
+export interface UssdSessionRecord {
+  sessionId: string;
+  subscriberId: string;
+  state: UssdState;
+  invalidCount: number;
+  expiresAt: Date;
+}
+
+export interface UssdSessionStore {
+  get(sessionId: string, now: Date): Promise<UssdSessionRecord | null>;
+  put(record: UssdSessionRecord): Promise<void>;
+  delete(sessionId: string): Promise<void>;
+}
+
 export interface Stores {
   users: UserStore;
   otpSessions: OtpSessionStore;
   consents: ConsentStore;
   sessions: SessionStore;
   dedupe: DedupeStore;
+  smsLog: SmsLogStore;
+  optOuts: OptOutStore;
+  ussdSessions: UssdSessionStore;
   rateLimit: RateLimitStore;
 }
