@@ -14,7 +14,7 @@ export interface PgBossQueueOptions {
   connectionString: string;
   /** Schema pg-boss installs its tables into. Defaults to `pgboss`. */
   schema?: string;
-  /** How often an idle worker polls. USSD replies are latency sensitive, so this is short. */
+  /** How often an idle worker polls. Replies a person is waiting on are latency sensitive, so this is short. */
   pollingIntervalSeconds?: number;
   onError?: (err: Error) => void;
 }

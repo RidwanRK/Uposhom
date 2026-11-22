@@ -7,7 +7,6 @@ import {
   smsReceive,
   smsReport,
   subscriptionNotify,
-  ussdReceive,
   type CallbackEvent,
   type CallbackKind,
   type CallbackSink,
@@ -26,7 +25,6 @@ export interface CallbackDeps {
 const ROUTES: ReadonlyArray<{ path: string; type: CallbackKind; schema: ZodType }> = [
   { path: '/sms/receive', type: 'sms.mo', schema: smsReceive },
   { path: '/sms/report', type: 'sms.report', schema: smsReport },
-  { path: '/ussd/receive', type: 'ussd.mo', schema: ussdReceive },
   { path: '/subscription/notify', type: 'subscription.notify', schema: subscriptionNotify },
   {
     path: '/caas/charging-notification',

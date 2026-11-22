@@ -12,8 +12,8 @@ beforeAll(async () => {
 });
 afterAll(() => mock.stop());
 
-describe('SMS and USSD flows against the Applink mock', () => {
-  it('sends an SMS, takes its delivery report, runs a USSD session, and honours STOP', async () => {
+describe('SMS flows against the Applink mock', () => {
+  it('sends an SMS, takes its delivery report, and honours STOP', async () => {
     const h = await harness({ applink: mock.client() });
     await h.addUser();
 
@@ -40,36 +40,7 @@ describe('SMS and USSD flows against the Applink mock', () => {
       'DELIVERED',
     );
 
-    // USSD: dial, open the stop screen, confirm.
-    const base = {
-      version: '1.0',
-      applicationId: 'APP_1',
-      sessionId: 'e2e-s',
-      sourceAddress: SUB,
-      encoding: '440',
-    };
-    await h.callback('ussd/receive', {
-      ...base,
-      requestId: nextId(),
-      ussdOperation: 'mo-init',
-      message: '*195#',
-    });
-    await h.callback('ussd/receive', {
-      ...base,
-      requestId: nextId(),
-      ussdOperation: 'mo-cont',
-      message: '5',
-    });
-    await h.callback('ussd/receive', {
-      ...base,
-      requestId: nextId(),
-      ussdOperation: 'mo-cont',
-      message: '1',
-    });
-    await settle(h);
-    expect(await h.stores.optOuts.suppressionFor(SUB)).toBe('STOP');
-
-    // MO STOP by SMS goes through Unregister too.
+    // MO STOP by SMS: suppressed at once, then Applink Unregister.
     await h.callback('sms/receive', {
       version: '1.0',
       applicationId: 'APP_1',
@@ -79,6 +50,7 @@ describe('SMS and USSD flows against the Applink mock', () => {
       encoding: '0',
     });
     await settle(h);
+    expect(await h.stores.optOuts.suppressionFor(SUB)).toBe('STOP');
 
     expect(await h.deadLetterCount()).toBe(0);
     expect(await mock.badRequests()).toEqual([]);

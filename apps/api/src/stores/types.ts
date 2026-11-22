@@ -64,7 +64,7 @@ export interface ConsentRecord {
   msisdn: string;
   /** What was shown and accepted, for example 'SIGNUP_OTP_V1'. */
   kind: string;
-  channel: 'APP' | 'SMS' | 'USSD';
+  channel: 'APP' | 'SMS';
   ip: string | null;
   createdAt: Date;
 }
@@ -151,7 +151,7 @@ export interface SmsLogStore {
 }
 
 export type SuppressionReason =
-  | 'STOP' // the subscriber opted out (SMS, USSD, app or operator notification)
+  | 'STOP' // the subscriber opted out (SMS, app or operator notification)
   | 'DEAD_NUMBER' // repeated UNDELIVERABLE
   | 'BLOCKED'; // Applink E1342: blacklisted, no further messages
 
@@ -160,28 +160,12 @@ export interface OptOutStore {
     input: {
       subscriberId: string;
       reason: SuppressionReason;
-      source: 'SMS' | 'USSD' | 'APP' | 'NOTIFICATION' | 'SYSTEM';
+      source: 'SMS' | 'APP' | 'NOTIFICATION' | 'SYSTEM';
     },
     now: Date,
   ): Promise<void>;
   /** The reason a number is suppressed, or null when we may message it. */
   suppressionFor(subscriberId: string): Promise<SuppressionReason | null>;
-}
-
-export type UssdState = 'MAIN_MENU' | 'STOP_CONFIRM';
-
-export interface UssdSessionRecord {
-  sessionId: string;
-  subscriberId: string;
-  state: UssdState;
-  invalidCount: number;
-  expiresAt: Date;
-}
-
-export interface UssdSessionStore {
-  get(sessionId: string, now: Date): Promise<UssdSessionRecord | null>;
-  put(record: UssdSessionRecord): Promise<void>;
-  delete(sessionId: string): Promise<void>;
 }
 
 export interface Stores {
@@ -192,6 +176,5 @@ export interface Stores {
   dedupe: DedupeStore;
   smsLog: SmsLogStore;
   optOuts: OptOutStore;
-  ussdSessions: UssdSessionStore;
   rateLimit: RateLimitStore;
 }

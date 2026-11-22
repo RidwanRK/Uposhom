@@ -2,13 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
 import type { CallbackEvent } from '../src/callbacks/events.js';
 
-const PATHS = [
-  'sms/receive',
-  'sms/report',
-  'ussd/receive',
-  'subscription/notify',
-  'caas/charging-notification',
-];
+const PATHS = ['sms/receive', 'sms/report', 'subscription/notify', 'caas/charging-notification'];
 
 const ACK = { statusCode: 'S1000', statusDetail: 'Success' };
 
@@ -48,16 +42,6 @@ const VALID = {
     timeStamp: '2611221030',
     requestId: 'r2',
     deliveryStatus: 'DELIVERED',
-  },
-  'ussd/receive': {
-    version: '1.0',
-    applicationId: 'APP_1',
-    message: '*195#',
-    requestId: 'r3',
-    sessionId: 's1',
-    ussdOperation: 'mo-init',
-    sourceAddress: 'tel:8801959979376',
-    encoding: '440',
   },
   'subscription/notify': {
     timeStamp: '20261122103000',

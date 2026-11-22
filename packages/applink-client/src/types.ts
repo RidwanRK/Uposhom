@@ -25,10 +25,6 @@ export interface SmsSendResponse extends ApplinkBaseResponse {
   destinationResponses?: SmsDestinationResponse[];
 }
 
-export interface UssdSendResponse extends ApplinkBaseResponse {
-  timeStamp?: string;
-}
-
 export interface SubscriptionSendResponse extends ApplinkBaseResponse {
   /** The outcome. Applink has no "already registered" code, so read this, not statusCode. */
   subscriptionStatus?: string;
@@ -89,7 +85,6 @@ export interface CaasOtpVerifyResponse extends ApplinkBaseResponse {
 /** Endpoint variables Applink services are reached through. Unset means the API is not enabled. */
 export type ServiceName =
   | 'smsSend'
-  | 'ussdSend'
   | 'subscriptionSend'
   | 'subscriptionQueryBase'
   | 'subscriptionChargingInfo'

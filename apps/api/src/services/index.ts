@@ -7,7 +7,6 @@ import {
   createUnregisterService,
   type UnregisterPayload,
 } from '../subscription/unregister.js';
-import { createUssdHandler, type UssdPayload } from '../ussd/menu.js';
 import type { ServiceDeps } from './deps.js';
 
 export type { ServiceDeps } from './deps.js';
@@ -16,8 +15,6 @@ export type { ServiceDeps } from './deps.js';
 const CONSUMED = {
   'sms.mo': { queue: 'callback.sms.mo', retryLimit: 2 },
   'sms.report': { queue: 'callback.sms.report', retryLimit: 2 },
-  // A USSD screen that arrives after the session has timed out is useless: never retried.
-  'ussd.mo': { queue: 'callback.ussd.mo', retryLimit: 0 },
 } as const;
 
 /**
@@ -29,13 +26,11 @@ export function createServices(deps: ServiceDeps) {
   const unregister = createUnregisterService(deps);
   const handleMo = createMoHandler(deps, sms, unregister);
   const handleReport = createReportHandler(deps);
-  const handleUssd = createUssdHandler(deps, unregister);
 
   deps.queue.work<SmsSendPayload>(SMS_SEND_QUEUE, (job) => sms.handle(job));
   deps.queue.work<UnregisterPayload>(UNREGISTER_QUEUE, (job) => unregister.handle(job));
   deps.queue.work<MoPayload>(CONSUMED['sms.mo'].queue, (job) => handleMo(job.data));
   deps.queue.work<ReportPayload>(CONSUMED['sms.report'].queue, (job) => handleReport(job.data));
-  deps.queue.work<UssdPayload>(CONSUMED['ussd.mo'].queue, (job) => handleUssd(job.data));
 
   const sink: CallbackSink = {
     async handle(event) {

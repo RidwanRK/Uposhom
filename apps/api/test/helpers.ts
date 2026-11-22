@@ -6,7 +6,6 @@ const MOCK = fileURLToPath(new URL('../../../scripts/mock-applink.mjs', import.m
 
 const PATHS: Record<ServiceName, string> = {
   smsSend: '/sms/send',
-  ussdSend: '/ussd/send',
   subscriptionSend: '/subscription/send',
   subscriptionQueryBase: '/subscription/query-base',
   subscriptionChargingInfo: '/subscription/getSubscriberChargingInfo',

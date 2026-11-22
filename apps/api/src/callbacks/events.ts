@@ -21,15 +21,6 @@ export const smsReport = z.looseObject({
   timeStamp: z.string().optional(),
 });
 
-export const ussdReceive = z.looseObject({
-  applicationId: z.string().optional(),
-  sessionId: str,
-  requestId: str,
-  ussdOperation: z.enum(['mo-init', 'mo-cont']),
-  sourceAddress: str,
-  message: z.string(),
-});
-
 export const subscriptionNotify = z.looseObject({
   applicationId: z.string().optional(),
   subscriberId: str,
@@ -52,7 +43,6 @@ export const chargingNotification = z.looseObject({
 export type CallbackEvent =
   | { type: 'sms.mo'; data: z.infer<typeof smsReceive> }
   | { type: 'sms.report'; data: z.infer<typeof smsReport> }
-  | { type: 'ussd.mo'; data: z.infer<typeof ussdReceive> }
   | { type: 'subscription.notify'; data: z.infer<typeof subscriptionNotify> }
   | { type: 'charging.notification'; data: z.infer<typeof chargingNotification> };
 
@@ -70,8 +60,6 @@ export function dedupeKey(event: CallbackEvent): string {
       return `sms.mo:${event.data.requestId}`;
     case 'sms.report':
       return `sms.report:${event.data.requestId}:${event.data.deliveryStatus}`;
-    case 'ussd.mo':
-      return `ussd.mo:${event.data.requestId}`;
     case 'subscription.notify':
       return `subscription.notify:${event.data.subscriberId}:${event.data.status}:${event.data.timeStamp}`;
     case 'charging.notification':

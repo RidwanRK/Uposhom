@@ -10,7 +10,7 @@ export interface QueueUnderTest {
 
 /**
  * Behaviour every JobQueue implementation must share, so swapping the in-memory queue for pg-boss
- * cannot change what the SMS, USSD and unregister consumers rely on. Payloads are objects because
+ * cannot change what the SMS and unregister consumers rely on. Payloads are objects because
  * pg-boss stores JSON objects.
  */
 export function queueContract(label: string, make: () => Promise<QueueUnderTest>): void {

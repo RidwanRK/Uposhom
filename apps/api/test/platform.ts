@@ -21,7 +21,6 @@ export function fakeApplink(over: Record<string, unknown> = {}) {
     sendSms: vi.fn(async () =>
       ok({ requestId: 'req-1', destinationResponses: [{ statusCode: 'S1000', address: SUB }] }),
     ),
-    sendUssd: vi.fn(async () => ok({})),
     unregister: vi.fn(async () => ok({ subscriptionStatus: 'UNREGISTERED' })),
     // Overrides are spies too, so tests can count calls.
     ...Object.fromEntries(

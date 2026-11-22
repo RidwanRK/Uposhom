@@ -6,11 +6,9 @@
 
 export type DoseReplyCode = 'TAKEN' | 'SNOOZE' | 'SKIP';
 
-export type UssdAction = 'TODAY' | 'MARK_TAKEN' | 'NEXT_APPOINTMENT' | 'ALERT_CAREGIVER';
-
 export interface DomainPorts {
   /**
-   * A subscriber replied to a reminder (SMS or USSD). `profileTag` is the short tag when one number
+   * A subscriber replied to a reminder (SMS). `profileTag` is the short tag when one number
    * serves several profiles. Return the text to SMS back, or null to stay silent. An MO SMS is not
    * authenticated beyond its source address: this may mark a dose taken, snoozed or skipped, and
    * must never do anything destructive or involving money.
@@ -20,9 +18,6 @@ export interface DomainPorts {
     code: DoseReplyCode;
     profileTag: string | null;
   }): Promise<{ replyText: string | null }>;
-
-  /** Text for a USSD menu item. Plain ASCII; anything longer than 160 characters is cut. */
-  ussdAction(input: { subscriberId: string; action: UssdAction }): Promise<string>;
 
   /** A reminder SMS could not be delivered (UNDELIVERABLE, EXPIRED or REJECTED). */
   onSmsDeliveryFailure(input: {
@@ -36,9 +31,6 @@ export interface DomainPorts {
 export const defaultDomainPorts: DomainPorts = {
   async doseReply() {
     return { replyText: null };
-  },
-  async ussdAction() {
-    return 'This feature is coming soon. We will send you an SMS.';
   },
   async onSmsDeliveryFailure() {
     // Nothing to escalate until B's reminder state machine exists.

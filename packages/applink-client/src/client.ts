@@ -20,7 +20,6 @@ import type {
   SmsSendResponse,
   SubscriberChargingInfoResponse,
   SubscriptionSendResponse,
-  UssdSendResponse,
 } from './types.js';
 
 const API_VERSION = '1.0';
@@ -137,23 +136,6 @@ export function createApplinkClient(config: ApplinkClientConfig) {
         message,
         destinationAddresses: recipients,
         ...options,
-      });
-    },
-
-    /* USSD. sessionId must be the one the platform sent; "mt-fin" closes the session. */
-    sendUssd(input: {
-      sessionId: string;
-      destinationAddress: string;
-      message: string;
-      operation: 'mt-init' | 'mt-cont' | 'mt-fin';
-    }) {
-      return post<UssdSendResponse>('ussd-send', endpoint('ussdSend'), {
-        version: API_VERSION,
-        message: input.message,
-        sessionId: input.sessionId,
-        ussdOperation: input.operation,
-        destinationAddress: toTelAddress(input.destinationAddress),
-        encoding: '440',
       });
     },
 

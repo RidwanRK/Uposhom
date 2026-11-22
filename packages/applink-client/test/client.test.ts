@@ -20,7 +20,6 @@ const MOCK = fileURLToPath(new URL('../../../scripts/mock-applink.mjs', import.m
 
 const PATHS: Record<ServiceName, string> = {
   smsSend: '/sms/send',
-  ussdSend: '/ussd/send',
   subscriptionSend: '/subscription/send',
   subscriptionQueryBase: '/subscription/query-base',
   subscriptionChargingInfo: '/subscription/getSubscriberChargingInfo',
@@ -68,12 +67,6 @@ describe('against the local Applink mock', () => {
     const c = clientFor();
     expect((await c.queryBase()).size).toBeGreaterThanOrEqual(0);
     await c.sendSms(sub, 'hello', { deliveryStatusRequest: '1' });
-    await c.sendUssd({
-      sessionId: 's1',
-      destinationAddress: sub,
-      message: 'hi',
-      operation: 'mt-fin',
-    });
     expect(hasSubscriptionStatus(await c.register(sub), 'REGISTERED')).toBeTypeOf('boolean');
     await c.unregister(sub);
     await c.getSubscriberChargingInfo([sub]);

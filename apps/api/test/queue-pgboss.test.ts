@@ -18,46 +18,31 @@ describe.skipIf(!url)('pg-boss in the platform', { timeout: 60_000 }, () => {
   const make = (schema = newSchema()) =>
     createPgBossQueue({ connectionString: url ?? '', schema, pollingIntervalSeconds: 0.5 });
 
-  it('carries a USSD dial and a STOP through callback, queue, consumer and Applink', async () => {
+  it('carries an inbound SMS through callback, queue, consumer and Applink', async () => {
     const queue = make();
-    const h = await harness({ queue });
+    const doseReply = vi.fn(async () => ({ replyText: 'Marked as taken. Thank you.' }));
+    const h = await harness({ queue, ports: { doseReply } });
     await h.addUser();
-    const base = {
+    const mo = (message: string, requestId: string) => ({
       version: '1.0',
       applicationId: 'APP_1',
-      sessionId: 'pg-s',
       sourceAddress: SUB,
-      encoding: '440',
-    };
+      message,
+      requestId,
+      encoding: '0',
+    });
 
+    // A reply to a reminder: the answer SMS must go out promptly.
     const t0 = Date.now();
-    await h.callback('ussd/receive', {
-      ...base,
-      requestId: 'pg-1',
-      ussdOperation: 'mo-init',
-      message: '*195#',
-    });
-    await vi.waitFor(() => expect(h.applink.sendUssd).toHaveBeenCalledTimes(1), {
+    await h.callback('sms/receive', mo('UPOSHOM 1', 'pg-1'));
+    await vi.waitFor(() => expect(h.applink.sendSms).toHaveBeenCalledTimes(1), {
       timeout: 10_000,
     });
-    // The first screen has to reach the handset while the network session is still alive.
     expect(Date.now() - t0).toBeLessThan(3000);
+    expect(doseReply).toHaveBeenCalledTimes(1);
 
-    await h.callback('ussd/receive', {
-      ...base,
-      requestId: 'pg-2',
-      ussdOperation: 'mo-cont',
-      message: '5',
-    });
-    await vi.waitFor(() => expect(h.applink.sendUssd).toHaveBeenCalledTimes(2), {
-      timeout: 10_000,
-    });
-    await h.callback('ussd/receive', {
-      ...base,
-      requestId: 'pg-3',
-      ussdOperation: 'mo-cont',
-      message: '1',
-    });
+    // STOP: suppressed at once, then Applink Unregister runs from the queue.
+    await h.callback('sms/receive', mo('STOP', 'pg-2'));
     await vi.waitFor(() => expect(h.applink.unregister).toHaveBeenCalledWith(SUB), {
       timeout: 10_000,
     });

@@ -7,7 +7,6 @@ import type {
   Stores,
   SuppressionReason,
   UserRecord,
-  UssdSessionRecord,
 } from './types.js';
 
 /** In-memory stores: Day 1 only. State is lost on restart, so this is not for production data. */
@@ -20,7 +19,6 @@ export function createMemoryStores(): Stores {
   const hits = new Map<string, number[]>();
   const smsLog = new Map<string, SmsLogRecord>();
   const suppressed = new Map<string, SuppressionReason>();
-  const ussd = new Map<string, UssdSessionRecord>();
 
   return {
     users: {
@@ -172,24 +170,6 @@ export function createMemoryStores(): Stores {
       },
       async suppressionFor(subscriberId) {
         return suppressed.get(subscriberId) ?? null;
-      },
-    },
-
-    ussdSessions: {
-      async get(sessionId, now) {
-        const s = ussd.get(sessionId);
-        if (!s) return null;
-        if (s.expiresAt <= now) {
-          ussd.delete(sessionId);
-          return null;
-        }
-        return s;
-      },
-      async put(record) {
-        ussd.set(record.sessionId, record);
-      },
-      async delete(sessionId) {
-        ussd.delete(sessionId);
       },
     },
 

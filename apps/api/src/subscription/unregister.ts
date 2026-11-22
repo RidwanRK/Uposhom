@@ -6,7 +6,7 @@ import type { SuppressionReason } from '../stores/types.js';
 export const UNREGISTER_QUEUE = 'subscription.unregister';
 const UNREGISTER_RETRY_LIMIT = 3;
 
-type Source = 'SMS' | 'USSD' | 'APP' | 'NOTIFICATION';
+type Source = 'SMS' | 'APP' | 'NOTIFICATION';
 
 export interface UnregisterPayload {
   subscriberId: string;

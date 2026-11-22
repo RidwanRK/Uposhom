@@ -50,7 +50,6 @@ const envSchema = z
 
     // One endpoint variable per enabled Applink service
     APPLINK_SMS_SEND_URL: optionalUrl,
-    APPLINK_USSD_SEND_URL: optionalUrl,
     APPLINK_SUBSCRIPTION_SEND_URL: optionalUrl,
     APPLINK_SUBSCRIPTION_QUERY_BASE_URL: optionalUrl,
     APPLINK_SUBSCRIPTION_CHARGING_INFO_URL: optionalUrl,

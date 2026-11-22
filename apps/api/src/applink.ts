@@ -3,7 +3,6 @@ import type { Config } from './config/env.js';
 
 const ENDPOINT_VARS: Record<ServiceName, keyof Config> = {
   smsSend: 'APPLINK_SMS_SEND_URL',
-  ussdSend: 'APPLINK_USSD_SEND_URL',
   subscriptionSend: 'APPLINK_SUBSCRIPTION_SEND_URL',
   subscriptionQueryBase: 'APPLINK_SUBSCRIPTION_QUERY_BASE_URL',
   subscriptionChargingInfo: 'APPLINK_SUBSCRIPTION_CHARGING_INFO_URL',
