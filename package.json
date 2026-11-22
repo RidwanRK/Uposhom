@@ -16,7 +16,8 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "dev": "pnpm --filter @uposhom/api dev",
     "applink:smoke": "pnpm --filter @uposhom/api applink:smoke",
-    "test:applink": "pnpm --filter @uposhom/applink-client test && pnpm --filter @uposhom/api test:applink"
+    "test:applink": "pnpm --filter @uposhom/applink-client test && pnpm --filter @uposhom/api test:applink",
+    "dev:local": "node scripts/dev-local.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
