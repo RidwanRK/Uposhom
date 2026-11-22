@@ -5,6 +5,7 @@ import type {
   DoseRecord,
   DoseView,
   EscalationRecord,
+  InviteRecord,
   LinkRecord,
   PrescriptionItemRecord,
   PrescriptionRecord,
@@ -22,6 +23,7 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
   const doseKeys = new Set<string>();
   const logs: DoseLogRecord[] = [];
   const escalations = new Map<string, EscalationRecord>(); // by idempotency key
+  const invites = new Map<string, InviteRecord>();
 
   const copy = <T>(v: T): T => structuredClone(v);
 
@@ -32,6 +34,7 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
 
   const removeProfile = (profileId: string) => {
     for (const [id, l] of links) if (l.profileId === profileId) links.delete(id);
+    for (const [id, i] of invites) if (i.profileId === profileId) invites.delete(id);
     for (const [id, p] of prescriptions) {
       if (p.profileId !== profileId) continue;
       prescriptions.delete(id);
@@ -113,6 +116,61 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
           .filter((l) => l.profileId === profileId)
           .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
           .map(copy);
+      },
+    },
+    links: {
+      async findById(id) {
+        const l = links.get(id);
+        return l ? copy(l) : null;
+      },
+      async setRole(id, role) {
+        const l = links.get(id);
+        if (!l) return null;
+        l.role = role;
+        return copy(l);
+      },
+      async setSecondary(profileId, linkId) {
+        for (const l of links.values()) {
+          if (l.profileId === profileId) l.isSecondaryCaregiver = l.id === linkId;
+        }
+      },
+      async remove(id) {
+        return links.delete(id);
+      },
+    },
+    invites: {
+      async create(invite) {
+        for (const i of invites.values()) {
+          if (i.profileId === invite.profileId && i.phoneKey === invite.phoneKey && !i.acceptedAt) {
+            return false;
+          }
+        }
+        if (!profiles.has(invite.profileId)) throw new Error('no such profile');
+        invites.set(invite.id, copy(invite));
+        return true;
+      },
+      async openForPhone(phoneKey, now) {
+        return [...invites.values()]
+          .filter((i) => i.phoneKey === phoneKey && !i.acceptedAt && i.expiresAt > now)
+          .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+          .map(copy);
+      },
+      async openForProfile(profileId, now) {
+        return [...invites.values()]
+          .filter((i) => i.profileId === profileId && !i.acceptedAt && i.expiresAt > now)
+          .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+          .map(copy);
+      },
+      async accept(inviteId, link, at) {
+        const i = invites.get(inviteId);
+        if (!i || i.acceptedAt) return false;
+        i.acceptedAt = at;
+        i.acceptedBy = link.userId;
+        for (const l of links.values()) {
+          if (l.userId === link.userId && l.profileId === link.profileId) return false;
+        }
+        links.set(link.id, copy(link));
+        return true;
       },
     },
     prescriptions: {

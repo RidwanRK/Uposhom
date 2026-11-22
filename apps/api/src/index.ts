@@ -61,10 +61,9 @@ async function main(): Promise<void> {
     const applied = [...(await runMigrations(pool)), ...(await runDomainMigrations(pool))];
     console.log(JSON.stringify({ level: 'info', msg: 'migrations checked', applied }));
   }
-  const stores =
-    pool && config.PHONE_ENC_KEY
-      ? createPostgresStores(pool, createPhoneCrypto(config.PHONE_ENC_KEY))
-      : undefined;
+  const phoneCrypto =
+    pool && config.PHONE_ENC_KEY ? createPhoneCrypto(config.PHONE_ENC_KEY) : undefined;
+  const stores = pool && phoneCrypto ? createPostgresStores(pool, phoneCrypto) : undefined;
 
   const app = buildApp(config, {
     billing: billingFromEnv(config),
@@ -72,6 +71,7 @@ async function main(): Promise<void> {
     ...(stores ? { stores } : {}),
     // Same pool, same switch: the domain tables live beside A's in Postgres.
     ...(stores && pool ? { domain: createPostgresDomainStore(createDb(pool)) } : {}),
+    ...(phoneCrypto ? { phoneKey: (msisdn: string) => phoneCrypto.lookupHash(msisdn) } : {}),
   });
 
   const shutdown = async (signal: string): Promise<void> => {

@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { normalizeBdMsisdn } from '@uposhom/applink-client';
 import {
   DEFAULT_ANCHORS,
   ScheduleInputError,
@@ -19,6 +20,7 @@ import type {
   LinkRole,
   AlertItem,
   Profile,
+  ProfileLink,
   TodayDosesResponse,
 } from '@uposhom/shared';
 import type { DoseReplyCode } from '../ports.js';
@@ -55,6 +57,7 @@ export const DOSE_RULES = {
 } as const;
 
 export const PROFILE_LIMITS = { free: 1, premium: 7 } as const; // premium: the admin plus 6
+export const LINK_LIMITS = { perProfile: 10, inviteDays: 7 } as const;
 
 export interface DomainServiceDeps {
   store: DomainStore;
@@ -63,9 +66,23 @@ export interface DomainServiceDeps {
   isPremium: (userId: string) => Promise<boolean>;
   /** From A's user store: the user whose number has this opaque subscriber id. */
   findUserIdBySubscriber: (subscriberId: string) => Promise<string | null>;
+  /** From A's user store. `msisdn` is normalised, 8801XXXXXXXXX. */
+  findUser: (userId: string) => Promise<{ id: string; msisdn: string } | null>;
+  findUserIdByMsisdn: (msisdn: string) => Promise<string | null>;
+  /** A's keyed lookup hash of a normalised number (security/phone-crypto.ts). */
+  phoneKey: (msisdn: string) => string;
 }
 
 const newId = (prefix: string) => `${prefix}_${randomUUID().replace(/-/g, '').slice(0, 16)}`;
+
+/** The default name of a new user's own profile ('me'): useless to anyone else. */
+const SELF_NAME = 'আমি';
+const latinDigits = (s: string) => s.replace(/[০-৯]/g, (d) => String('০১২৩৪৫৬৭৮৯'.indexOf(d)));
+/** 8801959979376 -> 019****9376, the way the app shows numbers elsewhere. */
+const maskLocal = (msisdn: string) => {
+  const local = `0${msisdn.slice(3)}`;
+  return `${local.slice(0, 3)}****${local.slice(-4)}`;
+};
 
 // ---------------------------------------------------------------- Bangla text
 
@@ -268,11 +285,154 @@ export function createDomainService(deps: DomainServiceDeps) {
       mealTimes: profile.mealTimes,
       ...(profile.quietHours ? { quietHours: profile.quietHours } : {}),
       phoneLinked: profile.subscriberId !== null,
+      links: await linkDtos(profile),
       myRole: role,
     };
   }
 
+  /** What the app shows for each person linked to a profile. Never a full number. */
+  async function linkDtos(profile: ProfileRecord): Promise<ProfileLink[]> {
+    const out: ProfileLink[] = [];
+    for (const l of await store.profiles.linksOf(profile.id)) {
+      const own = (await store.profiles.listForUser(l.userId)).find(
+        (x) => x.profile.userId === l.userId,
+      )?.profile.name;
+      const user = await deps.findUser(l.userId);
+      const name = own && own !== SELF_NAME ? own : user ? maskLocal(user.msisdn) : '—';
+      out.push({
+        id: l.id,
+        userId: l.userId,
+        name,
+        role: l.role,
+        isSecondaryCaregiver: l.isSecondaryCaregiver,
+      });
+    }
+    return out;
+  }
+
+  /**
+   * Open invites for the signed-in user's number become links. Signing in with an OTP to that
+   * number is the proof and the consent, so this runs whenever the app loads the circle.
+   */
+  async function acceptInvites(userId: string): Promise<void> {
+    const user = await deps.findUser(userId);
+    if (!user) return;
+    const now = deps.now();
+    for (const invite of await store.invites.openForPhone(deps.phoneKey(user.msisdn), now)) {
+      await store.invites.accept(
+        invite.id,
+        {
+          id: newId('lnk'),
+          userId,
+          profileId: invite.profileId,
+          role: invite.role,
+          isSecondaryCaregiver: false,
+          createdAt: now,
+        },
+        now,
+      );
+    }
+  }
+
+  /** The link, its profile, and the caller's role there. NOT_FOUND unless the caller is linked. */
+  async function linkContext(userId: string, linkId: string) {
+    const link = await store.links.findById(linkId);
+    if (!link) throw new DomainError('NOT_FOUND', 404);
+    const { profile, role } = await access(userId, link.profileId, false);
+    return { link, profile, callerRole: role };
+  }
+
+  const adminsOf = async (profileId: string) =>
+    (await store.profiles.linksOf(profileId)).filter((l) => l.role === 'ADMIN');
+
+  /** POST /links: invite someone, by number, to a profile the caller administers. */
+  async function invite(
+    userId: string,
+    body: { profileId: string; msisdn: string; role: LinkRole },
+  ): Promise<{ success: boolean }> {
+    const { role } = await access(userId, body.profileId, true);
+    if (role !== 'ADMIN') throw new DomainError('FORBIDDEN', 403);
+    const msisdn = normalizeBdMsisdn(latinDigits(body.msisdn));
+    if (!msisdn) throw new DomainError('INVALID_INPUT', 400, { message: 'MSISDN' });
+    const me = await deps.findUser(userId);
+    if (me?.msisdn === msisdn) throw new DomainError('INVALID_INPUT', 400, { message: 'SELF' });
+
+    const links = await store.profiles.linksOf(body.profileId);
+    const existing = await deps.findUserIdByMsisdn(msisdn);
+    if (existing && links.some((l) => l.userId === existing)) {
+      throw new DomainError('ALREADY_LINKED', 409);
+    }
+    const now = deps.now();
+    const open = await store.invites.openForProfile(body.profileId, now);
+    if (links.length + open.length >= LINK_LIMITS.perProfile) {
+      throw new DomainError('LIMIT_REACHED', 409);
+    }
+    // A repeated invite for the same number is fine: the open one stands.
+    await store.invites.create({
+      id: newId('inv'),
+      profileId: body.profileId,
+      invitedBy: userId,
+      phoneKey: deps.phoneKey(msisdn),
+      role: body.role,
+      createdAt: now,
+      expiresAt: new Date(now.getTime() + LINK_LIMITS.inviteDays * DAY),
+      acceptedAt: null,
+      acceptedBy: null,
+    });
+    return { success: true };
+  }
+
+  /** PUT /links/:id: an admin changes someone's role. */
+  async function changeRole(
+    userId: string,
+    linkId: string,
+    role: LinkRole,
+  ): Promise<{ success: boolean }> {
+    const { link, profile, callerRole } = await linkContext(userId, linkId);
+    if (callerRole !== 'ADMIN') throw new DomainError('FORBIDDEN', 403);
+    if (link.userId === profile.userId) throw new DomainError('OWN_PROFILE', 409);
+    if (link.role === 'ADMIN' && role !== 'ADMIN' && (await adminsOf(profile.id)).length <= 1) {
+      throw new DomainError('LAST_ADMIN', 409);
+    }
+    await store.links.setRole(linkId, role);
+    // A viewer cannot be the one who gets the escalation.
+    if (role === 'VIEWER' && link.isSecondaryCaregiver)
+      await store.links.setSecondary(profile.id, '');
+    return { success: true };
+  }
+
+  /** DELETE /links/:id (after a step-up OTP): an admin removes someone, or anyone leaves. */
+  async function removeLink(userId: string, linkId: string): Promise<{ success: boolean }> {
+    const { link, profile, callerRole } = await linkContext(userId, linkId);
+    const leaving = link.userId === userId;
+    if (!leaving && callerRole !== 'ADMIN') throw new DomainError('FORBIDDEN', 403);
+    if (link.userId === profile.userId) throw new DomainError('OWN_PROFILE', 409);
+    if (link.role === 'ADMIN' && (await adminsOf(profile.id)).length <= 1) {
+      throw new DomainError('LAST_ADMIN', 409);
+    }
+    await store.links.remove(linkId);
+    return { success: true };
+  }
+
+  /** PUT /profiles/:id/secondary-caregiver: who gets the T+50 alert. */
+  async function setSecondary(
+    userId: string,
+    profileId: string,
+    linkId: string,
+  ): Promise<{ success: boolean }> {
+    const { role, profile } = await access(userId, profileId, true);
+    if (role !== 'ADMIN') throw new DomainError('FORBIDDEN', 403);
+    const link = await store.links.findById(linkId);
+    if (!link || link.profileId !== profileId) throw new DomainError('NOT_FOUND', 404);
+    if (!WRITE_ROLES.has(link.role) || link.userId === profile.userId) {
+      throw new DomainError('INVALID_INPUT', 400, { message: 'NOT_A_CAREGIVER' });
+    }
+    await store.links.setSecondary(profileId, linkId);
+    return { success: true };
+  }
+
   async function getCircle(userId: string): Promise<CircleResponse> {
+    await acceptInvites(userId);
     const circle = await ensureCircle(userId);
     const premium = await deps.isPremium(userId);
     const linked = await store.profiles.listForUser(userId);
@@ -717,6 +877,10 @@ export function createDomainService(deps: DomainServiceDeps) {
 
   return {
     getCircle,
+    invite,
+    changeRole,
+    removeLink,
+    setSecondary,
     createProfile,
     updateProfile,
     confirm,

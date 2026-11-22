@@ -14,7 +14,14 @@ export type DomainErrorCode =
   /** The dose was already taken or skipped. */
   | 'DOSE_CLOSED'
   /** Too far in the future to act on. */
-  | 'DOSE_NOT_DUE';
+  | 'DOSE_NOT_DUE'
+  /** That person is linked to the profile already. */
+  | 'ALREADY_LINKED'
+  /** A profile needs at least one admin. */
+  | 'LAST_ADMIN'
+  /** The profile's own person cannot be removed or demoted by others. */
+  | 'OWN_PROFILE'
+  | 'LIMIT_REACHED';
 
 /** Errors from the domain routes. Same body shape as A's ApiError, plus optional details. */
 export class DomainError extends Error {

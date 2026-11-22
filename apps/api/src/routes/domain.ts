@@ -4,6 +4,8 @@ import {
   alertsResponse,
   circleResponse,
   okResponse,
+  changeRoleBody,
+  inviteBody,
   confirmBody,
   confirmResponse,
   createProfileBody,
@@ -21,6 +23,8 @@ const parse = <T>(schema: z.ZodType<T>, value: unknown): T => {
   if (!r.success) throw new DomainError('INVALID_INPUT', 400);
   return r.data;
 };
+
+const secondaryBody = z.object({ linkId: z.string().min(1) });
 
 const todayQuery = z.object({
   profileId: z.string().min(1).optional(),
@@ -55,6 +59,29 @@ export function domainRoutes(domain: DomainService) {
     app.put<{ Params: { id: string } }>('/profiles/:id', async (req) => {
       const body = parse(updateProfileBody, req.body);
       return profile.parse(await domain.updateProfile(userOf(req), req.params.id, body));
+    });
+
+    // Caregivers and viewers. An invite becomes a link when that person signs in.
+    app.post('/links', async (req) => {
+      const body = parse(inviteBody, req.body);
+      return okResponse.parse(await domain.invite(userOf(req), body));
+    });
+
+    app.put<{ Params: { id: string } }>('/links/:id', async (req) => {
+      const body = parse(changeRoleBody, req.body);
+      return okResponse.parse(await domain.changeRole(userOf(req), req.params.id, body.role));
+    });
+
+    // Removing someone re-proves the phone first (A's step-up OTP).
+    app.delete<{ Params: { id: string } }>(
+      '/links/:id',
+      { preHandler: app.requireStepUp },
+      async (req) => okResponse.parse(await domain.removeLink(userOf(req), req.params.id)),
+    );
+
+    app.put<{ Params: { id: string } }>('/profiles/:id/secondary-caregiver', async (req) => {
+      const body = parse(secondaryBody, req.body);
+      return okResponse.parse(await domain.setSecondary(userOf(req), req.params.id, body.linkId));
     });
 
     app.post<{ Params: { id: string } }>('/prescriptions/:id/confirm', async (req, reply) => {

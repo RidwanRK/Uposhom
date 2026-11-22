@@ -464,5 +464,88 @@ export function domainContract(label: string, make: () => Promise<DomainUnderTes
           acknowledgedVia: 'APP',
         });
       }));
+
+    it('changes roles, sets the secondary caregiver, and removes links', () =>
+      withStore(async (t) => {
+        const { userId, self } = await owner(t);
+        const other = uid('usr');
+        await t.addUser(other);
+        const link = {
+          id: uid('lnk'),
+          userId: other,
+          profileId: self.id,
+          role: 'CAREGIVER' as const,
+          isSecondaryCaregiver: false,
+          createdAt: at(1),
+        };
+        await t.store.profiles.addLink(link);
+        expect(await t.store.links.findById(link.id)).toEqual(link);
+        expect(await t.store.links.setRole(link.id, 'VIEWER')).toEqual({ ...link, role: 'VIEWER' });
+        expect(await t.store.links.setRole('lnk_none', 'VIEWER')).toBeNull();
+
+        await t.store.links.setSecondary(self.id, link.id);
+        const flags = async () =>
+          (await t.store.profiles.linksOf(self.id)).map((l) => [l.userId, l.isSecondaryCaregiver]);
+        expect(await flags()).toEqual([
+          [userId, false],
+          [other, true],
+        ]);
+        await t.store.links.setSecondary(self.id, '');
+        expect(await flags()).toEqual([
+          [userId, false],
+          [other, false],
+        ]);
+
+        expect(await t.store.links.remove(link.id)).toBe(true);
+        expect(await t.store.links.remove(link.id)).toBe(false);
+        expect(await t.store.links.findById(link.id)).toBeNull();
+      }));
+
+    it('keeps one open invite per number and profile, and accepts it once', () =>
+      withStore(async (t) => {
+        const { userId, self } = await owner(t);
+        const invitee = uid('usr');
+        await t.addUser(invitee);
+        const base = {
+          profileId: self.id,
+          invitedBy: userId,
+          phoneKey: uid('key'),
+          role: 'CAREGIVER' as const,
+          createdAt: at(0),
+          expiresAt: at(60),
+          acceptedAt: null,
+          acceptedBy: null,
+        };
+        const first = { ...base, id: uid('inv') };
+        expect(await t.store.invites.create(first)).toBe(true);
+        expect(await t.store.invites.create({ ...base, id: uid('inv') })).toBe(false);
+        expect(await t.store.invites.openForPhone(base.phoneKey, at(1))).toEqual([first]);
+        expect(await t.store.invites.openForProfile(self.id, at(1))).toEqual([first]);
+        expect(await t.store.invites.openForPhone(base.phoneKey, at(60))).toEqual([]);
+
+        const link = {
+          id: uid('lnk'),
+          userId: invitee,
+          profileId: self.id,
+          role: 'CAREGIVER' as const,
+          isSecondaryCaregiver: false,
+          createdAt: at(2),
+        };
+        expect(await t.store.invites.accept(first.id, link, at(2))).toBe(true);
+        expect(await t.store.invites.accept(first.id, { ...link, id: uid('lnk') }, at(3))).toBe(
+          false,
+        );
+        expect(await t.store.profiles.roleOf(invitee, self.id)).toBe('CAREGIVER');
+        expect(await t.store.invites.openForPhone(base.phoneKey, at(2))).toEqual([]);
+
+        // Accepted: the same number may be invited again, and accepting it adds no second link.
+        const second = { ...base, id: uid('inv'), role: 'VIEWER' as const };
+        expect(await t.store.invites.create(second)).toBe(true);
+        expect(await t.store.invites.accept(second.id, { ...link, id: uid('lnk') }, at(4))).toBe(
+          false,
+        );
+        expect(await t.store.profiles.linksOf(self.id)).toHaveLength(2);
+        expect(await t.store.invites.openForPhone(base.phoneKey, at(5))).toEqual([]);
+      }));
   });
 }

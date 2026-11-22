@@ -152,6 +152,37 @@ export const links = pgTable(
   ],
 );
 
+/**
+ * An invitation for someone to join a profile as admin, caregiver or viewer. The number is never
+ * stored: `phone_key` is A's keyed lookup hash (security/phone-crypto.ts). It becomes a `links`
+ * row when that person signs in with an OTP to that number, which is their proof and consent.
+ */
+export const invites = pgTable(
+  'invites',
+  {
+    id: text('id').primaryKey(),
+    profileId: text('profile_id')
+      .notNull()
+      .references(() => profiles.id, { onDelete: 'cascade' }),
+    invitedBy: text('invited_by').references(() => users.id, { onDelete: 'set null' }),
+    phoneKey: text('phone_key').notNull(),
+    role: text('role', { enum: LINK_ROLES }).notNull(),
+    createdAt: createdAt(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    acceptedAt: timestamp('accepted_at', { withTimezone: true }),
+    acceptedBy: text('accepted_by').references(() => users.id, { onDelete: 'set null' }),
+  },
+  (t) => [
+    uniqueIndex('invites_open')
+      .on(t.profileId, t.phoneKey)
+      .where(sql`accepted_at IS NULL`),
+    index('invites_phone')
+      .on(t.phoneKey)
+      .where(sql`accepted_at IS NULL`),
+    check('invites_role', inList('role', LINK_ROLES)),
+  ],
+);
+
 export const deviceTokens = pgTable(
   'device_tokens',
   {

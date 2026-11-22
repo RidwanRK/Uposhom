@@ -1,9 +1,10 @@
-import { and, asc, desc, eq, gte, inArray, isNull, lt, lte, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, lte, ne, sql } from 'drizzle-orm';
 import {
   doseEvents,
   doseLogs,
   escalations,
   familyCircles,
+  invites,
   links,
   prescriptionItems,
   prescriptions,
@@ -13,6 +14,7 @@ import {
 import type {
   DomainStore,
   EscalationRecord,
+  LinkRecord,
   DoseRecord,
   DoseView,
   PrescriptionRecord,
@@ -86,6 +88,15 @@ const toPrescription = (r: typeof prescriptions.$inferSelect): PrescriptionRecor
   createdBy: r.createdBy,
   confirmedBy: r.confirmedBy,
   confirmedAt: r.confirmedAt,
+  createdAt: r.createdAt,
+});
+
+const toLink = (r: typeof links.$inferSelect): LinkRecord => ({
+  id: r.id,
+  userId: r.userId,
+  profileId: r.profileId,
+  role: r.role,
+  isSecondaryCaregiver: r.isSecondaryCaregiver,
   createdAt: r.createdAt,
 });
 
@@ -216,14 +227,84 @@ export function createPostgresDomainStore(db: Db): DomainStore {
           .from(links)
           .where(eq(links.profileId, profileId))
           .orderBy(asc(links.createdAt), asc(links.id));
-        return rows.map((r) => ({
-          id: r.id,
-          userId: r.userId,
-          profileId: r.profileId,
-          role: r.role,
-          isSecondaryCaregiver: r.isSecondaryCaregiver,
-          createdAt: r.createdAt,
-        }));
+        return rows.map(toLink);
+      },
+    },
+    links: {
+      async findById(id) {
+        const [r] = await db.select().from(links).where(eq(links.id, id));
+        return r ? toLink(r) : null;
+      },
+      async setRole(id, role) {
+        const [r] = await db.update(links).set({ role }).where(eq(links.id, id)).returning();
+        return r ? toLink(r) : null;
+      },
+      async setSecondary(profileId, linkId) {
+        await db
+          .update(links)
+          .set({ isSecondaryCaregiver: sql`${links.id} = ${linkId}` })
+          .where(eq(links.profileId, profileId));
+      },
+      async remove(id) {
+        const rows = await db.delete(links).where(eq(links.id, id)).returning({ id: links.id });
+        return rows.length > 0;
+      },
+    },
+    invites: {
+      async create(invite) {
+        const rows = await db
+          .insert(invites)
+          .values(invite)
+          .onConflictDoNothing({
+            target: [invites.profileId, invites.phoneKey],
+            where: sql`accepted_at IS NULL`,
+          })
+          .returning({ id: invites.id });
+        return rows.length > 0;
+      },
+      async openForPhone(phoneKey, now) {
+        const rows = await db
+          .select()
+          .from(invites)
+          .where(
+            and(
+              eq(invites.phoneKey, phoneKey),
+              isNull(invites.acceptedAt),
+              gt(invites.expiresAt, now),
+            ),
+          )
+          .orderBy(asc(invites.createdAt), asc(invites.id));
+        return rows;
+      },
+      async openForProfile(profileId, now) {
+        const rows = await db
+          .select()
+          .from(invites)
+          .where(
+            and(
+              eq(invites.profileId, profileId),
+              isNull(invites.acceptedAt),
+              gt(invites.expiresAt, now),
+            ),
+          )
+          .orderBy(asc(invites.createdAt), asc(invites.id));
+        return rows;
+      },
+      async accept(inviteId, link, at) {
+        return db.transaction(async (tx) => {
+          const [claimed] = await tx
+            .update(invites)
+            .set({ acceptedAt: at, acceptedBy: link.userId })
+            .where(and(eq(invites.id, inviteId), isNull(invites.acceptedAt)))
+            .returning({ id: invites.id });
+          if (!claimed) return false;
+          const added = await tx
+            .insert(links)
+            .values({ ...link, otpVerifiedAt: at })
+            .onConflictDoNothing({ target: [links.userId, links.profileId] })
+            .returning({ id: links.id });
+          return added.length > 0;
+        });
       },
     },
     prescriptions: {

@@ -88,3 +88,12 @@ one alerts the caregivers (Premium only); at 50 the secondary caregiver; at 70 i
 snooze restarts this from the end of the snooze. Caregivers see their alerts at `GET /alerts`, and
 `POST /doses/:id/acknowledge` stops the secondary alert. Push to caregivers comes with the
 device-token endpoint; until then alerts go by SMS and to the inbox.
+
+Family members: `POST /links { profileId, msisdn, role }` invites someone by number (admins only).
+The invite turns into a link the next time that person signs in and the app loads `GET /circles`,
+so with one fake-Applink number per person you can try it locally. `PUT /links/:id` changes a role,
+`DELETE /links/:id` needs the `X-Step-Up-Token` header, and
+`PUT /profiles/:id/secondary-caregiver { linkId }` picks who gets the T+50 alert. Each profile in
+`GET /circles` lists its `links`. Errors: `ALREADY_LINKED`, `LAST_ADMIN`, `OWN_PROFILE`,
+`LIMIT_REACHED` (10 people per profile), `INVALID_INPUT` with message `MSISDN`, `SELF` or
+`NOT_A_CAREGIVER`. Family Link (OTP to a dependent's own phone) is not built yet.

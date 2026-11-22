@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { ApplinkClient } from '@uposhom/applink-client';
 import { createOtpService } from './auth/otp-service.js';
@@ -65,6 +65,11 @@ export interface AppDeps {
   ports?: DomainPorts;
   /** Workstream B's persistence. Defaults to memory; index.ts passes Postgres. */
   domain?: DomainStore;
+  /**
+   * Keyed hash for finding a person by number without storing it (A's phone crypto). index.ts
+   * passes PhoneCrypto.lookupHash; the default, for development and tests, is a plain SHA-256.
+   */
+  phoneKey?: (msisdn: string) => string;
   /** Plan prices, charge amounts and allowances. Defaults are placeholders from the plan. */
   billing?: BillingConfig;
   /** Where operational alerts go. Defaults to the webhook in ALERT_WEBHOOK_URL, else nowhere. */
@@ -196,6 +201,13 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
     now,
     isPremium,
     findUserIdBySubscriber,
+    findUser: async (userId) => {
+      const user = await stores.users.findById(userId);
+      return user ? { id: user.id, msisdn: user.msisdn } : null;
+    },
+    findUserIdByMsisdn: async (msisdn) => (await stores.users.findByMsisdn(msisdn))?.id ?? null,
+    phoneKey:
+      deps.phoneKey ?? ((msisdn) => createHash('sha256').update(`uposhom:${msisdn}`).digest('hex')),
   });
   // The reminder and escalation ladder runs every minute on the same queue as A's jobs.
   const ladder = createLadderRunner({

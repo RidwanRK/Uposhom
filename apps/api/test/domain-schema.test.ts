@@ -43,7 +43,11 @@ describe.skipIf(!url)('domain schema on Postgres', () => {
 
   it('applies after A, once, and is a no-op the second time', async () => {
     expect(await runMigrations(pool)).toEqual(MIGRATIONS.map((m) => m.id));
-    expect(await runDomainMigrations(pool)).toEqual(['0000_extensions', '0001_domain_tables']);
+    expect(await runDomainMigrations(pool)).toEqual([
+      '0000_extensions',
+      '0001_domain_tables',
+      '0002_invites',
+    ]);
     expect(await runDomainMigrations(pool)).toEqual([]);
 
     const { rows } = await pool.query<{ n: number }>(

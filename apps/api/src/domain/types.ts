@@ -128,6 +128,19 @@ export interface EscalationRecord {
   acknowledgedVia: ActionChannel | null;
 }
 
+export interface InviteRecord {
+  id: string;
+  profileId: string;
+  invitedBy: string | null;
+  /** A's keyed hash of the normalised number. The number itself is never stored. */
+  phoneKey: string;
+  role: LinkRole;
+  createdAt: Date;
+  expiresAt: Date;
+  acceptedAt: Date | null;
+  acceptedBy: string | null;
+}
+
 export interface DosePatch {
   status: DoseStatus;
   stage?: DoseStage;
@@ -168,6 +181,25 @@ export interface DomainStore {
     addLink(link: LinkRecord): Promise<void>;
     /** Everyone linked to the profile, oldest link first. */
     linksOf(profileId: string): Promise<LinkRecord[]>;
+  };
+  links: {
+    findById(id: string): Promise<LinkRecord | null>;
+    setRole(id: string, role: LinkRole): Promise<LinkRecord | null>;
+    /** Marks this link the profile's secondary caregiver and clears the flag on every other. */
+    setSecondary(profileId: string, linkId: string): Promise<void>;
+    remove(id: string): Promise<boolean>;
+  };
+  invites: {
+    /** False when an open invite for that number to that profile exists already. */
+    create(invite: InviteRecord): Promise<boolean>;
+    /** Open, unexpired invites for this phone key, oldest first. */
+    openForPhone(phoneKey: string, now: Date): Promise<InviteRecord[]>;
+    openForProfile(profileId: string, now: Date): Promise<InviteRecord[]>;
+    /**
+     * Turns the invite into a link, atomically. False when it was accepted already, or the user
+     * is linked to the profile already (the invite is then closed without a second link).
+     */
+    accept(inviteId: string, link: LinkRecord, at: Date): Promise<boolean>;
   };
   prescriptions: {
     findById(id: string): Promise<PrescriptionRecord | null>;
