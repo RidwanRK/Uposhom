@@ -8,7 +8,9 @@
     "build": "node build.mjs",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "applink:smoke": "tsx scripts/applink-smoke.ts",
+    "test:applink": "vitest run test/auth.test.ts test/platform-e2e.test.ts test/billing-mock.test.ts test/smoke.test.ts"
   },
   "dependencies": {
     "cron-parser": "^5.10.6",

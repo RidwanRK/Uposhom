@@ -2,7 +2,7 @@
   "name": "uposhom",
   "version": "0.0.0",
   "private": true,
-  "description": "Uposhom (উপশম): Bangla-first personal healthcare organiser. Monorepo root.",
+  "description": "Uposhom (\u0989\u09aa\u09b6\u09ae): Bangla-first personal healthcare organiser. Monorepo root.",
   "engines": {
     "node": ">=22",
     "pnpm": ">=9"
@@ -14,7 +14,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r --if-present typecheck",
-    "dev": "pnpm --filter @uposhom/api dev"
+    "dev": "pnpm --filter @uposhom/api dev",
+    "applink:smoke": "pnpm --filter @uposhom/api applink:smoke",
+    "test:applink": "pnpm --filter @uposhom/applink-client test && pnpm --filter @uposhom/api test:applink"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
