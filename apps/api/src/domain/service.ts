@@ -25,6 +25,7 @@ import type {
 } from '@uposhom/shared';
 import type { DoseReplyCode } from '../ports.js';
 import { DomainError } from './errors.js';
+import { isExpoPushToken } from './push.js';
 import type {
   ActionChannel,
   DomainStore,
@@ -148,8 +149,6 @@ function doseDto(d: DoseView): Dose {
     ...(d.strength ? { strength: d.strength } : {}),
     mealRelation: d.mealRelation,
     profileId: d.profileId,
-    snoozedUntil:
-      d.status === 'SNOOZED' && d.snoozedUntil ? toDhakaIso(d.snoozedUntil.getTime()) : null,
   };
 }
 
@@ -826,6 +825,27 @@ export function createDomainService(deps: DomainServiceDeps) {
     return { replyText: reply };
   }
 
+  /** POST /devices: this phone can receive caregiver alerts by push. */
+  async function registerDevice(
+    userId: string,
+    body: { expoPushToken: string; platform?: string },
+  ): Promise<{ success: boolean }> {
+    if (!isExpoPushToken(body.expoPushToken)) {
+      throw new DomainError('INVALID_INPUT', 400, { message: 'PUSH_TOKEN' });
+    }
+    const now = deps.now();
+    await store.devices.upsert({
+      id: newId('dev'),
+      userId,
+      expoToken: body.expoPushToken,
+      platform:
+        body.platform === 'android' || !body.platform ? 'android' : body.platform.slice(0, 20),
+      createdAt: now,
+      lastSeenAt: now,
+    });
+    return { success: true };
+  }
+
   /** A caregiver saw the alert (app). Stops the secondary alert; the dose itself stays open. */
   async function acknowledge(userId: string, doseId: string): Promise<{ success: boolean }> {
     const dose = await store.doses.findById(doseId);
@@ -888,6 +908,7 @@ export function createDomainService(deps: DomainServiceDeps) {
     act,
     smsReply,
     acknowledge,
+    registerDevice,
     alerts,
     eraseUser: (userId: string) => store.eraseUser(userId),
   };

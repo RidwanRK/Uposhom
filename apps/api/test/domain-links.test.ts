@@ -2,12 +2,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { circleResponse } from '@uposhom/shared';
 import { createTokenService } from '../src/auth/tokens.js';
 import type { UserRecord } from '../src/stores/types.js';
-import { harness, settle, OTHER, SUB } from './platform.js';
+import { settle, OTHER, SUB } from './platform.js';
+import { domainHarness } from './domain-harness.js';
 
 const CARER_MSISDN = '8801711111111';
 
 async function setup() {
-  const h = await harness({ realDomain: true });
+  const h = await domainHarness();
   const admin = await h.addUser(SUB);
   const self = (await h.api(admin, 'GET', '/circles')).json().profiles[0];
   const invite = (body: object, as: UserRecord = admin) => h.api(as, 'POST', '/links', body);

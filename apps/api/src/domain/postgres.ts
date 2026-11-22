@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, lte, ne, sql } from 'drizzle-orm';
 import {
+  deviceTokens,
   doseEvents,
   doseLogs,
   escalations,
@@ -412,6 +413,31 @@ export function createPostgresDomainStore(db: Db): DomainStore {
         });
       },
     },
+    devices: {
+      async upsert(device) {
+        await db
+          .insert(deviceTokens)
+          .values(device)
+          .onConflictDoUpdate({
+            target: deviceTokens.expoToken,
+            set: {
+              userId: device.userId,
+              platform: device.platform,
+              lastSeenAt: device.lastSeenAt,
+            },
+          });
+      },
+      async listForUser(userId) {
+        return db
+          .select()
+          .from(deviceTokens)
+          .where(eq(deviceTokens.userId, userId))
+          .orderBy(asc(deviceTokens.createdAt), asc(deviceTokens.id));
+      },
+      async removeToken(expoToken) {
+        await db.delete(deviceTokens).where(eq(deviceTokens.expoToken, expoToken));
+      },
+    },
     escalations: {
       async record(row) {
         const inserted = await db
@@ -462,6 +488,7 @@ export function createPostgresDomainStore(db: Db): DomainStore {
           );
         }
         await tx.delete(links).where(eq(links.userId, userId));
+        await tx.delete(deviceTokens).where(eq(deviceTokens.userId, userId));
       });
     },
   };

@@ -67,33 +67,3 @@ The app adds `/api/v1` itself, so do **not** put it in the URL. On the Android e
 is `http://10.0.2.2:3000`; on a real phone use the computer's address on your Wi-Fi (the phone and the
 computer must be on the same network). The deployed VM returns `SERVICE_TROUBLE` for sign-up until
 Applink issues credentials, so use the local stack for anything that needs a signed-in user.
-
-### Domain endpoints that are live (workstream B)
-
-These answer from the real backend now, with the same shapes as `packages/shared`:
-
-| Endpoint                              | Notes                                                                                                                                                                                        |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET /circles`                        | The first call creates the circle and the user's own profile (`relationship: SELF`).                                                                                                         |
-| `POST /profiles`, `PUT /profiles/:id` | Free allows only the own profile: adding one answers `402 PAYMENT_REQUIRED` with message `PREMIUM`. Meal times must run morning < noon < evening < night (`400`, message `MEAL_TIME_ORDER`). |
-| `POST /prescriptions/:id/confirm`     | Use `new` as the id for a typed-in prescription. Items the engine cannot schedule exactly answer `422 NEEDS_MANUAL_INPUT` with `details: [{ index, reasons }]`, and nothing is saved.        |
-| `GET /doses/today?profileId=&days=`   | From today's midnight in Dhaka for `days` days (1 to 14). A snoozed dose keeps its `dueAt` and has `snoozedUntil`.                                                                           |
-| `POST /doses/:id/action`              | `409 DOSE_NOT_DUE` more than 2 hours before the dose, `409 DOSE_CLOSED` once taken or skipped. Send `X-Action-Source: notification` from Notifee buttons.                                    |
-
-SMS replies (`UPOSHOM 1`, `2`, `3`) act on the latest dose due in the last 6 hours, through the same rules.
-
-Reminders and escalation run on their own every minute (`job.doses.ladder`): an SMS at the due time
-and a repeat 15 minutes later; at 30 minutes a non-critical dose is logged `MISSED`, while a critical
-one alerts the caregivers (Premium only); at 50 the secondary caregiver; at 70 it is `MISSED`. A
-snooze restarts this from the end of the snooze. Caregivers see their alerts at `GET /alerts`, and
-`POST /doses/:id/acknowledge` stops the secondary alert. Push to caregivers comes with the
-device-token endpoint; until then alerts go by SMS and to the inbox.
-
-Family members: `POST /links { profileId, msisdn, role }` invites someone by number (admins only).
-The invite turns into a link the next time that person signs in and the app loads `GET /circles`,
-so with one fake-Applink number per person you can try it locally. `PUT /links/:id` changes a role,
-`DELETE /links/:id` needs the `X-Step-Up-Token` header, and
-`PUT /profiles/:id/secondary-caregiver { linkId }` picks who gets the T+50 alert. Each profile in
-`GET /circles` lists its `links`. Errors: `ALREADY_LINKED`, `LAST_ADMIN`, `OWN_PROFILE`,
-`LIMIT_REACHED` (10 people per profile), `INVALID_INPUT` with message `MSISDN`, `SELF` or
-`NOT_A_CAREGIVER`. Family Link (OTP to a dependent's own phone) is not built yet.

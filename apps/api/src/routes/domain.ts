@@ -25,6 +25,10 @@ const parse = <T>(schema: z.ZodType<T>, value: unknown): T => {
 };
 
 const secondaryBody = z.object({ linkId: z.string().min(1) });
+const deviceBody = z.object({
+  expoPushToken: z.string().min(1).max(200),
+  platform: z.string().max(20).optional(),
+});
 
 const todayQuery = z.object({
   profileId: z.string().min(1).optional(),
@@ -113,5 +117,11 @@ export function domainRoutes(domain: DomainService) {
     );
 
     app.get('/alerts', async (req) => alertsResponse.parse(await domain.alerts(userOf(req))));
+
+    // The app registers its Expo push token after sign-in, for caregiver alerts.
+    app.post('/devices', async (req) => {
+      const body = parse(deviceBody, req.body);
+      return okResponse.parse(await domain.registerDevice(userOf(req), body));
+    });
   };
 }

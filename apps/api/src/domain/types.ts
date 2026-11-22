@@ -128,6 +128,15 @@ export interface EscalationRecord {
   acknowledgedVia: ActionChannel | null;
 }
 
+export interface DeviceRecord {
+  id: string;
+  userId: string;
+  expoToken: string;
+  platform: string;
+  createdAt: Date;
+  lastSeenAt: Date;
+}
+
 export interface InviteRecord {
   id: string;
   profileId: string;
@@ -235,6 +244,16 @@ export interface DomainStore {
       patch: DosePatch,
       log: DoseLogRecord | null,
     ): Promise<DoseRecord | null>;
+  };
+  devices: {
+    /**
+     * Registers a phone for push. A token already known moves to this user (the phone was signed
+     * in to another account) and its last-seen time is refreshed.
+     */
+    upsert(device: DeviceRecord): Promise<void>;
+    listForUser(userId: string): Promise<DeviceRecord[]>;
+    /** Expo said the token is no longer registered (app removed, token rotated). */
+    removeToken(expoToken: string): Promise<void>;
   };
   escalations: {
     /** Records an alert. False when one with the same idempotency key exists already. */

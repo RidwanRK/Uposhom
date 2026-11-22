@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { ApplinkClient } from '@uposhom/applink-client';
 import { createOtpService } from './auth/otp-service.js';
@@ -9,6 +9,7 @@ import { createApplinkFromConfig } from './applink.js';
 import type { CallbackSink } from './callbacks/events.js';
 import type { Config } from './config/env.js';
 import type { DomainPorts } from './ports.js';
+import { createDomainHooks, type DomainOptions } from './domain/register.js';
 import { createMemoryQueue } from './queue/memory.js';
 import type { JobQueue } from './queue/types.js';
 import { createWebhookAlerter, noopAlerter, type Alerter } from './ops/alerts.js';
@@ -21,11 +22,6 @@ import { caasRoutes } from './routes/caas.js';
 import { legalRoutes } from './routes/legal.js';
 import { optOutRoutes } from './routes/optout.js';
 import { createMemoryStores } from './stores/memory.js';
-import { createMemoryDomainStore } from './domain/memory.js';
-import { createDomainService, type DomainService } from './domain/service.js';
-import { LADDER_JOB, createLadderRunner, type LadderRunner } from './domain/escalation.js';
-import type { DomainStore } from './domain/types.js';
-import { domainRoutes } from './routes/domain.js';
 import type { Stores } from './stores/types.js';
 
 export type AppConfig = Pick<Config, 'NODE_ENV'> &
@@ -58,18 +54,10 @@ export interface AppDeps {
   applink?: ApplinkClient | undefined;
   callbackSink?: CallbackSink;
   queue?: JobQueue;
-  /**
-   * Seams to the domain layer (workstream B). Defaults to the real domain service below; tests of
-   * the platform alone pass no-op ports.
-   */
+  /** Seams to the domain layer (workstream B). Defaults change no state. */
   ports?: DomainPorts;
-  /** Workstream B's persistence. Defaults to memory; index.ts passes Postgres. */
-  domain?: DomainStore;
-  /**
-   * Keyed hash for finding a person by number without storing it (A's phone crypto). index.ts
-   * passes PhoneCrypto.lookupHash; the default, for development and tests, is a plain SHA-256.
-   */
-  phoneKey?: (msisdn: string) => string;
+  /** Workstream B's store, phone hash and push sender. Defaults to in-memory. */
+  domain?: DomainOptions;
   /** Plan prices, charge amounts and allowances. Defaults are placeholders from the plan. */
   billing?: BillingConfig;
   /** Where operational alerts go. Defaults to the webhook in ALERT_WEBHOOK_URL, else nowhere. */
@@ -83,10 +71,6 @@ declare module 'fastify' {
   interface FastifyInstance {
     /** Platform services other workstreams call, for example `app.services.sms.enqueue(...)`. */
     services: Services;
-    /** Workstream B's domain service: circles, prescriptions, doses. */
-    domain: DomainService;
-    /** The reminder and escalation ladder (tests call tick() directly). */
-    ladder: LadderRunner;
   }
 }
 
@@ -158,22 +142,12 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
   // Everything the platform does after a callback or for an outbound message runs on a queue.
   // Day 2 uses the in-memory queue; pg-boss replaces it once the Postgres stores land.
   const queue = deps.queue ?? createMemoryQueue();
-  const now = deps.now ?? (() => new Date());
-
-  // The domain service needs A's subscription check, and A's services need the domain ports, so
-  // the ports call the domain service through a reference set right after both exist.
-  const domainRef: { current?: DomainService; ladder?: LadderRunner } = {};
-  const domainPorts: DomainPorts = {
-    doseReply: (input) => domainRef.current!.smsReply(input),
-    eraseDomainData: (userId) => domainRef.current!.eraseUser(userId),
-    // A bounced reminder for a critical dose brings the caregiver alert forward.
-    onSmsDeliveryFailure: (input) => domainRef.ladder!.onDeliveryFailure(input),
-  };
+  const domainHooks = createDomainHooks(); // workstream B (src/domain/register.ts)
   const services = createServices({
     stores,
     applink,
     queue,
-    ports: deps.ports ?? domainPorts,
+    ports: deps.ports ?? domainHooks.ports,
     billing: deps.billing ?? DEFAULT_BILLING,
     alerts,
     log: {
@@ -181,7 +155,7 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
       warn: (obj, msg) => app.log.warn(obj, msg),
       error: (obj, msg) => app.log.error(obj, msg),
     },
-    now,
+    now: deps.now ?? (() => new Date()),
     smsKeyword: config.SMS_KEYWORD ?? 'UPOSHOM',
     smsSourceAddress: config.APPLINK_SMS_SOURCE_ADDRESS,
     smsMinIntervalMs: config.SMS_MAX_PER_SECOND
@@ -189,49 +163,15 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
       : undefined,
   });
   app.decorate('services', services);
-  const domainStore = deps.domain ?? createMemoryDomainStore();
-  const isPremium = async (userId: string) => {
-    const user = await stores.users.findById(userId);
-    return user ? services.subscriptions.isPremium(user) : false;
-  };
-  const findUserIdBySubscriber = async (subscriberId: string) =>
-    (await stores.users.findBySubscriberId(subscriberId))?.id ?? null;
-  const domain = createDomainService({
-    store: domainStore,
-    now,
-    isPremium,
-    findUserIdBySubscriber,
-    findUser: async (userId) => {
-      const user = await stores.users.findById(userId);
-      return user ? { id: user.id, msisdn: user.msisdn } : null;
-    },
-    findUserIdByMsisdn: async (msisdn) => (await stores.users.findByMsisdn(msisdn))?.id ?? null,
-    phoneKey:
-      deps.phoneKey ?? ((msisdn) => createHash('sha256').update(`uposhom:${msisdn}`).digest('hex')),
-  });
-  // The reminder and escalation ladder runs every minute on the same queue as A's jobs.
-  const ladder = createLadderRunner({
-    store: domainStore,
-    now,
+  domainHooks.attach(app, {
+    stores,
+    services,
+    queue,
+    now: deps.now,
+    nodeEnv: config.NODE_ENV,
     smsKeyword: config.SMS_KEYWORD ?? 'UPOSHOM',
-    sendSms: (msg) => services.sms.enqueue(msg),
-    useSms: (userId) => services.entitlements.useSms(userId),
-    isPremium,
-    subscriberOf: async (userId) => (await stores.users.findById(userId))?.subscriberId ?? null,
-    findUserIdBySubscriber,
-    log: {
-      info: (obj, msg) => app.log.info(obj, msg),
-      warn: (obj, msg) => app.log.warn(obj, msg),
-    },
+    options: deps.domain,
   });
-  queue.work(LADDER_JOB.queue, async () => {
-    await ladder.tick();
-  });
-  void queue.schedule(LADDER_JOB.queue, LADDER_JOB.cron, { tz: 'Asia/Dhaka' });
-  domainRef.current = domain;
-  domainRef.ladder = ladder;
-  app.decorate('domain', domain);
-  app.decorate('ladder', ladder);
   app.addHook('onReady', () => queue.start());
   app.addHook('onClose', () => queue.stop());
 
@@ -279,7 +219,6 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
       lastUpdated: '22 November 2026',
     }),
   );
-  void app.register(domainRoutes(domain), { prefix: '/api/v1' });
   void app.register(
     optOutRoutes({
       users: stores.users,

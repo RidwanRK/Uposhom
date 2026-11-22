@@ -4,6 +4,7 @@ import type {
   DoseLogRecord,
   DoseRecord,
   DoseView,
+  DeviceRecord,
   EscalationRecord,
   InviteRecord,
   LinkRecord,
@@ -24,6 +25,7 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
   const logs: DoseLogRecord[] = [];
   const escalations = new Map<string, EscalationRecord>(); // by idempotency key
   const invites = new Map<string, InviteRecord>();
+  const devices = new Map<string, DeviceRecord>(); // by Expo token
 
   const copy = <T>(v: T): T => structuredClone(v);
 
@@ -230,6 +232,31 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
         return copy(next);
       },
     },
+    devices: {
+      async upsert(device) {
+        const known = devices.get(device.expoToken);
+        devices.set(
+          device.expoToken,
+          known
+            ? {
+                ...known,
+                userId: device.userId,
+                platform: device.platform,
+                lastSeenAt: device.lastSeenAt,
+              }
+            : copy(device),
+        );
+      },
+      async listForUser(userId) {
+        return [...devices.values()]
+          .filter((d) => d.userId === userId)
+          .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+          .map(copy);
+      },
+      async removeToken(expoToken) {
+        devices.delete(expoToken);
+      },
+    },
     escalations: {
       async record(row) {
         if (escalations.has(row.idempotencyKey) || !doses.has(row.doseEventId)) {
@@ -272,6 +299,7 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
         circles.delete(id);
       }
       for (const [id, l] of links) if (l.userId === userId) links.delete(id);
+      for (const [token, d] of devices) if (d.userId === userId) devices.delete(token);
       for (const e of escalations.values())
         if (e.notifiedUserId === userId) e.notifiedUserId = null;
       for (const p of profiles.values()) if (p.userId === userId) p.userId = null;

@@ -4,7 +4,7 @@
  *
  * Applies the A-owned Applink and billing tables (src/db/migrations.ts). Idempotent, so it is safe
  * on every deploy, and harmless while STORE_DRIVER is still `memory`: the tables just wait.
- * Then B's domain tables (packages/db), which reference users and charges, so they always run second.
+ * B's Drizzle migrator, when it lands, is called from here too.
  */
 import { runDomainMigrations } from '@uposhom/db';
 import { runMigrations } from './db/migrate.js';

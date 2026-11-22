@@ -28,6 +28,14 @@ export interface LadderDeps {
     deliveryReport?: boolean;
     critical?: boolean;
   }) => Promise<void>;
+  /** Queues a push to every phone of the user (push.ts). Idempotent on the key. */
+  push: (msg: {
+    userId: string;
+    title: string;
+    body: string;
+    data: Record<string, string>;
+    idempotencyKey: string;
+  }) => Promise<void>;
   /** A's SMS allowance for the circle owner (the Free tier has a monthly cap). */
   useSms: (userId: string) => Promise<{ allowed: boolean }>;
   isPremium: (userId: string) => Promise<boolean>;
@@ -72,8 +80,10 @@ export function createLadderRunner(deps: LadderDeps) {
     targets: LinkRecord[],
   ): Promise<void> {
     const now = deps.now();
+    // A new user's own profile is still called 'আমি' (me): say "your family member" instead.
+    const who = profile.name === 'আমি' ? 'আপনার পরিবারের সদস্য' : `${profile.name}-এর`;
     const message =
-      `উপশম: ${profile.name}-এর জরুরি ওষুধ ${medicine} (${bnClock(dose.dueAt.getTime())}) ` +
+      `উপশম: ${who} জরুরি ওষুধ ${medicine} (${bnClock(dose.dueAt.getTime())}) ` +
       'এখনও খাওয়া হয়নি। অ্যাপে দেখুন।';
     for (const t of targets) {
       const key = `${dose.id}:${level}:${t.userId}`;
@@ -95,7 +105,18 @@ export function createLadderRunner(deps: LadderDeps) {
           critical: true,
         });
       }
-      if (created) log.info({ dose: dose.id, level }, 'caregiver alerted');
+      // The escalation row is the push's dedupe: only the run that recorded it pushes. (The SMS
+      // above has A's own idempotency, so it is safe to send on every run.)
+      if (created) {
+        await deps.push({
+          userId: t.userId,
+          title: 'জরুরি ওষুধ খাওয়া হয়নি',
+          body: message.replace(/^উপশম: /, ''),
+          data: { type: 'CAREGIVER_ALERT', doseId: dose.id, profileId: profile.id, level },
+          idempotencyKey: `push:${key}`,
+        });
+        log.info({ dose: dose.id, level }, 'caregiver alerted');
+      }
     }
   }
 

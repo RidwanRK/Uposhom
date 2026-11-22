@@ -25,8 +25,6 @@ export const dose = z.object({
   strength: z.string().optional(),
   mealRelation: z.string().optional(),
   profileId: z.string().optional(),
-  /** When a snoozed dose will remind again (ISO +06:00). dueAt keeps the original time. */
-  snoozedUntil: z.string().nullable().optional(),
 });
 export type Dose = z.infer<typeof dose>;
 

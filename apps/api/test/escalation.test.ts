@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { alertsResponse, type ConfirmItem } from '@uposhom/shared';
 import { createMemoryDomainStore } from '../src/domain/memory.js';
 import type { UserRecord } from '../src/stores/types.js';
-import { harness, nextId, settle, OTHER, SUB } from './platform.js';
+import { nextId, settle, OTHER, SUB } from './platform.js';
+import { domainHarness } from './domain-harness.js';
 
 // Harness clock starts 2026-11-22T10:00:00Z = 16:00 Dhaka. Napa 1+0+1 PC is due 21:30 tonight.
 const at = (hhmm: string) => new Date(`2026-11-22T${hhmm}:00+06:00`);
@@ -20,7 +21,7 @@ const NAPA: ConfirmItem = {
 
 async function setup(opts: { premium?: boolean; critical?: boolean; secondary?: boolean } = {}) {
   const store = createMemoryDomainStore();
-  const h = await harness({ realDomain: true, domain: store });
+  const h = await domainHarness({ store });
   vi.spyOn(h.app.services.subscriptions, 'isPremium').mockResolvedValue(opts.premium ?? true);
   const patient = await h.addUser(SUB);
   const carer = await h.addUser(OTHER, { msisdn: '8801711111111' });

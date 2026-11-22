@@ -8,7 +8,6 @@ import { defaultDomainPorts, type DomainPorts } from '../src/ports.js';
 import { createMemoryQueue, type MemoryQueue } from '../src/queue/memory.js';
 import type { JobQueue } from '../src/queue/types.js';
 import { createMemoryStores } from '../src/stores/memory.js';
-import type { DomainStore } from '../src/domain/types.js';
 
 export const SUB = 'tel:8801959979376';
 export const OTHER = 'tel:8801711111111';
@@ -57,7 +56,7 @@ export interface Harness {
   /** Calls a route as a signed-in user. */
   api(
     user: UserRecord,
-    method: 'GET' | 'POST' | 'PUT',
+    method: 'GET' | 'POST',
     url: string,
     payload?: object,
     // Response bodies are checked field by field in tests, so they are deliberately loose here.
@@ -77,10 +76,6 @@ export async function harness(
     logStream?: { write(chunk: string): void };
     /** The secret callback path segment, as in production. Empty by default, as in tests and CI. */
     callbackKey?: string;
-    /** Use workstream B's real domain service for the ports instead of the no-op defaults. */
-    realDomain?: boolean;
-    /** Workstream B's store, so a test can arrange domain rows directly. */
-    domain?: DomainStore;
   } = {},
 ): Promise<Harness> {
   const queue: Harness['queue'] = opts.queue ?? createMemoryQueue({ retryDelayScale: 0 });
@@ -99,8 +94,7 @@ export async function harness(
       stores,
       queue,
       applink: applink as ApplinkClient | undefined,
-      ...(opts.realDomain ? {} : { ports }),
-      ...(opts.domain ? { domain: opts.domain } : {}),
+      ports,
       now: () => clock.now,
       ...(opts.alerts ? { alerts: opts.alerts } : {}),
       ...(opts.logStream ? { logStream: opts.logStream } : {}),

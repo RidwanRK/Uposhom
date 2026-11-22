@@ -6,7 +6,8 @@ import {
   todayDosesResponse,
   type ConfirmItem,
 } from '@uposhom/shared';
-import { harness, nextId, settle, OTHER, SUB } from './platform.js';
+import { nextId, settle, OTHER, SUB } from './platform.js';
+import { domainHarness } from './domain-harness.js';
 
 // The harness clock starts at 2026-11-22T10:00:00Z, which is 16:00 in Dhaka.
 const dhaka = (local: string) => new Date(`${local}+06:00`);
@@ -31,7 +32,7 @@ const SECLO: ConfirmItem = {
 };
 
 async function setup() {
-  const h = await harness({ realDomain: true });
+  const h = await domainHarness();
   const user = await h.addUser(SUB);
   const circle = (await h.api(user, 'GET', '/circles')).json();
   const self = circle.profiles[0];
@@ -245,7 +246,7 @@ describe('doses', () => {
     await h.app.close();
   });
 
-  it('snooze keeps the due time and says when it will remind; skip keeps out of adherence', async () => {
+  it('snooze keeps the due time; skip keeps out of adherence', async () => {
     const { h, confirm, today, act } = await setup();
     await confirm([NAPA]);
     h.clock.now = dhaka('2026-11-22T21:30:00');
@@ -255,7 +256,6 @@ describe('doses', () => {
     expect((await today()).doses[0]).toMatchObject({
       status: 'SNOOZED',
       dueAt: '2026-11-22T21:30:00+06:00',
-      snoozedUntil: '2026-11-22T21:45:00+06:00',
     });
     const skipped = await act(dose.id, { action: 'SKIP', skipReason: 'বমি ভাব' });
     expect(skipped.json()).toMatchObject({ newStatus: 'SKIPPED', updatedAdherenceRate: null });

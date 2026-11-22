@@ -3,8 +3,8 @@ import { ConfigError, loadConfig } from './config/env.js';
 import { billingFromEnv } from './billing/config.js';
 import { createPool } from './db/pool.js';
 import { runMigrations } from './db/migrate.js';
-import { createDb, runDomainMigrations } from '@uposhom/db';
-import { createPostgresDomainStore } from './domain/postgres.js';
+import { runDomainMigrations } from '@uposhom/db';
+import { postgresDomain } from './domain/register.js';
 import { createPgBossQueue } from './queue/pgboss.js';
 import { createPhoneCrypto } from './security/phone-crypto.js';
 import { createPostgresStores } from './stores/postgres.js';
@@ -57,21 +57,19 @@ async function main(): Promise<void> {
       ? createPool(config.DATABASE_URL)
       : undefined;
   if (pool && config.PHONE_ENC_KEY) {
-    // A's Applink tables first: the domain tables (B) reference users and charges.
     const applied = [...(await runMigrations(pool)), ...(await runDomainMigrations(pool))];
     console.log(JSON.stringify({ level: 'info', msg: 'migrations checked', applied }));
   }
-  const phoneCrypto =
-    pool && config.PHONE_ENC_KEY ? createPhoneCrypto(config.PHONE_ENC_KEY) : undefined;
-  const stores = pool && phoneCrypto ? createPostgresStores(pool, phoneCrypto) : undefined;
+  const stores =
+    pool && config.PHONE_ENC_KEY
+      ? createPostgresStores(pool, createPhoneCrypto(config.PHONE_ENC_KEY))
+      : undefined;
 
   const app = buildApp(config, {
     billing: billingFromEnv(config),
     ...(queue ? { queue } : {}),
     ...(stores ? { stores } : {}),
-    // Same pool, same switch: the domain tables live beside A's in Postgres.
-    ...(stores && pool ? { domain: createPostgresDomainStore(createDb(pool)) } : {}),
-    ...(phoneCrypto ? { phoneKey: (msisdn: string) => phoneCrypto.lookupHash(msisdn) } : {}),
+    ...(stores && pool ? { domain: postgresDomain(pool, config.PHONE_ENC_KEY!) } : {}),
   });
 
   const shutdown = async (signal: string): Promise<void> => {
