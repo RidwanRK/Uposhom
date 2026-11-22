@@ -3,7 +3,9 @@ import { createOpenRouterClient } from '../src/client.js';
 import { AI_CONFIG } from '../src/config.js';
 import { runTriageRouter } from '../src/agents/router.js';
 
-describe('Live OpenRouter Agent Integration Tests', () => {
+const shouldRunLive = Boolean(process.env.RUN_LIVE_TESTS === '1' || process.env.TEST_LIVE === '1');
+
+describe.skipIf(!shouldRunLive)('Live OpenRouter Agent Integration Tests (Guarded by RUN_LIVE_TESTS=1)', () => {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const isLiveConfigured = Boolean(apiKey && !apiKey.startsWith('mock-'));
 

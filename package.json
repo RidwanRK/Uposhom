@@ -15,7 +15,7 @@
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r --if-present typecheck",
     "dev": "pnpm --filter @uposhom/api dev",
-    "test:live": "node --env-file=.env ./node_modules/vitest/vitest.mjs run packages/ai/test/live-openrouter.test.ts",
+    "test:live": "RUN_LIVE_TESTS=1 node --env-file=.env ./node_modules/vitest/vitest.mjs run packages/ai/test/live-openrouter.test.ts",
     "applink:smoke": "pnpm --filter @uposhom/api applink:smoke",
     "test:applink": "pnpm --filter @uposhom/applink-client test && pnpm --filter @uposhom/api test:applink",
     "dev:local": "node scripts/dev-local.mjs"
