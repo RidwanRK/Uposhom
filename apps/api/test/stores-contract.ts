@@ -418,6 +418,96 @@ export function storesContract(label: string, make: () => Promise<StoresUnderTes
         expect(await s.usage.get(u.id, 'SMS', '2026-11')).toBe(3);
       }));
 
+    it('maintenance: purges rows past retention and keeps the rest, consent included', () =>
+      withStores(async (s) => {
+        const DAY = 24 * 60 * 60 * 1000;
+        const now = new Date('2027-03-01T00:00:00Z');
+        const ago = (days: number) => new Date(now.getTime() - days * DAY);
+        const u = await user(s);
+
+        const oldSms = await s.smsLog.create(
+          { idempotencyKey: uniq('i'), subscriberId: 'x', purpose: 'p', critical: false },
+          ago(91),
+        );
+        const newSms = await s.smsLog.create(
+          { idempotencyKey: uniq('i'), subscriberId: 'x', purpose: 'p', critical: false },
+          ago(89),
+        );
+        const oldKey = uniq('d');
+        const newKey = uniq('d');
+        await s.dedupe.firstSeen(oldKey, ago(31));
+        await s.dedupe.firstSeen(newKey, ago(29));
+
+        const m1 = msisdn();
+        await s.otpSessions.create({
+          msisdn: m1,
+          purpose: 'SIGNUP',
+          referenceNo: 'r',
+          expiresAt: new Date(now.getTime() - 25 * 3600_000),
+        });
+        const m2 = msisdn();
+        await s.otpSessions.create({
+          msisdn: m2,
+          purpose: 'SIGNUP',
+          referenceNo: 'r',
+          expiresAt: new Date(now.getTime() - 23 * 3600_000),
+        });
+
+        const ended = await s.sessions.create({
+          userId: u.id,
+          refreshHash: uniq('h'),
+          expiresAt: ago(31),
+        });
+        const live = await s.sessions.create({
+          userId: u.id,
+          refreshHash: uniq('h'),
+          expiresAt: new Date(now.getTime() + 30 * DAY),
+        });
+        const revoked = await s.sessions.create({
+          userId: u.id,
+          refreshHash: uniq('h'),
+          expiresAt: new Date(now.getTime() + 30 * DAY),
+        });
+        await s.sessions.revoke(revoked.id, ago(31));
+
+        const hitKey = uniq('rl');
+        await s.rateLimit.hit(hitKey, 99, 3 * DAY, ago(2));
+        await s.rateLimit.hit(hitKey, 99, 3 * DAY, new Date(now.getTime() - 3600_000));
+
+        await s.consents.record(
+          { userId: u.id, kind: 'FAMILY_CIRCLE_V1', channel: 'APP', ip: null },
+          ago(400),
+        );
+
+        const counts = await s.maintenance.purge(now);
+        expect(counts.smsLog).toBeGreaterThanOrEqual(1);
+        expect(counts.callbackDedupe).toBeGreaterThanOrEqual(1);
+        expect(counts.otpSessions).toBeGreaterThanOrEqual(1);
+        expect(counts.rateLimitHits).toBeGreaterThanOrEqual(1);
+        expect(counts.sessions).toBeGreaterThanOrEqual(2);
+
+        expect(await s.smsLog.findByIdempotencyKey(oldSms.record.idempotencyKey)).toBeNull();
+        expect(await s.smsLog.findByIdempotencyKey(newSms.record.idempotencyKey)).not.toBeNull();
+        expect(await s.dedupe.firstSeen(oldKey, now)).toBe(true); // forgotten, so first seen again
+        expect(await s.dedupe.firstSeen(newKey, now)).toBe(false); // still remembered
+        expect(
+          await s.otpSessions.findOpen(m2, new Date(now.getTime() - 24 * 3600_000)),
+        ).not.toBeNull();
+        expect(await s.sessions.findByRefreshHash(ended.refreshHash)).toBeNull();
+        expect(await s.sessions.findByRefreshHash(revoked.refreshHash)).toBeNull();
+        expect(await s.sessions.findByRefreshHash(live.refreshHash)).not.toBeNull();
+        // Consent is evidence: kept.
+        expect(await s.consents.hasKind(u.id, 'FAMILY_CIRCLE_V1')).toBe(true);
+        // A second run has nothing left to do.
+        expect(await s.maintenance.purge(now)).toEqual({
+          smsLog: 0,
+          callbackDedupe: 0,
+          otpSessions: 0,
+          rateLimitHits: 0,
+          sessions: 0,
+        });
+      }));
+
     it('opt-outs: STOP is never downgraded, a dead number can be upgraded to STOP', () =>
       withStores(async (s) => {
         const a = uniq('tel:880');

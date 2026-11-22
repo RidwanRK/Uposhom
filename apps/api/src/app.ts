@@ -11,6 +11,7 @@ import type { Config } from './config/env.js';
 import { defaultDomainPorts, type DomainPorts } from './ports.js';
 import { createMemoryQueue } from './queue/memory.js';
 import type { JobQueue } from './queue/types.js';
+import { createWebhookAlerter, noopAlerter, type Alerter } from './ops/alerts.js';
 import { createServices, type Services } from './services/index.js';
 import { applinkCallbackRoutes } from './routes/applink-callbacks.js';
 import { authRoutes } from './routes/auth.js';
@@ -29,6 +30,7 @@ export type AppConfig = Pick<Config, 'NODE_ENV'> &
       | 'APPLINK_PASSWORD'
       | 'SMS_KEYWORD'
       | 'APPLINK_SMS_SOURCE_ADDRESS'
+      | 'ALERT_WEBHOOK_URL'
       | 'JWT_SECRET'
       | 'APPLINK_OTP_REQUEST_URL'
       | 'APPLINK_OTP_VERIFY_URL'
@@ -50,6 +52,8 @@ export interface AppDeps {
   ports?: DomainPorts;
   /** Plan prices, charge amounts and allowances. Defaults are placeholders from the plan. */
   billing?: BillingConfig;
+  /** Where operational alerts go. Defaults to the webhook in ALERT_WEBHOOK_URL, else nowhere. */
+  alerts?: Alerter;
   now?: () => Date;
 }
 
@@ -75,7 +79,15 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
 
   // Day 1 persistence is in memory. Postgres implementations replace it when B's migrations land.
   const stores = deps.stores ?? createMemoryStores();
-  const applink = 'applink' in deps ? deps.applink : createApplinkFromConfig(config);
+  const alerts: Alerter =
+    deps.alerts ??
+    (config.ALERT_WEBHOOK_URL
+      ? createWebhookAlerter({
+          url: config.ALERT_WEBHOOK_URL,
+          onFailure: (kind) => app.log.warn({ kind }, 'alert could not be delivered'),
+        })
+      : noopAlerter);
+  const applink = 'applink' in deps ? deps.applink : createApplinkFromConfig(config, alerts);
 
   // Everything the platform does after a callback or for an outbound message runs on a queue.
   // Day 2 uses the in-memory queue; pg-boss replaces it once the Postgres stores land.
@@ -86,6 +98,7 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
     queue,
     ports: deps.ports ?? defaultDomainPorts,
     billing: deps.billing ?? DEFAULT_BILLING,
+    alerts,
     log: {
       info: (obj, msg) => app.log.info(obj, msg),
       warn: (obj, msg) => app.log.warn(obj, msg),

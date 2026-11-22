@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { RETENTION } from '../ops/retention.js';
 import type {
   ChargeRecord,
   ConsentRecord,
@@ -334,6 +335,45 @@ export function createMemoryStores(): Stores {
       },
       async clearStop(subscriberId) {
         if (suppressed.get(subscriberId) === 'STOP') suppressed.delete(subscriberId);
+      },
+    },
+
+    maintenance: {
+      async purge(now) {
+        const t = now.getTime();
+        const drop = <K, V>(m: Map<K, V>, old: (v: V) => boolean): number => {
+          let n = 0;
+          for (const [k, v] of m) {
+            if (old(v)) {
+              m.delete(k);
+              n++;
+            }
+          }
+          return n;
+        };
+        const counts = {
+          smsLog: drop(smsLog, (r) => r.createdAt.getTime() < t - RETENTION.smsLogMs),
+          callbackDedupe: drop(seen, (at) => at < t - RETENTION.callbackDedupeMs),
+          otpSessions: drop(
+            otpSessions,
+            (s) => s.expiresAt.getTime() < t - RETENTION.otpAfterExpiryMs,
+          ),
+          rateLimitHits: 0,
+          // A session is over when revoked or expired, whichever came first.
+          sessions: drop(
+            sessions,
+            (s) =>
+              Math.min((s.revokedAt ?? s.expiresAt).getTime(), s.expiresAt.getTime()) <
+              t - RETENTION.sessionAfterExpiryMs,
+          ),
+        };
+        for (const [key, list] of hits) {
+          const kept = list.filter((x) => x > t - RETENTION.rateLimitHitsMs);
+          counts.rateLimitHits += list.length - kept.length;
+          if (kept.length) hits.set(key, kept);
+          else hits.delete(key);
+        }
+        return counts;
       },
     },
 

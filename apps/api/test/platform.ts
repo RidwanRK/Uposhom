@@ -2,6 +2,7 @@ import { vi } from 'vitest';
 import { ApplinkError, type ApplinkClient } from '@uposhom/applink-client';
 import { buildApp } from '../src/app.js';
 import { createTokenService } from '../src/auth/tokens.js';
+import type { Alerter } from '../src/ops/alerts.js';
 import type { AccountType, UserRecord } from '../src/stores/types.js';
 import { defaultDomainPorts, type DomainPorts } from '../src/ports.js';
 import { createMemoryQueue, type MemoryQueue } from '../src/queue/memory.js';
@@ -69,6 +70,8 @@ export async function harness(
     ports?: Partial<DomainPorts>;
     /** Defaults to a fresh in-memory queue that retries instantly. */
     queue?: JobQueue;
+    /** Where operational alerts go. Defaults to nowhere. */
+    alerts?: Alerter;
   } = {},
 ): Promise<Harness> {
   const queue: Harness['queue'] = opts.queue ?? createMemoryQueue({ retryDelayScale: 0 });
@@ -78,7 +81,14 @@ export async function harness(
   const clock = { now: new Date('2026-11-22T10:00:00Z') };
   const app = buildApp(
     { NODE_ENV: 'test', JWT_SECRET: 'x'.repeat(40), SMS_KEYWORD: 'UPOSHOM' },
-    { stores, queue, applink: applink as ApplinkClient | undefined, ports, now: () => clock.now },
+    {
+      stores,
+      queue,
+      applink: applink as ApplinkClient | undefined,
+      ports,
+      now: () => clock.now,
+      ...(opts.alerts ? { alerts: opts.alerts } : {}),
+    },
   );
   await app.ready();
   const bearerFor = async (user: UserRecord) => ({

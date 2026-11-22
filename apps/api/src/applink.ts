@@ -1,4 +1,5 @@
 import { createApplinkClient, type ApplinkClient, type ServiceName } from '@uposhom/applink-client';
+import { noopAlerter, type Alerter } from './ops/alerts.js';
 import type { Config } from './config/env.js';
 
 const ENDPOINT_VARS: Record<ServiceName, keyof Config> = {
@@ -20,6 +21,7 @@ const ENDPOINT_VARS: Record<ServiceName, keyof Config> = {
 export function createApplinkFromConfig(
   config: Partial<Pick<Config, 'APPLINK_APP_ID' | 'APPLINK_PASSWORD'>> &
     Partial<Record<(typeof ENDPOINT_VARS)[ServiceName], string | undefined>>,
+  alerts: Alerter = noopAlerter,
 ): ApplinkClient | undefined {
   if (!config.APPLINK_APP_ID || !config.APPLINK_PASSWORD) return undefined;
   const endpoints: Partial<Record<ServiceName, string>> = {};
@@ -34,5 +36,15 @@ export function createApplinkFromConfig(
     applicationId: config.APPLINK_APP_ID,
     password: config.APPLINK_PASSWORD,
     endpoints,
+    // Configuration-class errors (E1303 wrong IP, E1313 bad credentials, E1309 not provisioned...)
+    // mean the integration is down: tell a human. Retrying never helps.
+    onError: (err) => {
+      if (err.isConfiguration) {
+        alerts.alert('applink-configuration-error', {
+          statusCode: err.statusCode,
+          service: err.service,
+        });
+      }
+    },
   });
 }

@@ -2,6 +2,7 @@ import { createCaasService } from '../billing/caas.js';
 import { createEntitlementService } from '../billing/entitlements.js';
 import { createSubscriptionService } from '../billing/subscriptions.js';
 import { dedupeKey, type CallbackSink } from '../callbacks/events.js';
+import { createJobs } from '../jobs/index.js';
 import { createMoHandler, type MoPayload } from '../sms/mo.js';
 import { createReportHandler, type ReportPayload } from '../sms/report.js';
 import { SMS_SEND_QUEUE, createSmsService, type SmsSendPayload } from '../sms/send-job.js';
@@ -34,6 +35,8 @@ export function createServices(deps: ServiceDeps) {
   const subscriptions = createSubscriptionService(deps, unregister);
   const entitlements = createEntitlementService(deps, subscriptions);
   const caas = createCaasService(deps);
+  const jobs = createJobs(deps, caas, subscriptions);
+  jobs.register();
 
   deps.queue.work<SmsSendPayload>(SMS_SEND_QUEUE, (job) => sms.handle(job));
   deps.queue.work<UnregisterPayload>(UNREGISTER_QUEUE, (job) => unregister.handle(job));
@@ -60,7 +63,7 @@ export function createServices(deps: ServiceDeps) {
     },
   };
 
-  return { sms, unregister, subscriptions, entitlements, caas, sink };
+  return { sms, unregister, subscriptions, entitlements, caas, jobs, sink };
 }
 
 export type Services = ReturnType<typeof createServices>;

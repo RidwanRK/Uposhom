@@ -193,6 +193,8 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
     subscriberId: string;
     status: string;
     frequency?: string | undefined;
+    /** NOTIFICATION from the callback, SWEEP from the nightly reconciliation. */
+    source?: 'NOTIFICATION' | 'SWEEP';
   }): Promise<void> {
     const status = data.status.trim().toUpperCase().replace(/\.$/, '');
     const user = await stores.users.findBySubscriberId(data.subscriberId);
@@ -212,7 +214,7 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
         status,
         ...(data.frequency ? { frequency: data.frequency } : {}),
         confirmedAt: now,
-        confirmedBy: 'NOTIFICATION',
+        confirmedBy: data.source ?? 'NOTIFICATION',
       },
       now,
     );

@@ -1,5 +1,6 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import type { Pool, PoolClient } from 'pg';
+import { RETENTION } from '../ops/retention.js';
 import type { PhoneCrypto } from '../security/phone-crypto.js';
 import type {
   ChargeRecord,
@@ -561,6 +562,37 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
         await pool.query("DELETE FROM sms_opt_outs WHERE subscriber_id = $1 AND reason = 'STOP'", [
           subscriberId,
         ]);
+      },
+    },
+
+    maintenance: {
+      async purge(now) {
+        const before = (ms: number) => new Date(now.getTime() - ms);
+        const run = async (sql: string, cutoff: Date): Promise<number> =>
+          (await pool.query(sql, [cutoff])).rowCount ?? 0;
+        return {
+          smsLog: await run(
+            'DELETE FROM sms_log WHERE created_at < $1',
+            before(RETENTION.smsLogMs),
+          ),
+          callbackDedupe: await run(
+            'DELETE FROM callback_dedupe WHERE seen_at < $1',
+            before(RETENTION.callbackDedupeMs),
+          ),
+          otpSessions: await run(
+            'DELETE FROM otp_sessions WHERE expires_at < $1',
+            before(RETENTION.otpAfterExpiryMs),
+          ),
+          rateLimitHits: await run(
+            'DELETE FROM rate_limit_hits WHERE at < $1',
+            before(RETENTION.rateLimitHitsMs),
+          ),
+          // Only sessions that are over (revoked, or past their expiry) and have been for a while.
+          sessions: await run(
+            'DELETE FROM sessions WHERE LEAST(COALESCE(revoked_at, expires_at), expires_at) < $1',
+            before(RETENTION.sessionAfterExpiryMs),
+          ),
+        };
       },
     },
 

@@ -53,6 +53,10 @@ const envSchema = z
     // the other secrets: without it every stored number is unreadable.
     PHONE_ENC_KEY: optionalString,
 
+    // Slack or Discord incoming-webhook URL. Alerts fire on configuration-class Applink errors,
+    // charges that need a human, failed Base Size checks and dead-lettered jobs. Optional.
+    ALERT_WEBHOOK_URL: optionalUrl,
+
     // Prices and monthly allowances. Placeholders until decided with the mentor (Master Plan 9):
     // leave unset to use the defaults in src/billing/config.ts. Amounts are decimal BDT strings.
     PLAN_FAMILY_CIRCLE_AMOUNT: optionalAmount,

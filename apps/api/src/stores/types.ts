@@ -139,6 +139,8 @@ export type SmsStatus =
 export type DeliveryStatus =
   'DELIVERED' | 'EXPIRED' | 'DELETED' | 'UNDELIVERABLE' | 'ACCEPTED' | 'UNKNOWN' | 'REJECTED';
 
+import type { PurgeCounts } from '../ops/retention.js';
+
 /** No message bodies: sms_log holds identifiers and statuses only. */
 export interface SmsLogRecord {
   id: string;
@@ -321,6 +323,11 @@ export interface UsageStore {
   ): Promise<number | null>;
 }
 
+export interface MaintenanceStore {
+  /** Deletes rows past their retention (src/ops/retention.ts). Returns how many of each. */
+  purge(now: Date): Promise<PurgeCounts>;
+}
+
 export interface Stores {
   users: UserStore;
   otpSessions: OtpSessionStore;
@@ -334,4 +341,5 @@ export interface Stores {
   usage: UsageStore;
   optOuts: OptOutStore;
   rateLimit: RateLimitStore;
+  maintenance: MaintenanceStore;
 }

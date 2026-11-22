@@ -1,5 +1,6 @@
 import type { ApplinkClient } from '@uposhom/applink-client';
 import type { BillingConfig } from '../billing/config.js';
+import type { Alerter } from '../ops/alerts.js';
 import type { DomainPorts } from '../ports.js';
 import type { JobQueue } from '../queue/types.js';
 import type { Stores } from '../stores/types.js';
@@ -20,6 +21,8 @@ export interface ServiceDeps {
   /** Plan prices, one-off charge amounts and monthly allowances. */
   billing: BillingConfig;
   log: Logger;
+  /** Webhook alerts for things a human must look at. A no-op when no webhook is configured. */
+  alerts: Alerter;
   now: () => Date;
   /** The keyword subscribers put at the start of an MO SMS, for example UPOSHOM. */
   smsKeyword: string;

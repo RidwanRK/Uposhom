@@ -37,6 +37,7 @@ export function createPgBossQueue(opts: PgBossQueueOptions): PgBossQueue {
 
   const handlers = new Map<string, (job: Job) => Promise<void>>();
   const created = new Set<string>();
+  const schedules = new Map<string, { cron: string; tz: string }>();
   let started: Promise<void> | undefined;
 
   async function ensureQueue(name: string): Promise<void> {
@@ -78,10 +79,20 @@ export function createPgBossQueue(opts: PgBossQueueOptions): PgBossQueue {
       // Registered with pg-boss at start(), once the schema exists.
     },
 
+    async schedule(name, cron, options = {}) {
+      // Registered with pg-boss at start(). pg-boss stores one schedule per queue name, so the API
+      // and the worker both calling this is harmless.
+      schedules.set(name, { cron, tz: options.tz ?? 'Asia/Dhaka' });
+    },
+
     async start() {
       started = (async () => {
         await boss.start();
         for (const [name, handler] of handlers) await attach(name, handler);
+        for (const [name, { cron, tz }] of schedules) {
+          await ensureQueue(name);
+          await boss.schedule(name, cron, {}, { tz });
+        }
       })();
       await started;
     },

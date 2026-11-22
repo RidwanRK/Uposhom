@@ -373,6 +373,9 @@ export function createCaasService(deps: ServiceDeps) {
           { externalTrxId: c.externalTrxId, internalTrxId: c.internalTrxId, alert: 'charge-stuck' },
           'charge submitted but never confirmed: check with Applink before refunding or granting',
         );
+        deps.alerts.alert(`charge-stuck ${c.externalTrxId}`, {
+          internalTrxId: c.internalTrxId ?? 'none',
+        });
         stuck++;
       }
     }
