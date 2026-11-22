@@ -40,3 +40,6 @@ export * from './explainer/report-explainer.js';
 // Voice Processing & Spike Evaluation
 export * from './voice/voice-spike.js';
 export * from './voice/transcribe.js';
+
+// Symptom Journaling & Clinical Summary
+export * from './journaling/symptom-journal.js';
