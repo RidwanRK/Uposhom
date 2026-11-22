@@ -101,6 +101,15 @@ const envSchema = z
     APPLINK_OTP_VERIFY_URL: optionalUrl,
     APPLINK_CAAS_DEBIT_URL: optionalUrl,
     APPLINK_CAAS_OTP_VERIFY_URL: optionalUrl,
+
+    // OpenRouter & AI model configuration (Workstream C)
+    OPENROUTER_API_KEY: optionalString,
+    OPENROUTER_BASE_URL: optionalUrl,
+    OPENROUTER_MODEL: optionalString,
+    OPENROUTER_MODEL_AGENTS: optionalString,
+    OPENROUTER_MODEL_VISION: optionalString,
+    OPENROUTER_MODEL_VISION_FALLBACK: optionalString,
+    OPENROUTER_MODEL_FALLBACK: optionalString,
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production' && env.APPLINK_CALLBACK_PATH_KEY.trim() === '') {
