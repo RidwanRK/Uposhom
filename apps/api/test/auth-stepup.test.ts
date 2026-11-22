@@ -71,8 +71,11 @@ describe('authenticate', () => {
   });
 
   it('rejects an expired access token', async () => {
-    const { app } = await setup({ now: () => new Date('2020-01-01T00:00:00Z') });
-    const { token } = await signIn(app); // issued in 2020, long expired by the real clock
+    let clock = new Date('2020-01-01T00:00:00Z');
+    const { app } = await setup({ now: () => clock });
+    const { token } = await signIn(app);
+    // Advance past the 15-minute access token TTL
+    clock = new Date('2020-01-01T00:16:00Z');
     const res = await app.inject({ method: 'GET', url: '/probe/plain', headers: bearer(token) });
     expect(res.statusCode).toBe(401);
     await app.close();

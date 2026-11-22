@@ -192,6 +192,24 @@ export function matchBrand(query: string, catalog?: DgdaDrugRecord[]): BrandMatc
         continue;
       }
 
+      // Alias match in Latin (e.g. "Napa 500")
+      let aliasMatched = false;
+      if (drug.bnAliases) {
+        for (const alias of drug.bnAliases) {
+          if (alias.toLowerCase() === lowerQuery) {
+            candidates.push({
+              drug,
+              score: 0.98,
+              matchReason: 'ALIAS_MATCH',
+              matchedOnText: alias,
+            });
+            aliasMatched = true;
+            break;
+          }
+        }
+      }
+      if (aliasMatched) continue;
+
       // Prefix match
       if (lowerName.startsWith(lowerQuery) || lowerQuery.startsWith(lowerName)) {
         const ratio = Math.min(lowerQuery.length, lowerName.length) / Math.max(lowerQuery.length, lowerName.length);

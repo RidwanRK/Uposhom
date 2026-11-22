@@ -29,11 +29,19 @@ export function createOpenRouterProvider(openaiClient?: OpenAI): OpenAIProvider 
 
 /**
  * Creates an OpenAIChatCompletionsModel for OpenAI Agents SDK running over OpenRouter.
+ * If modelId is not provided, defaults to the configured agentsPrimary model slug.
  */
 export function createOpenRouterAgentModel(
-  modelId: SupportedModelId = AI_CONFIG.models.agentsPrimary,
+  modelId?: SupportedModelId,
   openaiClient?: OpenAI,
-): OpenAIChatCompletionsModel {
+): OpenAIChatCompletionsModel & { model: string } {
+  const chosenModel = modelId || AI_CONFIG.models.agentsPrimary;
   const client = openaiClient || createOpenRouterClient();
-  return new OpenAIChatCompletionsModel(client, modelId);
+  const instance = new OpenAIChatCompletionsModel(client, chosenModel);
+  Object.defineProperty(instance, 'model', {
+    value: chosenModel,
+    writable: false,
+    enumerable: true,
+  });
+  return instance as OpenAIChatCompletionsModel & { model: string };
 }

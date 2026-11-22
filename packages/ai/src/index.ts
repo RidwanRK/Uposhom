@@ -23,6 +23,7 @@ export * from './agents/schedule-agent.js';
 export * from './agents/generic-agent.js';
 export * from './agents/symptom-agent.js';
 export * from './agents/triage-agent.js';
+export * from './agents/router.js';
 
 // Vision & Document Intake
 export * from './vision/ocr-extract.js';
@@ -32,9 +33,17 @@ export * from './vision/report-vault.js';
 // Bilingual Brand Matching & Trigram Search
 export * from './matching/brand-matcher.js';
 
-// Prescription Lay-Bangla Explainer
+// Prescription & Diagnostic Report Lay-Bangla Explainer
 export * from './explainer/index.js';
+export * from './explainer/report-explainer.js';
 
 // Voice Processing & Spike Evaluation
 export * from './voice/voice-spike.js';
 export * from './voice/transcribe.js';
+
+// Symptom Journaling & Clinical Summary
+export * from './journaling/symptom-journal.js';
+export * from './journaling/doctor-summary.js';
+
+// Sickness-Pattern Analytics & Timeline Aggregates
+export * from './analytics/sickness-patterns.js';

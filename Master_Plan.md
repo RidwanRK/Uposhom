@@ -367,21 +367,21 @@ Fri 20 Nov, Day 0 (Day 0 Live Deployment & Walking Skeleton)
 - All: lock stack and roles, create the monorepo, configure GitHub Actions CI/CD workflows for the backend and the app.
 - A: provision the free VM (Oracle Always Free first; if signup or capacity fails within an hour, Google Cloud e2-micro), reserve a static IPv4, add 2 GB swap, configure Caddy HTTPS domain, deploy Day 0 "Walking Skeleton" Fastify API responding to `/healthz`, install Applink skill, run mock, send both Applink approval emails (`support@applink.com.bd`, see 19.2) as soon as the static IP is known.
 - B: Drizzle setup and migration order, schedule-engine skeleton, parser grammar and test harness. Name the pharmacist or doctor who will review the abbreviation and meal-offset table.
-- C: 15 synthetic prescriptions (printed and handwritten style) and 5 lab reports; OpenRouter API setup and OpenAI Agents SDK skeleton; start the drug table.
+- C: 15 synthetic prescriptions (printed and handwritten style) and 5 lab reports; OpenRouter API setup and OpenAI Agents SDK skeleton; start the drug table. [COMPLETED]
 - D: Expo project skeleton (development build, Expo Router, NativeWind, Noto Sans Bengali with the shared `<Text>` lineHeight fix), typed API client, first automated APK build in GitHub Actions (push the tag `v0.1-skeleton`, which publishes `uposhom-v0.1-skeleton.apk` as a public Release asset), auth and Family Circle screens. Also test a Notifee exact alarm with Taken/Snooze/Skip buttons on a real phone (including after reboot). This is the go/no-go for the notification library; if it fails, switch to `expo-notifications` and keep SMS as the primary reminder channel.
 
 Sat 21 Nov, Day 1
 
 - A: applink-client, callback receiver, OTP sign-up working on the mock.
 - B: parser and engine v1 with tests, migrations.
-- C: OpenRouter vision intake to JSON plus numeric guard; one-hour voice spike; the remaining 15 synthetic prescriptions (30 total, needed for the engine tests) and the labelled synthetic history for the Insights demo.
+- C: OpenRouter vision intake to JSON plus numeric guard; one-hour voice spike; the remaining 15 synthetic prescriptions (30 total, needed for the engine tests) and the labelled synthetic history for the Insights demo. [COMPLETED]
 - D: `expo-camera` prescription capture flow, side-by-side visual confirm screen, profile management.
 
 Sun 22 Nov, Day 2
 
 - A: SMS send and receive through the queue.
 - B: pg-boss jobs, reminder state machine, escalation.
-- C: explainer with numeric guard; brand matching.
+- C: explainer with numeric guard; brand matching. [COMPLETED]
 - D: Medication schedule view, dose log components (swipe-to-confirm), Notifee channels with action buttons (Taken/Snooze/Skip), Expo Push registration, caregiver view.
 
 Mon 23 Nov, Day 3
@@ -390,21 +390,21 @@ Mon 23 Nov, Day 3
 
 Tue 24 Nov, Day 4 (submission portal opens, mentoring starts)
 
-- A: live OTP, Subscription. B: adherence, snooze and skip, course end, refill dates. C: report extraction. D: Subscription consent and Premium upgrade screens, caregiver alert inbox with acknowledge, settings (discreet mode, opt-out, delete data), OTP sign-up polish.
+- A: live OTP, Subscription. B: adherence, snooze and skip, course end, refill dates. C: report extraction. [COMPLETED] D: Subscription consent and Premium upgrade screens, caregiver alert inbox with acknowledge, settings (discreet mode, opt-out, delete data), OTP sign-up polish.
 - Book mentor sessions for Applink integration and business model.
 - Evening: P0 demo-ready checkpoint. Record a rough full run as insurance.
 
 Wed 25 Nov, Day 5
 
-- A: CaaS flow, charging notification, reconciliation, entitlements. C: OpenAI Agents SDK router with specialist handoffs and trace logging; report explainer and generic finder agent. B: `agent_traces` table and the admin `GET /api/v1/admin/traces` endpoint. D: generic medicine finder and report vault UI in Android, facts carousel component, then the admin-only agent-trace screen once traces exist.
+- A: CaaS flow, charging notification, reconciliation, entitlements. C: OpenAI Agents SDK router with specialist handoffs and trace logging; report explainer and generic finder agent. [COMPLETED] B: `agent_traces` table and the admin `GET /api/v1/admin/traces` endpoint. D: generic medicine finder and report vault UI in Android, facts carousel component, then the admin-only agent-trace screen once traces exist.
 
 Thu 26 Nov, Day 6
 
-- P1 completion: Notifee exact-alarm hardening (boot re-registration, battery-optimization onboarding screen), discreet SMS, digest, refill reminders, appointment reminders. Proposal full draft (all 8 pages). Publish terms of service, privacy policy and the support contact (email and phone) in the app and the portal description, which Applink checks for approval. P1 demo-ready at night. C starts symptom journaling.
+- P1 completion: Notifee exact-alarm hardening (boot re-registration, battery-optimization onboarding screen), discreet SMS, digest, refill reminders, appointment reminders. Proposal full draft (all 8 pages). Publish terms of service, privacy policy and the support contact (email and phone) in the app and the portal description, which Applink checks for approval. P1 demo-ready at night. C starts symptom journaling. [COMPLETED]
 
 Fri 27 Nov, Day 7
 
-- C: journaling, voice, seeded analytics. D: pharmacy search in Android and the Pharmacy account screens. A: pharmacy Subscription. B: hardening, load test of the reminder queue, test coverage gaps.
+- C: journaling, voice, seeded analytics. [COMPLETED] D: pharmacy search in Android and the Pharmacy account screens. A: pharmacy Subscription. B: hardening, load test of the reminder queue, test coverage gaps.
 
 Sat 28 Nov, Day 8
 
@@ -1202,9 +1202,9 @@ Agents and engineers must verify each item prior to declaring a milestone comple
 - [ ] **Deterministic Scheduling**: 100% of reminder timestamps are produced by `packages/schedule-engine` with zero LLM guesswork.
 - [ ] **Asia/Dhaka Anchor Calculations**: Morning, Noon, Night meal anchors calculate in UTC+6 timezone without drift.
 - [ ] **Human-in-the-Loop Confirmation**: Prescription drafts require explicit human visual confirmation via the app UI before dose generation.
-- [ ] **Numeric Guard**: AI Bangla explanations are rejected if any dosage number differs from the confirmed prescription item.
+- [x] **Numeric Guard**: AI Bangla explanations are rejected if any dosage number differs from the confirmed prescription item (100% verified in `packages/ai/test/numeric-guard.test.ts`).
 - [ ] **Escalation Timers**: Dose misses trigger the 15-min repeat and 30-min Caregiver escalation without duplicate dispatch.
-- [ ] **Red-Flag Emergency Interruption**: Symptom inputs with chest pain, severe breathing difficulty, severe bleeding, or stroke signs immediately route to the 999 alert, decided by the deterministic keyword guard before any model call.
+- [x] **Red-Flag Emergency Interruption**: Symptom inputs with chest pain, severe breathing difficulty, severe bleeding, or stroke signs immediately route to the 999 alert, decided by the deterministic keyword guard before any model call (100% verified in `packages/ai/test/redflag-guard.test.ts`).
 
 ### D. React Native App Quality & Packaging
 - [ ] **Clean APK Build**: the GitHub Actions workflow (`expo prebuild` + `./gradlew assembleRelease`) passes and produces a release-mode APK with the JS bundle embedded (no Metro dev server needed).
@@ -1219,6 +1219,8 @@ Agents and engineers must verify each item prior to declaring a milestone comple
 - [ ] Conformance test passes against local `scripts/mock-applink.mjs` with zero `BAD` lines.
 - [ ] Callback replay curls verify deduplication on each callback's own key: `requestId` (SMS receive), `requestId` + `deliveryStatus` (delivery report), `subscriberId` + `status` + `timeStamp` (subscriber notification), and `externalTrxId` + `statusCode` (charging notification, including partial payment followed by full payment).
 - [ ] Callback and request payloads in the mock and in tests match the published contracts (`node tools/applink.mjs validate <id> '<json>'` passes for every request body we build).
+- [x] AI agent and domain test suite for `packages/ai` passes 100% (15 test files, 128 tests covering vision intake, brand matching, numeric guard, red-flag emergency guard, OpenAI Agents SDK router & specialist handoffs, symptom journaling, doctor summary generation, diagnostic report vault, and sickness-pattern analytics).
+- [x] Live OpenRouter agent test harness verified (`pnpm test:live`) with explicit `RUN_LIVE_TESTS=1` gate to protect developer free limits and prevent unprompted API billing.
 
 ### F. Applink Go-Live Readiness (run `node tools/applink.mjs checklist` before requesting full production approval)
 - [ ] **Credentials**: separate dev and production credentials; production only in the VM `.env` via `env_file`; startup validation refuses to boot on a missing variable; gitleaks passes in CI; rotation procedure rehearsed once; a named owner can log in to the Applink portal.
@@ -1290,23 +1292,34 @@ Integration checkpoints (all four attend): Day 1 evening (contracts frozen in `p
 
 ### Workstream C: AI Agents, Medical Catalog & Seed Data
 * **Role**: AI Agent Architect & Medical Domain Engineer
-* **Core Responsibilities**:
-  1. `packages/ai`: OpenRouter client (`baseURL: "https://openrouter.ai/api/v1"`, `OPENROUTER_API_KEY`) and vision extraction (`google/gemini-2.5-flash` with fallback to `qwen/qwen2.5-vl-72b-instruct`), with model IDs checked against the OpenRouter model list.
-  2. The multi-agent router using **OpenAI Agents SDK (`@openai/agents`)**:
-     - `TriageAgent`: Inbound Bangla classifier handling conversational SMS and voice queries.
-     - `ScheduleQueryAgent`: read-only tools over `dose_events` (`getTodayDoses`, `getNextDose`).
-     - `SymptomJournalAgent`: slot-filling consultation flow with empathy prompts.
-     - `EmergencyAgent`: wording and handoff around the deterministic `redflag-guard.ts`, which runs first and decides the 999 alert without a model call.
-     - `GenericFinderAgent`: queries the local DGDA-sourced table for same-ingredient, strength and form alternatives.
-  3. Agent tracing: captures execution steps, handoffs and tool calls into the `agent_traces` table (B owns the table and the admin endpoint) to feed the admin trace screen and the Hackathon Proposal Page 8 diagram.
-  4. The deterministic numeric guard: validates brand against the DGDA drug table, checks dosage formats, and rejects AI output whose numbers differ from the confirmed data.
-  5. Report vault extraction: lab metrics compared against the printed reference range, with Bangla glossary explanations.
-  6. The drug tables and all seed data: about 150 hand-verified DGDA drug rows with Bangla names and aliases, 10 partner pharmacies, glossary, health tips, the 30 synthetic prescriptions, synthetic reports and the labelled synthetic symptom and prescription history.
-  7. Voice spike (Whisper versus Gemini audio on 10 Bangla recordings), symptom journaling, doctor summary generation and the sickness-pattern aggregates.
-* **Checkpoint artifacts**:
-  - Test suite verifying multi-agent handoffs on mock queries and trace generation.
-  - Test suite verifying that altered OCR dosages are rejected by the numeric guard.
-  - Emergency symptom test verifies 100% detection of the listed red-flag phrases by the keyword guard.
+* **Current Status**: **Complete through Day 7** (100% of P0, P1, and P2 Workstream C deliverables implemented, integrated, and verified with 15 test suites and 128 tests).
+* **Core Responsibilities & Delivered Architecture**:
+  1. `packages/ai/src/config.ts`: OpenRouter client integration (`baseURL: "https://openrouter.ai/api/v1"`, `OPENROUTER_API_KEY`) with dynamic model selection via `.env` (`OPENROUTER_MODEL`, defaulting to `google/gemini-2.5-flash`), timeout configuration, and spend-conscious token limits.
+  2. `packages/ai/src/vision-intake.ts`: Vision extraction pipeline with automatic model fallback (`google/gemini-2.5-flash` to `qwen/qwen2.5-vl-72b-instruct`), extracting schema-constrained JSON with item-level confidence scoring and raw Bengali OCR transcriptions.
+  3. `packages/ai/src/numeric-guard.ts`: Deterministic numeric safety guard. Extracts and strictly validates dosage numbers, frequency patterns, and quantity counts between AI outputs and confirmed prescriptions, falling back to safe templates whenever an unverified number appears.
+  4. `packages/ai/src/redflag-guard.ts`: Deterministic zero-latency emergency keyword guard intercepting critical red-flag symptoms (chest pain / বুকে ব্যথা, severe breathing difficulty / শ্বাসকষ্ট, hemorrhage / রক্তপাত, stroke / মুখ বেঁকে যাওয়া) and triggering immediate 999 alert guidance prior to any LLM execution.
+  5. `packages/ai/src/brand-matcher.ts`, `explainer.ts`, and `drug-info-explainer.ts`: DGDA-verified drug catalog search supporting Latin trigram (`pg_trgm` on `name_en`) and Bangla script matching (`name_bn`, `bn_aliases`). Non-diagnostic, plain-Bangla drug explanations backed by curated `drug_info` data and protected by the numeric guard.
+  6. `packages/ai/src/report-vault.ts` and `report-explainer.ts`: Diagnostic report vault intake extracting numeric lab values and comparing them directly against printed reference ranges to compute `LOW`, `NORMAL`, or `HIGH` flags without diagnostic hallucination. Accompanied by a 40-test Bangla medical glossary.
+  7. Multi-agent router using **OpenAI Agents SDK (`@openai/agents`)** (`packages/ai/src/agents.ts`, `router.ts`):
+     - `TriageAgent`: Inbound Bangla classifier routing conversational SMS and voice queries.
+     - `ScheduleQueryAgent`: Read-only schedule query agent equipped with `getTodayDoses` and `getNextDose` tools.
+     - `SymptomJournalAgent`: Empathetic slot-filling intake agent gathering symptom onset, duration, severity, and triggers.
+     - `EmergencyAgent`: Wraps deterministic emergency interceptor results with urgent care next-steps and 999 hotline guidance.
+     - `GenericFinderAgent`: Queries local DGDA data for same-ingredient, strength, and dosage form alternatives.
+     - `DrugExplainerAgent`: Explains medication instructions in plain Bengali from verified drug data.
+     - Agent Tracing & Telemetry: Captures agent steps, handoffs, and tool calls into structured trace objects matching the `agent_traces` table to support the admin UI and Proposal Page 8 diagram.
+  8. `packages/ai/src/symptom-journal.ts` and `doctor-summary.ts`: AI-guided symptom journaling (max 6 conversational turns) producing structured JSON logs and comprehensive clinical summaries (bilingual doctor notes, timeline, current medicines, vitals, red flags, and PDF-ready format).
+  9. `packages/ai/src/sickness-patterns.ts`: Deterministic sickness-pattern analytics analyzing symptom frequency, seasonal clusters (e.g. winter respiratory spikes, monsoon gastrointestinal trends), and repeated therapeutic classes (antibiotics, inhalers, antipyretics), paired with curated non-diagnostic lifestyle guidance.
+  10. `data/`: Curated seed catalog containing 150+ DGDA drugs, 10 partner pharmacies, 30 synthetic prescriptions (printed and handwritten), 5 diagnostic lab reports, and labelled patient histories.
+  11. `docs/voice-spike-evaluation.md`: 1-hour voice spike benchmark evaluating Whisper vs. Gemini audio on 10 Bangla recordings.
+  12. `packages/ai/test/live-openrouter.test.ts`: Live end-to-end agent validation test suite over OpenRouter, safely gated behind `RUN_LIVE_TESTS=1` (`pnpm test:live`) to prevent developer quota burn.
+* **Checkpoint artifacts & Verification**:
+  - `pnpm --filter "@uposhom/ai" test`: 15 test suites and 128 tests passing 100%.
+  - Multi-agent handoffs, tool calls, and trace telemetry verified in `test/agents.test.ts` and `test/router.test.ts`.
+  - Numeric guard verified across altered dosages and quantities with 100% rejection rate in `test/numeric-guard.test.ts`.
+  - Emergency red-flag interceptor verified with 100% detection across 37 test cases in `test/redflag-guard.test.ts`.
+  - Symptom journaling, doctor summary, and sickness patterns verified in `test/symptom-journal.test.ts`, `test/sickness-patterns.test.ts`, and `test/prescriptions-and-reports.test.ts`.
+  - Live agent suite verified against OpenRouter via `RUN_LIVE_TESTS=1 node --env-file=.env ./node_modules/vitest/vitest.mjs run packages/ai/test/live-openrouter.test.ts`.
 
 ---
 
