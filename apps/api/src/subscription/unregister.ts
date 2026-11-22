@@ -40,6 +40,19 @@ export function createUnregisterService(deps: ServiceDeps) {
       if (!hasSubscriptionStatus(res, 'UNREGISTERED')) {
         throw new Error('subscription still active after unregister');
       }
+      // Only update a row that exists: after an account is erased there is none, and recreating
+      // one would put the subscriber id straight back.
+      if (await deps.stores.subscriptions.get(job.data.subscriberId)) {
+        await deps.stores.subscriptions.upsert(
+          {
+            subscriberId: job.data.subscriberId,
+            status: 'UNREGISTERED',
+            confirmedAt: deps.now(),
+            confirmedBy: 'REGISTER_RESPONSE',
+          },
+          deps.now(),
+        );
+      }
     } catch (err) {
       // Configuration and client errors will not fix themselves: stop retrying, but the local
       // suppression already holds, so no further messages go out.

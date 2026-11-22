@@ -41,6 +41,16 @@ const BLOCKING_CODES = new Set(['E1342']);
  */
 export function createSmsService(deps: ServiceDeps) {
   const { stores, applink, queue, log, now } = deps;
+  let lastSendAt = 0;
+
+  /** Keeps sends at least `smsMinIntervalMs` apart. The queue runs one SMS job at a time. */
+  async function throttle(): Promise<void> {
+    const gap = deps.smsMinIntervalMs;
+    if (!gap) return;
+    const wait = lastSendAt + gap - Date.now();
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    lastSendAt = Date.now();
+  }
 
   async function enqueue(payload: SmsSendPayload): Promise<void> {
     const seg = smsSegments(payload.message);
@@ -108,6 +118,8 @@ export function createSmsService(deps: ServiceDeps) {
       if (job.retryCount >= SMS_RETRY_LIMIT) {
         await failWith(code);
         log.error({ subscriber, purpose: p.purpose, statusCode: code }, 'sms failed after retries');
+        // E1319 is the per-day ceiling: retrying will not clear it today. A human should know.
+        if (code === 'E1319') deps.alerts.alert('applink-daily-sms-limit', { statusCode: code });
         return;
       }
       throw new ApplinkError(code, '', 'sms-send'); // the queue retries with backoff
@@ -115,6 +127,7 @@ export function createSmsService(deps: ServiceDeps) {
 
     let response;
     try {
+      await throttle();
       response = await applink.sendSms(p.subscriberId, p.message, {
         ...(p.deliveryReport ? { deliveryStatusRequest: '1' as const } : {}),
         ...(deps.smsSourceAddress ? { sourceAddress: deps.smsSourceAddress } : {}),

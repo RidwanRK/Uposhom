@@ -121,7 +121,17 @@ export function createApplinkClient(config: ApplinkClientConfig) {
     }
 
     if (data.statusCode === 'S1000' || acceptedCodes.includes(data.statusCode)) return data;
-    throw new ApplinkError(String(data.statusCode), String(data.statusDetail ?? ''), service);
+    const error = new ApplinkError(
+      String(data.statusCode),
+      String(data.statusDetail ?? ''),
+      service,
+    );
+    try {
+      config.onError?.(error);
+    } catch {
+      // A broken monitor must never change what the caller sees.
+    }
+    throw error;
   }
 
   return {

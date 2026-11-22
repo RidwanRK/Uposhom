@@ -82,6 +82,8 @@ export interface CaasOtpVerifyResponse extends ApplinkBaseResponse {
   [key: string]: unknown;
 }
 
+import type { ApplinkError } from './errors.js';
+
 /** Endpoint variables Applink services are reached through. Unset means the API is not enabled. */
 export type ServiceName =
   | 'smsSend'
@@ -102,4 +104,9 @@ export interface ApplinkClientConfig {
   fetch?: typeof fetch;
   /** Per-call timeout. Defaults to 10 seconds (Master Plan section 8). */
   timeoutMs?: number;
+  /**
+   * Called with every ApplinkError just before it is thrown. For monitoring: a configuration-class
+   * error (E1303, E1313, E1309...) means the integration is down and should raise an alert.
+   */
+  onError?: (err: ApplinkError) => void;
 }

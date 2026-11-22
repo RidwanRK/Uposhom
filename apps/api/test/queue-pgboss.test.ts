@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import pg from 'pg';
 import { describe, expect, it, vi } from 'vitest';
 import { createPgBossQueue } from '../src/queue/pgboss.js';
 import { queueContract } from './queue-contract.js';
@@ -93,6 +94,25 @@ describe.skipIf(!url)('pg-boss in the platform', { timeout: 60_000 }, () => {
       { timeout: 10_000 },
     );
     await h.app.close();
+  });
+
+  it('registers schedules with pg-boss at start, in the Dhaka time zone', async () => {
+    const schema = newSchema();
+    const q = make(schema);
+    q.work('job.nightly', async () => undefined);
+    await q.schedule('job.nightly', '0 2 * * *', { tz: 'Asia/Dhaka' });
+    await q.start();
+    const pool = new pg.Pool({ connectionString: url, max: 1 });
+    try {
+      const { rows } = await pool.query(
+        `SELECT * FROM ${schema}.schedule WHERE name = 'job.nightly'`,
+      );
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({ cron: '0 2 * * *', timezone: 'Asia/Dhaka' });
+    } finally {
+      await pool.end();
+      await q.stop();
+    }
   });
 
   it('keeps queued jobs across a restart: a job sent while nobody consumes runs once a worker starts', async () => {

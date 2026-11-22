@@ -4,13 +4,24 @@
 {$API_DOMAIN} {
 	encode gzip
 
-	# TODO (when Applink sends its source IP list): restrict the callback routes, e.g.
-	#   @applink path /api/applink/*
-	#   @applink_denied { path /api/applink/*; not remote_ip <ranges> }
-	#   respond @applink_denied 403
-	# Until then every callback URL carries the unguessable APPLINK_CALLBACK_PATH_KEY segment.
-	# Also add rate limits for /api/applink/* here, and check that Docker preserves the real
-	# client IP at Caddy (Day 1 deploy smoke test).
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+
+	# Applink callbacks may only come from Applink's source IP ranges. Applink signs nothing, so
+	# this is the strongest control available (Master Plan section 8). Ask support@applink.com.bd
+	# for the list, then set it on the VM in /opt/uposhom/.env as a space-separated list:
+	#   APPLINK_ALLOWED_IPS=203.0.113.0/24 198.51.100.7
+	# and `docker compose up -d caddy`. Unset, it defaults to "everywhere", so nothing is blocked
+	# until the list is known; until then each callback URL is protected only by the unguessable
+	# APPLINK_CALLBACK_PATH_KEY segment. Everything else on the API stays open to the app.
+	@applink_denied {
+		path /api/applink/*
+		not remote_ip {$APPLINK_ALLOWED_IPS:0.0.0.0/0 ::/0}
+	}
+	respond @applink_denied 403
 
 	reverse_proxy api:3000
 }

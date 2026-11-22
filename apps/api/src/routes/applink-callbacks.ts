@@ -13,6 +13,9 @@ import {
 } from '../callbacks/events.js';
 import type { DedupeStore } from '../stores/types.js';
 
+/** Applink payloads are a few hundred bytes. Anything bigger is not one. */
+const MAX_CALLBACK_BYTES = 16 * 1024;
+
 const ACK = { statusCode: 'S1000', statusDetail: 'Success' } as const;
 
 export interface CallbackDeps {
@@ -72,8 +75,18 @@ export function applinkCallbackRoutes(deps: CallbackDeps) {
     app.addContentTypeParser('application/json', { parseAs: 'string' }, lenient);
     app.addContentTypeParser('*', { parseAs: 'string' }, lenient);
 
+    // Whatever goes wrong before a handler runs (a body over the limit, a bad encoding), the
+    // answer is still the acknowledgement: a 4xx or 5xx only makes Applink retry the same payload.
+    app.setErrorHandler((err, req, reply) => {
+      req.log.warn(
+        { code: (err as { code?: string }).code ?? 'error' },
+        'callback rejected before handling',
+      );
+      return reply.code(200).send(ACK);
+    });
+
     for (const route of ROUTES) {
-      app.post(route.path, async (req) => {
+      app.post(route.path, { bodyLimit: MAX_CALLBACK_BYTES }, async (req) => {
         const parsed = route.schema.safeParse(req.body);
         if (!parsed.success) {
           req.log.warn({ type: route.type }, 'callback payload rejected');

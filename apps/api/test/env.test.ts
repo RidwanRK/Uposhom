@@ -44,6 +44,15 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ QUEUE_DRIVER: 'redis' })).toThrow(ConfigError);
   });
 
+  it('requires DATABASE_URL and a valid PHONE_ENC_KEY for the postgres store', () => {
+    expect(loadConfig({}).STORE_DRIVER).toBe('memory');
+    expect(() => loadConfig({ STORE_DRIVER: 'postgres' })).toThrow(/DATABASE_URL/);
+    const base = { STORE_DRIVER: 'postgres', DATABASE_URL: 'postgres://u:p@h:5432/d' };
+    expect(() => loadConfig(base)).toThrow(/PHONE_ENC_KEY/);
+    expect(() => loadConfig({ ...base, PHONE_ENC_KEY: 'tooshort' })).toThrow(/PHONE_ENC_KEY/);
+    expect(loadConfig({ ...base, PHONE_ENC_KEY: 'a'.repeat(64) }).STORE_DRIVER).toBe('postgres');
+  });
+
   it('requires both CaaS URLs or neither', () => {
     expect(() => loadConfig({ APPLINK_CAAS_DEBIT_URL: 'http://127.0.0.1:8089/d' })).toThrow(
       /both be set, or neither/,

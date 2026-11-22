@@ -174,7 +174,7 @@ jobs:
           host: ${{ secrets.PROD_SERVER_IP }}
           username: ${{ secrets.PROD_SERVER_USER }}
           key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
-          source: 'deploy/docker-compose.yml,deploy/Caddyfile'
+          source: 'deploy/docker-compose.yml,deploy/Caddyfile,deploy/backup.sh,deploy/restore.sh'
           target: '/opt/uposhom'
           # The .env file lives only on the VM and is never copied or committed.
 

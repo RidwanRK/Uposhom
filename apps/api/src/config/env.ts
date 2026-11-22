@@ -16,6 +16,19 @@ const optionalUrl = z.preprocess(
   z.string().url().optional(),
 );
 
+const optionalAmount = z.preprocess(
+  (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+  z
+    .string()
+    .regex(/^\d+(\.\d{1,2})?$/, 'must be a decimal BDT amount such as 30.00')
+    .optional(),
+);
+
+const optionalCount = z.preprocess(
+  (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+  z.coerce.number().int().min(0).optional(),
+);
+
 const optionalString = z.preprocess(
   (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
   z.string().min(1).optional(),
@@ -33,6 +46,34 @@ const envSchema = z
     // jobs against an sms_log and sessions that restarted empty.
     QUEUE_DRIVER: z.enum(['memory', 'pgboss']).default('memory'),
 
+    // Where users, sessions, the SMS log and the billing ledger live. `memory` forgets everything on
+    // restart (development and tests). `postgres` needs DATABASE_URL and PHONE_ENC_KEY.
+    STORE_DRIVER: z.enum(['memory', 'postgres']).default('memory'),
+    // AES-256 key for phone numbers: 64 hex characters (`openssl rand -hex 32`). Back it up with
+    // the other secrets: without it every stored number is unreadable.
+    PHONE_ENC_KEY: optionalString,
+
+    // Shown on the public terms, privacy and support pages. Applink checks that a support contact
+    // is published before approving the application, so set both before registering.
+    SUPPORT_EMAIL: optionalString,
+    SUPPORT_PHONE: optionalString,
+
+    // Slack or Discord incoming-webhook URL. Alerts fire on configuration-class Applink errors,
+    // charges that need a human, failed Base Size checks and dead-lettered jobs. Optional.
+    ALERT_WEBHOOK_URL: optionalUrl,
+
+    // Prices and monthly allowances. Placeholders until decided with the mentor (Master Plan 9):
+    // leave unset to use the defaults in src/billing/config.ts. Amounts are decimal BDT strings.
+    PLAN_FAMILY_CIRCLE_AMOUNT: optionalAmount,
+    PLAN_PHARMACY_AMOUNT: optionalAmount,
+    CAAS_AMOUNT_SCAN: optionalAmount,
+    CAAS_AMOUNT_DOCTOR_SUMMARY: optionalAmount,
+    CAAS_AMOUNT_REPORT_EXPLAIN: optionalAmount,
+    FREE_SCANS_PER_MONTH: optionalCount,
+    FREE_SMS_PER_MONTH: optionalCount,
+    PREMIUM_SCANS_PER_MONTH: optionalCount,
+    PREMIUM_SMS_PER_MONTH: optionalCount,
+
     // HMAC secret for access tokens (at least 32 characters). Mandatory in production.
     JWT_SECRET: optionalString,
 
@@ -42,6 +83,9 @@ const envSchema = z
 
     // Keyword subscribers put at the start of an MO SMS (UPOSHOM 1). Confirm with Applink.
     SMS_KEYWORD: z.string().trim().min(1).default('UPOSHOM'),
+    // Outbound SMS per second Applink allows this application (E1318). Ask Applink for the figure;
+    // unset means no spacing between sends.
+    SMS_MAX_PER_SECOND: optionalCount,
     // Only a provisioned alias works as the SMS sender (else E1331). Unset uses the default.
     APPLINK_SMS_SOURCE_ADDRESS: optionalString,
 
@@ -65,6 +109,23 @@ const envSchema = z
         path: ['APPLINK_CALLBACK_PATH_KEY'],
         message: 'must be set in production (unguessable callback path segment)',
       });
+    }
+
+    if (env.STORE_DRIVER === 'postgres') {
+      if (env.DATABASE_URL === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['DATABASE_URL'],
+          message: 'must be set when STORE_DRIVER=postgres',
+        });
+      }
+      if (!/^[0-9a-fA-F]{64}$/.test(env.PHONE_ENC_KEY ?? '')) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['PHONE_ENC_KEY'],
+          message: 'must be 64 hex characters when STORE_DRIVER=postgres (openssl rand -hex 32)',
+        });
+      }
     }
 
     if (env.QUEUE_DRIVER === 'pgboss' && env.DATABASE_URL === undefined) {

@@ -10,6 +10,7 @@ import {
   hasSubscriptionStatus,
   maskAddress,
   normalizeBdMsisdn,
+  subscriberIdVariants,
   toTelAddress,
   type ServiceName,
 } from '../src/index.js';
@@ -148,7 +149,15 @@ describe('helpers', () => {
     expect(toTelAddress('01973579363')).toBe('tel:8801973579363');
     expect(toTelAddress('+8801973579363')).toBe('tel:8801973579363');
     expect(toTelAddress('008801973579363')).toBe('tel:8801973579363');
-    expect(toTelAddress('tel:+8801973579363')).toBe('tel:8801973579363');
+    // A tel: value is an opaque subscriber id: passed through exactly as given.
+    expect(toTelAddress('tel:+8801973579363')).toBe('tel:+8801973579363');
+    expect(toTelAddress('  tel:masked-abc123 ')).toBe('tel:masked-abc123');
+    expect(subscriberIdVariants('tel:+8801973579363')).toEqual([
+      'tel:+8801973579363',
+      'tel:8801973579363',
+    ]);
+    expect(subscriberIdVariants('tel:8801973579363')).toEqual(['tel:8801973579363']);
+    expect(subscriberIdVariants('tel:masked-abc123')).toEqual(['tel:masked-abc123']);
     expect(() => toTelAddress('  ')).toThrow();
   });
 

@@ -1,6 +1,7 @@
 import { maskAddress } from '@uposhom/applink-client';
 import type { DoseReplyCode } from '../ports.js';
 import type { ServiceDeps } from '../services/deps.js';
+import { resolveSubscriber } from './identity.js';
 import type { SmsService } from './send-job.js';
 import type { UnregisterService } from '../subscription/unregister.js';
 
@@ -66,18 +67,19 @@ export function createMoHandler(deps: ServiceDeps, sms: SmsService, unregister: 
   return async function handleMo(data: MoPayload): Promise<void> {
     const cmd = parseMo(data.message, deps.smsKeyword);
     const subscriber = maskAddress(data.sourceAddress);
+    // The id we stored for this person, whichever form the callback used for it.
+    const { id: subscriberId, user } = await resolveSubscriber(deps.stores, data.sourceAddress);
 
     if (cmd.kind === 'STOP') {
       // Honoured immediately and for anyone: suppressing a number can never hurt it. Queued
       // messages stop because the send job checks suppression at send time.
-      await unregister.optOut({ subscriberId: data.sourceAddress, source: 'SMS' });
+      await unregister.optOut({ subscriberId, source: 'SMS' });
       deps.log.info({ subscriber, requestId: data.requestId }, 'sms STOP honoured');
       return;
     }
 
     // Everything else only makes sense for someone we know. Unknown senders get no reply, so the
     // shortcode cannot be used as an SMS relay.
-    const user = await deps.stores.users.findBySubscriberId(data.sourceAddress);
     if (!user) {
       deps.log.info(
         { subscriber, requestId: data.requestId },
@@ -88,13 +90,13 @@ export function createMoHandler(deps: ServiceDeps, sms: SmsService, unregister: 
 
     if (cmd.kind === 'DOSE') {
       const { replyText } = await deps.ports.doseReply({
-        subscriberId: data.sourceAddress,
+        subscriberId,
         code: cmd.code,
         profileTag: cmd.profileTag,
       });
       if (replyText) {
         await sms.enqueue({
-          subscriberId: data.sourceAddress,
+          subscriberId,
           message: replyText,
           purpose: 'MO_REPLY',
           idempotencyKey: `mo-reply:${data.requestId}`,
@@ -104,7 +106,7 @@ export function createMoHandler(deps: ServiceDeps, sms: SmsService, unregister: 
     }
 
     await sms.enqueue({
-      subscriberId: data.sourceAddress,
+      subscriberId,
       message: `Reply ${deps.smsKeyword} 1 = taken, 2 = snooze, 3 = skip. Reply STOP to stop messages.`,
       purpose: 'MO_REPLY',
       idempotencyKey: `mo-reply:${data.requestId}`,

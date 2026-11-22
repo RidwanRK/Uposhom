@@ -19,6 +19,13 @@ export interface DomainPorts {
     profileTag: string | null;
   }): Promise<{ replyText: string | null }>;
 
+  /**
+   * Delete everything the DOMAIN layer holds about this person (profiles, prescriptions, doses,
+   * reports...). Called first when an account is erased, because domain rows refer to the user.
+   * The default does nothing until the domain tables exist.
+   */
+  eraseDomainData(userId: string): Promise<void>;
+
   /** A reminder SMS could not be delivered (UNDELIVERABLE, EXPIRED or REJECTED). */
   onSmsDeliveryFailure(input: {
     subscriberId: string;
@@ -31,6 +38,9 @@ export interface DomainPorts {
 export const defaultDomainPorts: DomainPorts = {
   async doseReply() {
     return { replyText: null };
+  },
+  async eraseDomainData() {
+    // Nothing to delete until the domain tables exist.
   },
   async onSmsDeliveryFailure() {
     // Nothing to escalate until B's reminder state machine exists.

@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { CronExpressionParser } from 'cron-parser';
 import type { DeadLetter, Job, JobOptions, JobQueue } from './types.js';
 
 interface Pending {
@@ -25,6 +26,7 @@ export function createMemoryQueue(opts: { retryDelayScale?: number } = {}): Memo
   const keys = new Set<string>();
   const dead: DeadLetter[] = [];
   const timers = new Set<NodeJS.Timeout>();
+  const schedules = new Map<string, { cron: string; tz: string }>();
   const waiters: (() => void)[] = [];
   let started = false;
   let stopped = false;
@@ -92,7 +94,23 @@ export function createMemoryQueue(opts: { retryDelayScale?: number } = {}): Memo
     })();
   }
 
-  return {
+  /** Waits for the next cron time, sends the job, then arms the next one. */
+  function armSchedule(name: string, cron: string, tz: string): void {
+    if (stopped) return;
+    const next = CronExpressionParser.parse(cron, { currentDate: new Date(), tz }).next().toDate();
+    const t = setTimeout(
+      () => {
+        timers.delete(t);
+        void queueApi.send(name, {}, { singletonKey: `schedule:${name}` });
+        armSchedule(name, cron, tz);
+      },
+      Math.max(0, next.getTime() - Date.now()),
+    );
+    t.unref();
+    timers.add(t);
+  }
+
+  const queueApi: MemoryQueue = {
     async send(name, data, options = {}) {
       if (options.singletonKey) {
         const k = `${name}:${options.singletonKey}`;
@@ -112,9 +130,15 @@ export function createMemoryQueue(opts: { retryDelayScale?: number } = {}): Memo
       pump(name);
     },
 
+    async schedule(name, cron, options = {}) {
+      CronExpressionParser.parse(cron); // refuse a bad expression now, not at 3 AM
+      schedules.set(name, { cron, tz: options.tz ?? 'Asia/Dhaka' });
+    },
+
     async start() {
       started = true;
       for (const name of queues.keys()) pump(name);
+      for (const [name, { cron, tz }] of schedules) armSchedule(name, cron, tz);
     },
 
     async stop() {
@@ -129,5 +153,7 @@ export function createMemoryQueue(opts: { retryDelayScale?: number } = {}): Memo
     },
 
     deadLetters: () => [...dead],
+    deadLetterCount: async () => dead.length,
   };
+  return queueApi;
 }

@@ -31,6 +31,14 @@ export interface JobQueue {
   send(name: string, data: unknown, options?: JobOptions): Promise<string | null>;
   /** One handler per queue. Throwing means failure: retried per the job's options, then dead-lettered. */
   work<T>(name: string, handler: (job: Job<T>) => Promise<void>): void;
+  /**
+   * Sends `name` on a cron schedule, in the given time zone (default Asia/Dhaka). Idempotent:
+   * registering the same name again replaces the schedule, so the API and the worker may both
+   * call it. Takes effect on start().
+   */
+  schedule(name: string, cron: string, options?: { tz?: string }): Promise<void>;
+  /** Jobs that used up their retries, where the queue can tell. For the daily review. */
+  deadLetterCount?(): Promise<number>;
   start(): Promise<void>;
   stop(): Promise<void>;
 }

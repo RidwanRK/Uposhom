@@ -14,7 +14,13 @@ const externalExceptWorkspace = {
 };
 
 await build({
-  entryPoints: ['src/index.ts', 'src/migrate.ts'],
+  // Named entry points keep the output names stable: dist/index.js, dist/migrate.js and the
+  // Applink smoke test, which runs inside the container with the production environment.
+  entryPoints: {
+    index: 'src/index.ts',
+    migrate: 'src/migrate.ts',
+    'applink-smoke': 'scripts/applink-smoke.ts',
+  },
   outdir: 'dist',
   bundle: true,
   platform: 'node',
