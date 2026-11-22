@@ -8,7 +8,7 @@ import { createTokenService } from './auth/tokens.js';
 import { createApplinkFromConfig } from './applink.js';
 import type { CallbackSink } from './callbacks/events.js';
 import type { Config } from './config/env.js';
-import { defaultDomainPorts, type DomainPorts } from './ports.js';
+import type { DomainPorts } from './ports.js';
 import { createMemoryQueue } from './queue/memory.js';
 import type { JobQueue } from './queue/types.js';
 import { createWebhookAlerter, noopAlerter, type Alerter } from './ops/alerts.js';
@@ -23,6 +23,7 @@ import { optOutRoutes } from './routes/optout.js';
 import { createMemoryStores } from './stores/memory.js';
 import { createMemoryDomainStore } from './domain/memory.js';
 import { createDomainService, type DomainService } from './domain/service.js';
+import { LADDER_JOB, createLadderRunner, type LadderRunner } from './domain/escalation.js';
 import type { DomainStore } from './domain/types.js';
 import { domainRoutes } from './routes/domain.js';
 import type { Stores } from './stores/types.js';
@@ -79,6 +80,8 @@ declare module 'fastify' {
     services: Services;
     /** Workstream B's domain service: circles, prescriptions, doses. */
     domain: DomainService;
+    /** The reminder and escalation ladder (tests call tick() directly). */
+    ladder: LadderRunner;
   }
 }
 
@@ -154,12 +157,12 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
 
   // The domain service needs A's subscription check, and A's services need the domain ports, so
   // the ports call the domain service through a reference set right after both exist.
-  const domainRef: { current?: DomainService } = {};
+  const domainRef: { current?: DomainService; ladder?: LadderRunner } = {};
   const domainPorts: DomainPorts = {
     doseReply: (input) => domainRef.current!.smsReply(input),
     eraseDomainData: (userId) => domainRef.current!.eraseUser(userId),
-    // B's escalation worker takes this over; until then a failed reminder changes nothing.
-    onSmsDeliveryFailure: defaultDomainPorts.onSmsDeliveryFailure,
+    // A bounced reminder for a critical dose brings the caregiver alert forward.
+    onSmsDeliveryFailure: (input) => domainRef.ladder!.onDeliveryFailure(input),
   };
   const services = createServices({
     stores,
@@ -181,18 +184,42 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
       : undefined,
   });
   app.decorate('services', services);
+  const domainStore = deps.domain ?? createMemoryDomainStore();
+  const isPremium = async (userId: string) => {
+    const user = await stores.users.findById(userId);
+    return user ? services.subscriptions.isPremium(user) : false;
+  };
+  const findUserIdBySubscriber = async (subscriberId: string) =>
+    (await stores.users.findBySubscriberId(subscriberId))?.id ?? null;
   const domain = createDomainService({
-    store: deps.domain ?? createMemoryDomainStore(),
+    store: domainStore,
     now,
-    isPremium: async (userId) => {
-      const user = await stores.users.findById(userId);
-      return user ? services.subscriptions.isPremium(user) : false;
-    },
-    findUserIdBySubscriber: async (subscriberId) =>
-      (await stores.users.findBySubscriberId(subscriberId))?.id ?? null,
+    isPremium,
+    findUserIdBySubscriber,
   });
+  // The reminder and escalation ladder runs every minute on the same queue as A's jobs.
+  const ladder = createLadderRunner({
+    store: domainStore,
+    now,
+    smsKeyword: config.SMS_KEYWORD ?? 'UPOSHOM',
+    sendSms: (msg) => services.sms.enqueue(msg),
+    useSms: (userId) => services.entitlements.useSms(userId),
+    isPremium,
+    subscriberOf: async (userId) => (await stores.users.findById(userId))?.subscriberId ?? null,
+    findUserIdBySubscriber,
+    log: {
+      info: (obj, msg) => app.log.info(obj, msg),
+      warn: (obj, msg) => app.log.warn(obj, msg),
+    },
+  });
+  queue.work(LADDER_JOB.queue, async () => {
+    await ladder.tick();
+  });
+  void queue.schedule(LADDER_JOB.queue, LADDER_JOB.cron, { tz: 'Asia/Dhaka' });
   domainRef.current = domain;
+  domainRef.ladder = ladder;
   app.decorate('domain', domain);
+  app.decorate('ladder', ladder);
   app.addHook('onReady', () => queue.start());
   app.addHook('onClose', () => queue.stop());
 

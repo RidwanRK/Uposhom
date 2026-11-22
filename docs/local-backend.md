@@ -81,3 +81,10 @@ These answer from the real backend now, with the same shapes as `packages/shared
 | `POST /doses/:id/action`              | `409 DOSE_NOT_DUE` more than 2 hours before the dose, `409 DOSE_CLOSED` once taken or skipped. Send `X-Action-Source: notification` from Notifee buttons.                                    |
 
 SMS replies (`UPOSHOM 1`, `2`, `3`) act on the latest dose due in the last 6 hours, through the same rules.
+
+Reminders and escalation run on their own every minute (`job.doses.ladder`): an SMS at the due time
+and a repeat 15 minutes later; at 30 minutes a non-critical dose is logged `MISSED`, while a critical
+one alerts the caregivers (Premium only); at 50 the secondary caregiver; at 70 it is `MISSED`. A
+snooze restarts this from the end of the snooze. Caregivers see their alerts at `GET /alerts`, and
+`POST /doses/:id/acknowledge` stops the secondary alert. Push to caregivers comes with the
+device-token endpoint; until then alerts go by SMS and to the inbox.

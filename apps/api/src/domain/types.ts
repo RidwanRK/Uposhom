@@ -115,6 +115,19 @@ export interface DoseLogRecord {
   at: Date;
 }
 
+export type EscalationLevel = 'PRIMARY' | 'SECONDARY';
+
+export interface EscalationRecord {
+  doseEventId: string;
+  level: EscalationLevel;
+  notifiedUserId: string | null;
+  /** dose, level and caregiver: one alert each, even after a restart. */
+  idempotencyKey: string;
+  sentAt: Date;
+  acknowledgedAt: Date | null;
+  acknowledgedVia: ActionChannel | null;
+}
+
 export interface DosePatch {
   status: DoseStatus;
   stage?: DoseStage;
@@ -125,6 +138,7 @@ export interface DosePatch {
 export interface DomainStore {
   circles: {
     findByOwner(userId: string): Promise<CircleRecord | null>;
+    findById(id: string): Promise<CircleRecord | null>;
     /** Creates the circle and the owner's own profile, with an ADMIN link, in one go. */
     createWithSelf(input: {
       circle: CircleRecord;
@@ -150,6 +164,10 @@ export interface DomainStore {
     roleOf(userId: string, profileId: string): Promise<LinkRole | null>;
     /** Profiles whose own phone has this subscriber id (Family Link). */
     findBySubscriberId(subscriberId: string): Promise<ProfileRecord[]>;
+    /** Links another user to a profile (an accepted invite, or a caregiver added by the admin). */
+    addLink(link: LinkRecord): Promise<void>;
+    /** Everyone linked to the profile, oldest link first. */
+    linksOf(profileId: string): Promise<LinkRecord[]>;
   };
   prescriptions: {
     findById(id: string): Promise<PrescriptionRecord | null>;
@@ -170,6 +188,30 @@ export interface DomainStore {
     listForProfile(profileId: string, from: Date, to: Date): Promise<DoseView[]>;
     /** Applies the patch and appends the log row, atomically. */
     applyAction(id: string, patch: DosePatch, log: DoseLogRecord): Promise<DoseRecord | null>;
+    /**
+     * Doses the ladder still has to look at: stage not CLOSED and due (or snoozed until) at or
+     * before `now`. Oldest first, at most `limit`.
+     */
+    listOpen(now: Date, limit: number): Promise<DoseRecord[]>;
+    /**
+     * Compare-and-set for the ladder: applies the patch only if the dose is still at `from` (stage
+     * and status), so two workers can never both act on one rung. Null when it had moved on.
+     */
+    advance(
+      id: string,
+      from: Pick<DoseRecord, 'stage' | 'status'>,
+      patch: DosePatch,
+      log: DoseLogRecord | null,
+    ): Promise<DoseRecord | null>;
+  };
+  escalations: {
+    /** Records an alert. False when one with the same idempotency key exists already. */
+    record(row: Omit<EscalationRecord, 'acknowledgedAt' | 'acknowledgedVia'>): Promise<boolean>;
+    forDose(doseEventId: string): Promise<EscalationRecord[]>;
+    /** Acknowledges every open alert for the dose. Returns how many were open. */
+    acknowledge(doseEventId: string, at: Date, via: ActionChannel): Promise<number>;
+    /** Alerts sent to this user since the given time, newest first. */
+    listForUser(userId: string, since: Date): Promise<EscalationRecord[]>;
   };
   /** Removes every circle the user owns (and so their profiles and doses) and their links. */
   eraseUser(userId: string): Promise<void>;

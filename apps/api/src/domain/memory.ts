@@ -4,6 +4,7 @@ import type {
   DoseLogRecord,
   DoseRecord,
   DoseView,
+  EscalationRecord,
   LinkRecord,
   PrescriptionItemRecord,
   PrescriptionRecord,
@@ -20,6 +21,7 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
   const doses = new Map<string, DoseRecord>();
   const doseKeys = new Set<string>();
   const logs: DoseLogRecord[] = [];
+  const escalations = new Map<string, EscalationRecord>(); // by idempotency key
 
   const copy = <T>(v: T): T => structuredClone(v);
 
@@ -39,6 +41,7 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
       if (d.profileId !== profileId) continue;
       doses.delete(id);
       doseKeys.delete(d.idempotencyKey);
+      for (const [k, e] of escalations) if (e.doseEventId === id) escalations.delete(k);
     }
     profiles.delete(profileId);
   };
@@ -49,6 +52,10 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
       async findByOwner(userId) {
         for (const c of circles.values()) if (c.ownerUserId === userId) return copy(c);
         return null;
+      },
+      async findById(id) {
+        const c = circles.get(id);
+        return c ? copy(c) : null;
       },
       async createWithSelf({ circle, self, link }) {
         for (const c of circles.values()) {
@@ -93,6 +100,20 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
       async findBySubscriberId(subscriberId) {
         return [...profiles.values()].filter((p) => p.subscriberId === subscriberId).map(copy);
       },
+      async addLink(link) {
+        for (const l of links.values()) {
+          if (l.userId === link.userId && l.profileId === link.profileId)
+            throw new Error('link exists');
+        }
+        if (!profiles.has(link.profileId)) throw new Error('no such profile');
+        links.set(link.id, copy(link));
+      },
+      async linksOf(profileId) {
+        return [...links.values()]
+          .filter((l) => l.profileId === profileId)
+          .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+          .map(copy);
+      },
     },
     prescriptions: {
       async findById(id) {
@@ -134,6 +155,57 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
         logs.push(copy(log));
         return copy(next);
       },
+      async listOpen(now, limit) {
+        const base = (d: DoseRecord) => (d.status === 'SNOOZED' && d.snoozedUntil) || d.dueAt;
+        return [...doses.values()]
+          .filter((d) => d.stage !== 'CLOSED' && base(d) <= now)
+          .sort((a, b) => base(a).getTime() - base(b).getTime() || a.id.localeCompare(b.id))
+          .slice(0, limit)
+          .map(copy);
+      },
+      async advance(id, from, patch, log) {
+        const d = doses.get(id);
+        if (!d || d.stage !== from.stage || d.status !== from.status) return null;
+        const next = { ...d, ...copy(patch) };
+        doses.set(id, next);
+        if (log) logs.push(copy(log));
+        return copy(next);
+      },
+    },
+    escalations: {
+      async record(row) {
+        if (escalations.has(row.idempotencyKey) || !doses.has(row.doseEventId)) {
+          return false;
+        }
+        escalations.set(row.idempotencyKey, {
+          ...copy(row),
+          acknowledgedAt: null,
+          acknowledgedVia: null,
+        });
+        return true;
+      },
+      async forDose(doseEventId) {
+        return [...escalations.values()]
+          .filter((e) => e.doseEventId === doseEventId)
+          .sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime())
+          .map(copy);
+      },
+      async acknowledge(doseEventId, at, via) {
+        let n = 0;
+        for (const e of escalations.values()) {
+          if (e.doseEventId !== doseEventId || e.acknowledgedAt) continue;
+          e.acknowledgedAt = at;
+          e.acknowledgedVia = via;
+          n++;
+        }
+        return n;
+      },
+      async listForUser(userId, since) {
+        return [...escalations.values()]
+          .filter((e) => e.notifiedUserId === userId && e.sentAt >= since)
+          .sort((a, b) => b.sentAt.getTime() - a.sentAt.getTime())
+          .map(copy);
+      },
     },
     async eraseUser(userId) {
       for (const [id, c] of circles) {
@@ -142,6 +214,8 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
         circles.delete(id);
       }
       for (const [id, l] of links) if (l.userId === userId) links.delete(id);
+      for (const e of escalations.values())
+        if (e.notifiedUserId === userId) e.notifiedUserId = null;
       for (const p of profiles.values()) if (p.userId === userId) p.userId = null;
     },
   };

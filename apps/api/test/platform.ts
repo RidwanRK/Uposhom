@@ -8,6 +8,7 @@ import { defaultDomainPorts, type DomainPorts } from '../src/ports.js';
 import { createMemoryQueue, type MemoryQueue } from '../src/queue/memory.js';
 import type { JobQueue } from '../src/queue/types.js';
 import { createMemoryStores } from '../src/stores/memory.js';
+import type { DomainStore } from '../src/domain/types.js';
 
 export const SUB = 'tel:8801959979376';
 export const OTHER = 'tel:8801711111111';
@@ -78,6 +79,8 @@ export async function harness(
     callbackKey?: string;
     /** Use workstream B's real domain service for the ports instead of the no-op defaults. */
     realDomain?: boolean;
+    /** Workstream B's store, so a test can arrange domain rows directly. */
+    domain?: DomainStore;
   } = {},
 ): Promise<Harness> {
   const queue: Harness['queue'] = opts.queue ?? createMemoryQueue({ retryDelayScale: 0 });
@@ -97,6 +100,7 @@ export async function harness(
       queue,
       applink: applink as ApplinkClient | undefined,
       ...(opts.realDomain ? {} : { ports }),
+      ...(opts.domain ? { domain: opts.domain } : {}),
       now: () => clock.now,
       ...(opts.alerts ? { alerts: opts.alerts } : {}),
       ...(opts.logStream ? { logStream: opts.logStream } : {}),

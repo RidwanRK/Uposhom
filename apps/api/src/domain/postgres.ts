@@ -1,7 +1,8 @@
-import { and, asc, eq, gte, inArray, lt } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, isNull, lt, lte, ne, sql } from 'drizzle-orm';
 import {
   doseEvents,
   doseLogs,
+  escalations,
   familyCircles,
   links,
   prescriptionItems,
@@ -11,6 +12,7 @@ import {
 } from '@uposhom/db';
 import type {
   DomainStore,
+  EscalationRecord,
   DoseRecord,
   DoseView,
   PrescriptionRecord,
@@ -87,6 +89,16 @@ const toPrescription = (r: typeof prescriptions.$inferSelect): PrescriptionRecor
   createdAt: r.createdAt,
 });
 
+const toEscalation = (r: typeof escalations.$inferSelect): EscalationRecord => ({
+  doseEventId: r.doseEventId,
+  level: r.level,
+  notifiedUserId: r.notifiedUserId,
+  idempotencyKey: r.idempotencyKey,
+  sentAt: r.sentAt,
+  acknowledgedAt: r.acknowledgedAt,
+  acknowledgedVia: r.acknowledgedVia,
+});
+
 /** Domain store over the Drizzle schema in packages/db. */
 export function createPostgresDomainStore(db: Db): DomainStore {
   // A new builder per query: a dynamic builder is changed in place by .where().
@@ -121,6 +133,10 @@ export function createPostgresDomainStore(db: Db): DomainStore {
           .select()
           .from(familyCircles)
           .where(eq(familyCircles.ownerUserId, userId));
+        return r ? { id: r.id, ownerUserId: r.ownerUserId, createdAt: r.createdAt } : null;
+      },
+      async findById(id) {
+        const [r] = await db.select().from(familyCircles).where(eq(familyCircles.id, id));
         return r ? { id: r.id, ownerUserId: r.ownerUserId, createdAt: r.createdAt } : null;
       },
       async createWithSelf({ circle, self, link }) {
@@ -190,6 +206,24 @@ export function createPostgresDomainStore(db: Db): DomainStore {
           .from(profiles)
           .where(eq(profiles.subscriberId, subscriberId));
         return rows.map(toProfile);
+      },
+      async addLink(link) {
+        await db.insert(links).values(link);
+      },
+      async linksOf(profileId) {
+        const rows = await db
+          .select()
+          .from(links)
+          .where(eq(links.profileId, profileId))
+          .orderBy(asc(links.createdAt), asc(links.id));
+        return rows.map((r) => ({
+          id: r.id,
+          userId: r.userId,
+          profileId: r.profileId,
+          role: r.role,
+          isSecondaryCaregiver: r.isSecondaryCaregiver,
+          createdAt: r.createdAt,
+        }));
       },
     },
     prescriptions: {
@@ -267,6 +301,68 @@ export function createPostgresDomainStore(db: Db): DomainStore {
           await tx.insert(doseLogs).values(log);
           return toDose(r);
         });
+      },
+      async listOpen(now, limit) {
+        const base = sql`CASE WHEN ${doseEvents.status} = 'SNOOZED' AND ${doseEvents.snoozedUntil} IS NOT NULL THEN ${doseEvents.snoozedUntil} ELSE ${doseEvents.dueAt} END`;
+        const rows = await db
+          .select()
+          .from(doseEvents)
+          .where(and(ne(doseEvents.stage, 'CLOSED'), lte(base, now)))
+          .orderBy(asc(base), asc(doseEvents.id))
+          .limit(limit);
+        return rows.map(toDose);
+      },
+      async advance(id, from, patch, log) {
+        return db.transaction(async (tx) => {
+          const [r] = await tx
+            .update(doseEvents)
+            .set({ ...patch, updatedAt: log?.at ?? new Date() })
+            .where(
+              and(
+                eq(doseEvents.id, id),
+                eq(doseEvents.stage, from.stage),
+                eq(doseEvents.status, from.status),
+              ),
+            )
+            .returning();
+          if (!r) return null;
+          if (log) await tx.insert(doseLogs).values(log);
+          return toDose(r);
+        });
+      },
+    },
+    escalations: {
+      async record(row) {
+        const inserted = await db
+          .insert(escalations)
+          .values({ ...row, acknowledgedAt: null, acknowledgedVia: null })
+          .onConflictDoNothing({ target: escalations.idempotencyKey })
+          .returning({ id: escalations.id });
+        return inserted.length > 0;
+      },
+      async forDose(doseEventId) {
+        const rows = await db
+          .select()
+          .from(escalations)
+          .where(eq(escalations.doseEventId, doseEventId))
+          .orderBy(asc(escalations.sentAt), asc(escalations.id));
+        return rows.map(toEscalation);
+      },
+      async acknowledge(doseEventId, at, via) {
+        const rows = await db
+          .update(escalations)
+          .set({ acknowledgedAt: at, acknowledgedVia: via })
+          .where(and(eq(escalations.doseEventId, doseEventId), isNull(escalations.acknowledgedAt)))
+          .returning({ id: escalations.id });
+        return rows.length;
+      },
+      async listForUser(userId, since) {
+        const rows = await db
+          .select()
+          .from(escalations)
+          .where(and(eq(escalations.notifiedUserId, userId), gte(escalations.sentAt, since)))
+          .orderBy(desc(escalations.sentAt), desc(escalations.id));
+        return rows.map(toEscalation);
       },
     },
     async eraseUser(userId) {

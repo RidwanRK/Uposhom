@@ -17,6 +17,7 @@ import type {
   DoseActionBody,
   DoseActionResponse,
   LinkRole,
+  AlertItem,
   Profile,
   TodayDosesResponse,
 } from '@uposhom/shared';
@@ -562,7 +563,12 @@ export function createDomainService(deps: DomainServiceDeps) {
         throw new DomainError('INVALID_INPUT', 400, { message: 'SNOOZE_MINUTES' });
       }
       action = 'SNOOZE';
-      patch = { status: 'SNOOZED', snoozedUntil: new Date(now.getTime() + minutes * MINUTE) };
+      // The ladder starts again from the end of the snooze (reminder, repeat, alert...).
+      patch = {
+        status: 'SNOOZED',
+        stage: 'PENDING',
+        snoozedUntil: new Date(now.getTime() + minutes * MINUTE),
+      };
     } else {
       action = 'SKIP';
       reason = body.skipReason?.trim().slice(0, 200) || null;
@@ -660,6 +666,55 @@ export function createDomainService(deps: DomainServiceDeps) {
     return { replyText: reply };
   }
 
+  /** A caregiver saw the alert (app). Stops the secondary alert; the dose itself stays open. */
+  async function acknowledge(userId: string, doseId: string): Promise<{ success: boolean }> {
+    const dose = await store.doses.findById(doseId);
+    if (!dose) throw new DomainError('NOT_FOUND', 404);
+    await access(userId, dose.profileId, false);
+    await store.escalations.acknowledge(doseId, deps.now(), 'APP');
+    return { success: true };
+  }
+
+  /** The alerts inbox: caregiver alerts sent to this user in the last week, one per dose. */
+  async function alerts(userId: string): Promise<{ alerts: AlertItem[] }> {
+    const now = deps.now();
+    const sent = await store.escalations.listForUser(userId, new Date(now.getTime() - 7 * DAY));
+    const seen = new Set<string>();
+    const out: AlertItem[] = [];
+    for (const e of sent) {
+      if (seen.has(e.doseEventId)) continue;
+      seen.add(e.doseEventId);
+      const dose = await store.doses.findById(e.doseEventId);
+      const profile = dose ? await store.profiles.findById(dose.profileId) : null;
+      if (!dose || !profile) continue;
+      const open = dose.status === 'SCHEDULED' || dose.status === 'SNOOZED';
+      const medicine = [dose.brandName, dose.strength].filter(Boolean).join(' ');
+      out.push({
+        id: e.idempotencyKey,
+        type: 'MISSED_DOSE',
+        createdAt: toDhakaIso(e.sentAt.getTime()),
+        profileId: profile.id,
+        profileName: profile.name,
+        title: `${profile.name} জরুরি ওষুধ এখনও খাননি`,
+        body: `${medicine}, ${displayTime(dose.dueAt.getTime())}`,
+        doseId: dose.id,
+        medicine,
+        dueAt: toDhakaIso(dose.dueAt.getTime()),
+        ...(open
+          ? {
+              overdueMinutes: Math.max(
+                0,
+                Math.floor((now.getTime() - dose.dueAt.getTime()) / MINUTE),
+              ),
+            }
+          : {}),
+        acknowledged: e.acknowledgedAt !== null,
+        acknowledgedAt: e.acknowledgedAt ? toDhakaIso(e.acknowledgedAt.getTime()) : null,
+      });
+    }
+    return { alerts: out };
+  }
+
   return {
     getCircle,
     createProfile,
@@ -668,6 +723,8 @@ export function createDomainService(deps: DomainServiceDeps) {
     today,
     act,
     smsReply,
+    acknowledge,
+    alerts,
     eraseUser: (userId: string) => store.eraseUser(userId),
   };
 }

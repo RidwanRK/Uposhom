@@ -75,6 +75,15 @@ const doseOf = (
   ...over,
 });
 
+const logOf = (doseEventId: string) => ({
+  doseEventId,
+  action: 'TAKEN' as const,
+  channel: 'APP' as const,
+  actorUserId: null,
+  reason: null,
+  at: at(1),
+});
+
 /** Behaviour every DomainStore must share. */
 export function domainContract(label: string, make: () => Promise<DomainUnderTest>): void {
   describe(`${label} domain store contract`, { timeout: 30_000 }, () => {
@@ -344,6 +353,116 @@ export function domainContract(label: string, make: () => Promise<DomainUnderTes
         // b's own data is untouched.
         expect(await t.store.profiles.findById(shared.id)).not.toBeNull();
         expect(await t.store.circles.findByOwner(b.userId)).not.toBeNull();
+      }));
+
+    it('lists open doses due by now (snooze end counts), oldest first, closed ones never', () =>
+      withStore(async (t) => {
+        const { self } = await owner(t);
+        const { doses } = await prescribe(t, self.id, [0, 10, 20, 30]);
+        const [d0, d10, d20, d30] = doses;
+        // d0 closed; d10 snoozed until 40; d20 open; d30 not due yet at 25.
+        await t.store.doses.applyAction(
+          d0!.id,
+          { status: 'TAKEN', stage: 'CLOSED' },
+          logOf(d0!.id),
+        );
+        await t.store.doses.applyAction(
+          d10!.id,
+          { status: 'SNOOZED', stage: 'PENDING', snoozedUntil: at(40) },
+          logOf(d10!.id),
+        );
+        expect((await t.store.doses.listOpen(at(25), 10)).map((d) => d.id)).toEqual([d20!.id]);
+        expect((await t.store.doses.listOpen(at(45), 10)).map((d) => d.id)).toEqual([
+          d20!.id,
+          d30!.id,
+          d10!.id,
+        ]);
+        expect(await t.store.doses.listOpen(at(45), 1)).toHaveLength(1);
+      }));
+
+    it('advance is a compare-and-set on stage and status', () =>
+      withStore(async (t) => {
+        const { self } = await owner(t);
+        const { doses } = await prescribe(t, self.id, [0]);
+        const d = doses[0]!;
+        const moved = await t.store.doses.advance(
+          d.id,
+          { stage: 'PENDING', status: 'SCHEDULED' },
+          { status: 'SCHEDULED', stage: 'REMINDED' },
+          null,
+        );
+        expect(moved).toMatchObject({ stage: 'REMINDED', status: 'SCHEDULED' });
+        // A second worker still thinks it is PENDING: refused.
+        expect(
+          await t.store.doses.advance(
+            d.id,
+            { stage: 'PENDING', status: 'SCHEDULED' },
+            { status: 'SCHEDULED', stage: 'REMINDED' },
+            null,
+          ),
+        ).toBeNull();
+        const missed = await t.store.doses.advance(
+          d.id,
+          { stage: 'REMINDED', status: 'SCHEDULED' },
+          { status: 'MISSED', stage: 'CLOSED' },
+          { ...logOf(d.id), action: 'MISSED', channel: 'SYSTEM' },
+        );
+        expect(missed).toMatchObject({ status: 'MISSED', stage: 'CLOSED' });
+      }));
+
+    it('records each alert once, acknowledges them, and lists them per caregiver', () =>
+      withStore(async (t) => {
+        const { userId, self, circle } = await owner(t);
+        expect(await t.store.circles.findById(circle.id)).toEqual(circle);
+        expect(await t.store.circles.findById('cir_none')).toBeNull();
+        const carer = uid('usr');
+        await t.addUser(carer);
+        await t.store.profiles.addLink({
+          id: uid('lnk'),
+          userId: carer,
+          profileId: self.id,
+          role: 'CAREGIVER',
+          isSecondaryCaregiver: true,
+          createdAt: at(1),
+        });
+        expect(
+          (await t.store.profiles.linksOf(self.id)).map((l) => [l.userId, l.isSecondaryCaregiver]),
+        ).toEqual([
+          [userId, false],
+          [carer, true],
+        ]);
+        await expect(
+          t.store.profiles.addLink({
+            id: uid('lnk'),
+            userId: carer,
+            profileId: self.id,
+            role: 'VIEWER',
+            isSecondaryCaregiver: false,
+            createdAt: at(2),
+          }),
+        ).rejects.toThrow();
+
+        const { doses } = await prescribe(t, self.id, [0]);
+        const row = {
+          doseEventId: doses[0]!.id,
+          level: 'PRIMARY' as const,
+          notifiedUserId: carer,
+          idempotencyKey: `${doses[0]!.id}:PRIMARY:${carer}`,
+          sentAt: at(30),
+        };
+        expect(await t.store.escalations.record(row)).toBe(true);
+        expect(await t.store.escalations.record({ ...row, sentAt: at(31) })).toBe(false);
+        expect(await t.store.escalations.forDose(doses[0]!.id)).toEqual([
+          { ...row, acknowledgedAt: null, acknowledgedVia: null },
+        ]);
+        expect(await t.store.escalations.listForUser(carer, at(0))).toHaveLength(1);
+        expect(await t.store.escalations.listForUser(carer, at(31))).toHaveLength(0);
+        expect(await t.store.escalations.acknowledge(doses[0]!.id, at(35), 'APP')).toBe(1);
+        expect(await t.store.escalations.acknowledge(doses[0]!.id, at(36), 'APP')).toBe(0);
+        expect((await t.store.escalations.forDose(doses[0]!.id))[0]).toMatchObject({
+          acknowledgedAt: at(35),
+          acknowledgedVia: 'APP',
+        });
       }));
   });
 }

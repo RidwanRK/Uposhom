@@ -1,7 +1,9 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import {
+  alertsResponse,
   circleResponse,
+  okResponse,
   confirmBody,
   confirmResponse,
   createProfileBody,
@@ -77,5 +79,12 @@ export function domainRoutes(domain: DomainService) {
       const channel = req.headers['x-action-source'] === 'notification' ? 'NOTIFICATION' : 'APP';
       return doseActionResponse.parse(await domain.act(userOf(req), req.params.id, body, channel));
     });
+
+    // A caregiver saw the missed-dose alert: no secondary caregiver alert follows.
+    app.post<{ Params: { id: string } }>('/doses/:id/acknowledge', async (req) =>
+      okResponse.parse(await domain.acknowledge(userOf(req), req.params.id)),
+    );
+
+    app.get('/alerts', async (req) => alertsResponse.parse(await domain.alerts(userOf(req))));
   };
 }
