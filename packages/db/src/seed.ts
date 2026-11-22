@@ -66,12 +66,16 @@ export function getMedicalSeedData(): MedicalSeedData {
 
   interface RawGlossary {
     id: string;
-    testNameEn: string;
-    testNameBn: string;
+    testName?: string;
+    testNameEn?: string;
+    testNameBn?: string;
     category: string;
-    layExplanationBn: string;
+    standardRange?: string;
+    unit?: string;
+    explanationBn?: string;
+    layExplanationBn?: string;
     referenceRangeHint?: string;
-    doctorPointerBn: string;
+    doctorPointerBn?: string;
   }
 
   interface RawTip {
@@ -144,16 +148,25 @@ export function getMedicalSeedData(): MedicalSeedData {
   });
 
   // Glossary
-  const glossary: GlossaryRow[] = rawGlossary.map((g) => ({
-    id: g.id,
-    testNameEn: g.testNameEn,
-    testNameBn: g.testNameBn,
-    category: g.category,
-    layExplanationBn: g.layExplanationBn,
-    referenceRangeHint: g.referenceRangeHint || null,
-    doctorPointerBn: g.doctorPointerBn,
-    createdAt: now,
-  }));
+  const glossary: GlossaryRow[] = rawGlossary.map((g) => {
+    const match = g.testName ? g.testName.match(/^([^(]+)\s*\(([^)]+)\)$/) : null;
+    const testNameEn = g.testNameEn || (match ? match[1]!.trim() : g.testName || g.id);
+    const testNameBn = g.testNameBn || (match ? match[2]!.trim() : g.testName || g.id);
+
+    return {
+      id: g.id,
+      testNameEn,
+      testNameBn,
+      category: g.category,
+      layExplanationBn: g.layExplanationBn || g.explanationBn || '',
+      referenceRangeHint:
+        g.referenceRangeHint ||
+        (g.standardRange ? `${g.standardRange} (${g.unit || ''})`.trim() : null),
+      doctorPointerBn:
+        g.doctorPointerBn || 'যেকোনো অস্বাভাবিক মানের জন্য আপনার চিকিৎসকের পরামর্শ নিন।',
+      createdAt: now,
+    };
+  });
 
   // Tips
   const tips: HealthTipRow[] = rawTips.map((t) => ({
