@@ -72,6 +72,10 @@ export async function harness(
     queue?: JobQueue;
     /** Where operational alerts go. Defaults to nowhere. */
     alerts?: Alerter;
+    /** Capture server logs (also turns logging on). */
+    logStream?: { write(chunk: string): void };
+    /** The secret callback path segment, as in production. Empty by default, as in tests and CI. */
+    callbackKey?: string;
   } = {},
 ): Promise<Harness> {
   const queue: Harness['queue'] = opts.queue ?? createMemoryQueue({ retryDelayScale: 0 });
@@ -80,7 +84,12 @@ export async function harness(
   const ports = { ...defaultDomainPorts, ...opts.ports };
   const clock = { now: new Date('2026-11-22T10:00:00Z') };
   const app = buildApp(
-    { NODE_ENV: 'test', JWT_SECRET: 'x'.repeat(40), SMS_KEYWORD: 'UPOSHOM' },
+    {
+      NODE_ENV: 'test',
+      JWT_SECRET: 'x'.repeat(40),
+      SMS_KEYWORD: 'UPOSHOM',
+      ...(opts.callbackKey ? { APPLINK_CALLBACK_PATH_KEY: opts.callbackKey } : {}),
+    },
     {
       stores,
       queue,
@@ -88,6 +97,7 @@ export async function harness(
       ports,
       now: () => clock.now,
       ...(opts.alerts ? { alerts: opts.alerts } : {}),
+      ...(opts.logStream ? { logStream: opts.logStream } : {}),
     },
   );
   await app.ready();
@@ -110,7 +120,7 @@ export async function harness(
       (
         await app.inject({
           method: 'POST',
-          url: `/api/applink/${path}`,
+          url: `/api/applink/${opts.callbackKey ? `${opts.callbackKey}/` : ''}${path}`,
           payload: payload as object,
         })
       ).json(),

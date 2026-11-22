@@ -12,6 +12,7 @@ import { defaultDomainPorts, type DomainPorts } from './ports.js';
 import { createMemoryQueue } from './queue/memory.js';
 import type { JobQueue } from './queue/types.js';
 import { createWebhookAlerter, noopAlerter, type Alerter } from './ops/alerts.js';
+import { createIpLimiter, redactCallbackKey } from './ops/http-safety.js';
 import { createServices, type Services } from './services/index.js';
 import { applinkCallbackRoutes } from './routes/applink-callbacks.js';
 import { authRoutes } from './routes/auth.js';
@@ -55,6 +56,8 @@ export interface AppDeps {
   /** Where operational alerts go. Defaults to the webhook in ALERT_WEBHOOK_URL, else nowhere. */
   alerts?: Alerter;
   now?: () => Date;
+  /** Where server logs go. Tests use it to inspect what is logged; defaults to stdout. */
+  logStream?: { write(chunk: string): void };
 }
 
 declare module 'fastify' {
@@ -65,13 +68,53 @@ declare module 'fastify' {
 }
 
 export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance {
+  // The callback key is a secret path segment: keep it out of every log line.
+  const callbackKey = config.APPLINK_CALLBACK_PATH_KEY?.trim();
+
   const app = Fastify({
     logger: {
-      level: config.NODE_ENV === 'test' ? 'silent' : 'info',
-      // Logs hold identifiers only: never tokens, message bodies or OTPs.
-      redact: ['req.headers.authorization', 'req.headers.cookie'],
+      level: config.NODE_ENV === 'test' && !deps.logStream ? 'silent' : 'info',
+      // Logs hold identifiers only: never tokens, message bodies, OTPs or the callback key.
+      redact: ['req.headers.authorization', 'req.headers.cookie', 'req.headers["x-step-up-token"]'],
+      serializers: {
+        req(req) {
+          return {
+            method: req.method,
+            url: redactCallbackKey(req.url, callbackKey),
+            host: req.headers?.host,
+            remoteAddress: req.ip,
+            remotePort: req.socket?.remotePort,
+          };
+        },
+      },
+      ...(deps.logStream ? { stream: deps.logStream } : {}),
     },
     trustProxy: true, // behind Caddy
+    bodyLimit: 1024 * 1024,
+  });
+
+  // Fastify's default 404 line names the full URL, which for a callback route holds the key.
+  app.setNotFoundHandler((_req, reply) =>
+    reply.code(404).send({ success: false, error: { code: 'NOT_FOUND' } }),
+  );
+
+  // Responses carry tokens and personal data: never cache them, never let a browser sniff them.
+  app.addHook('onSend', async (req, reply) => {
+    reply.header('x-content-type-options', 'nosniff');
+    if (req.url.startsWith('/api/v1/')) reply.header('cache-control', 'no-store');
+  });
+
+  // One noisy client must not starve the rest. The callbacks and the health probe are exempt: the
+  // callbacks come from Applink and must always be acknowledged.
+  const perIp = createIpLimiter(300, 60_000);
+  app.addHook('onRequest', async (req, reply) => {
+    if (!req.url.startsWith('/api/v1/')) return;
+    if (!perIp.hit(req.ip)) {
+      return reply
+        .code(429)
+        .header('retry-after', '60')
+        .send({ success: false, error: { code: 'RATE_LIMITED', retryAfterSeconds: 60 } });
+    }
   });
 
   // Liveness probe for the deploy smoke test and UptimeRobot.
@@ -113,7 +156,7 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
   app.addHook('onClose', () => queue.stop());
 
   // Applink callbacks live at /api/applink/<key>/..., the key being an unguessable path segment.
-  const key = config.APPLINK_CALLBACK_PATH_KEY?.trim();
+  const key = callbackKey;
   void app.register(
     applinkCallbackRoutes({
       dedupe: stores.dedupe,
