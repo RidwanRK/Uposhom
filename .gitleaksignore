@@ -1,0 +1,8 @@
+# gitleaks fingerprints that were reviewed and are NOT secrets. Each line is
+# <commit>:<file>:<rule>:<line>. Keep this list short and explain every entry.
+
+# a3f2124: apps/api/test/security.test.ts used a made-up callback key as a test fixture
+# (`const KEY = '...'`) to prove the key never reaches a log line. It is not a real key and was never
+# used anywhere. The file now generates the value at runtime, so no literal remains; this entry only
+# silences the historical commit, which gitleaks still scans in the pull request range.
+a3f2124290f22f9ee30426eb2a4e105d0d1b59b8:apps/api/test/security.test.ts:generic-api-key:6

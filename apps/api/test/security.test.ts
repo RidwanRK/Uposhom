@@ -1,9 +1,12 @@
+import { randomBytes } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { createIpLimiter, redactCallbackKey } from '../src/ops/http-safety.js';
 import { fakeApplink, harness, ok, settle } from './platform.js';
 
-const KEY = 'K3Y-9f2c71aa04d85b6e1c3377d0a9e45f12';
+// Generated per run, so the repository never contains a key-shaped literal for a secret scanner
+// to flag (and the test cannot pass by accident because of a value somebody memorised).
+const KEY = `k3y-${randomBytes(16).toString('hex')}`;
 const ACK = { statusCode: 'S1000', statusDetail: 'Success' };
 
 /** Collects everything the server logs. */
