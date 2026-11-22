@@ -190,6 +190,11 @@ export interface OptOutStore {
   ): Promise<void>;
   /** The reason a number is suppressed, or null when we may message it. */
   suppressionFor(subscriberId: string): Promise<SuppressionReason | null>;
+  /**
+   * Lifts a STOP after the person re-subscribes with fresh, recorded consent. Never lifts BLOCKED
+   * (Applink blacklisted the number) or DEAD_NUMBER (it does not receive messages).
+   */
+  clearStop(subscriberId: string): Promise<void>;
 }
 
 export type SubscriptionPlan = 'FAMILY_CIRCLE' | 'PHARMACY';
@@ -304,6 +309,16 @@ export interface EntitlementStore {
 export interface UsageStore {
   get(userId: string, counter: string, period: string): Promise<number>;
   increment(userId: string, counter: string, period: string, by?: number): Promise<number>;
+  /**
+   * Adds one only while the counter is below `limit`, atomically. Returns the new value, or null
+   * when the limit is already reached. Two simultaneous requests cannot both take the last unit.
+   */
+  incrementIfBelow(
+    userId: string,
+    counter: string,
+    period: string,
+    limit: number,
+  ): Promise<number | null>;
 }
 
 export interface Stores {

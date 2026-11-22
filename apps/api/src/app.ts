@@ -3,6 +3,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import type { ApplinkClient } from '@uposhom/applink-client';
 import { createOtpService } from './auth/otp-service.js';
 import { registerAuthGuard } from './auth/guard.js';
+import { DEFAULT_BILLING, type BillingConfig } from './billing/config.js';
 import { createTokenService } from './auth/tokens.js';
 import { createApplinkFromConfig } from './applink.js';
 import type { CallbackSink } from './callbacks/events.js';
@@ -13,6 +14,8 @@ import type { JobQueue } from './queue/types.js';
 import { createServices, type Services } from './services/index.js';
 import { applinkCallbackRoutes } from './routes/applink-callbacks.js';
 import { authRoutes } from './routes/auth.js';
+import { billingRoutes } from './routes/billing.js';
+import { optOutRoutes } from './routes/optout.js';
 import { createMemoryStores } from './stores/memory.js';
 import type { Stores } from './stores/types.js';
 
@@ -44,6 +47,8 @@ export interface AppDeps {
   queue?: JobQueue;
   /** Seams to the domain layer (workstream B). Defaults change no state. */
   ports?: DomainPorts;
+  /** Plan prices, charge amounts and allowances. Defaults are placeholders from the plan. */
+  billing?: BillingConfig;
   now?: () => Date;
 }
 
@@ -79,6 +84,7 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
     applink,
     queue,
     ports: deps.ports ?? defaultDomainPorts,
+    billing: deps.billing ?? DEFAULT_BILLING,
     log: {
       info: (obj, msg) => app.log.info(obj, msg),
       warn: (obj, msg) => app.log.warn(obj, msg),
@@ -114,6 +120,22 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
     ...(deps.now ? { now: deps.now } : {}),
   });
   void app.register(authRoutes(otp), { prefix: '/api/v1/auth' });
+  void app.register(
+    billingRoutes({
+      users: stores.users,
+      subscriptions: services.subscriptions,
+      entitlements: services.entitlements,
+    }),
+    { prefix: '/api/v1/billing' },
+  );
+  void app.register(
+    optOutRoutes({
+      users: stores.users,
+      unregister: services.unregister,
+      subscriptions: services.subscriptions,
+    }),
+    { prefix: '/api/v1/account' },
+  );
 
   return app;
 }

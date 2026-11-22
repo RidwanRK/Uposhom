@@ -399,6 +399,25 @@ export function storesContract(label: string, make: () => Promise<StoresUnderTes
         expect(await s.usage.get(u.id, 'SMS', '2026-11')).toBe(0);
       }));
 
+    it('usage counters: incrementIfBelow stops exactly at the limit, even under a race', () =>
+      withStores(async (s) => {
+        const u = await user(s);
+        expect(await s.usage.incrementIfBelow(u.id, 'SCAN', '2026-11', 0)).toBeNull(); // no allowance at all
+        expect(await s.usage.get(u.id, 'SCAN', '2026-11')).toBe(0);
+
+        expect(await s.usage.incrementIfBelow(u.id, 'SCAN', '2026-11', 2)).toBe(1);
+        expect(await s.usage.incrementIfBelow(u.id, 'SCAN', '2026-11', 2)).toBe(2);
+        expect(await s.usage.incrementIfBelow(u.id, 'SCAN', '2026-11', 2)).toBeNull();
+        expect(await s.usage.get(u.id, 'SCAN', '2026-11')).toBe(2);
+
+        // Ten requests race for three units: exactly three win.
+        const won = await Promise.all(
+          Array.from({ length: 10 }, () => s.usage.incrementIfBelow(u.id, 'SMS', '2026-11', 3)),
+        );
+        expect(won.filter((v) => v !== null)).toHaveLength(3);
+        expect(await s.usage.get(u.id, 'SMS', '2026-11')).toBe(3);
+      }));
+
     it('opt-outs: STOP is never downgraded, a dead number can be upgraded to STOP', () =>
       withStores(async (s) => {
         const a = uniq('tel:880');
@@ -418,6 +437,31 @@ export function storesContract(label: string, make: () => Promise<StoresUnderTes
         expect(await s.optOuts.suppressionFor(b)).toBe('DEAD_NUMBER');
         await s.optOuts.suppress({ subscriberId: b, reason: 'STOP', source: 'APP' }, at(1));
         expect(await s.optOuts.suppressionFor(b)).toBe('STOP');
+      }));
+
+    it('opt-outs: clearStop lifts a STOP but never a block or a dead number', () =>
+      withStores(async (s) => {
+        const stop = uniq('tel:880');
+        await s.optOuts.suppress({ subscriberId: stop, reason: 'STOP', source: 'SMS' }, at(0));
+        await s.optOuts.clearStop(stop);
+        expect(await s.optOuts.suppressionFor(stop)).toBeNull();
+
+        const blocked = uniq('tel:880');
+        await s.optOuts.suppress(
+          { subscriberId: blocked, reason: 'BLOCKED', source: 'SYSTEM' },
+          at(0),
+        );
+        await s.optOuts.clearStop(blocked);
+        expect(await s.optOuts.suppressionFor(blocked)).toBe('BLOCKED');
+
+        const dead = uniq('tel:880');
+        await s.optOuts.suppress(
+          { subscriberId: dead, reason: 'DEAD_NUMBER', source: 'SYSTEM' },
+          at(0),
+        );
+        await s.optOuts.clearStop(dead);
+        expect(await s.optOuts.suppressionFor(dead)).toBe('DEAD_NUMBER');
+        await s.optOuts.clearStop(uniq('tel:880')); // unknown number: nothing happens
       }));
 
     it('rate limit: allows up to the limit, then refuses with a retry time; the window slides; races are safe', () =>

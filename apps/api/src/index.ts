@@ -1,5 +1,6 @@
 import { buildApp } from './app.js';
 import { ConfigError, loadConfig } from './config/env.js';
+import { billingFromEnv } from './billing/config.js';
 import { createPool } from './db/pool.js';
 import { runMigrations } from './db/migrate.js';
 import { createPgBossQueue } from './queue/pgboss.js';
@@ -42,7 +43,11 @@ async function main(): Promise<void> {
       ? createPostgresStores(pool, createPhoneCrypto(config.PHONE_ENC_KEY))
       : undefined;
 
-  const app = buildApp(config, { ...(queue ? { queue } : {}), ...(stores ? { stores } : {}) });
+  const app = buildApp(config, {
+    billing: billingFromEnv(config),
+    ...(queue ? { queue } : {}),
+    ...(stores ? { stores } : {}),
+  });
 
   const shutdown = async (signal: string): Promise<void> => {
     app.log.info({ signal }, 'shutting down');

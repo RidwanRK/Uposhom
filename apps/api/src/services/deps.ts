@@ -1,4 +1,5 @@
 import type { ApplinkClient } from '@uposhom/applink-client';
+import type { BillingConfig } from '../billing/config.js';
 import type { DomainPorts } from '../ports.js';
 import type { JobQueue } from '../queue/types.js';
 import type { Stores } from '../stores/types.js';
@@ -16,6 +17,8 @@ export interface ServiceDeps {
   applink: ApplinkClient | undefined;
   queue: JobQueue;
   ports: DomainPorts;
+  /** Plan prices, one-off charge amounts and monthly allowances. */
+  billing: BillingConfig;
   log: Logger;
   now: () => Date;
   /** The keyword subscribers put at the start of an MO SMS, for example UPOSHOM. */

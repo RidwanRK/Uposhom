@@ -523,6 +523,19 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
         );
         return rows[0]?.['used'] as number;
       },
+      async incrementIfBelow(userId, counter, period, limit) {
+        // One statement: the insert path only runs for a limit above zero, and the conflict path
+        // only bumps the row while it is still below the limit. No row back means "refused".
+        const { rows } = await pool.query(
+          `INSERT INTO usage_counters (user_id, counter, period, used)
+           SELECT $1, $2, $3, 1 WHERE $4::int > 0
+           ON CONFLICT (user_id, counter, period)
+             DO UPDATE SET used = usage_counters.used + 1 WHERE usage_counters.used < $4::int
+           RETURNING used`,
+          [userId, counter, period, limit],
+        );
+        return (rows[0]?.['used'] as number | undefined) ?? null;
+      },
     },
 
     optOuts: {
@@ -543,6 +556,11 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
           [subscriberId],
         );
         return (rows[0]?.['reason'] as 'STOP' | 'DEAD_NUMBER' | 'BLOCKED' | undefined) ?? null;
+      },
+      async clearStop(subscriberId) {
+        await pool.query("DELETE FROM sms_opt_outs WHERE subscriber_id = $1 AND reason = 'STOP'", [
+          subscriberId,
+        ]);
       },
     },
 

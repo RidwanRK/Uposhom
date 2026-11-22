@@ -4,6 +4,7 @@ import {
   normalizeBdMsisdn,
   type ApplinkClient,
 } from '@uposhom/applink-client';
+import { ApiError } from '../errors.js';
 import type { AccountType, OtpPurpose, Stores, UserRecord } from '../stores/types.js';
 import { REFRESH_TOKEN_TTL_MS, hashRefreshToken, type Role, type TokenService } from './tokens.js';
 
@@ -17,33 +18,9 @@ export const LIMITS = {
   perIp: { limit: 10, windowMs: 10 * 60 * 1000 },
 } as const;
 
-/** Machine codes shared with the app (packages/shared authErrorCodes) plus INVALID_INPUT and INVALID_REFRESH. */
-export type AuthErrorCode =
-  | 'NUMBER_NOT_ACCEPTED'
-  | 'NUMBER_BLOCKED'
-  | 'NOT_ON_TEST_LIST'
-  | 'SERVICE_TROUBLE'
-  | 'RATE_LIMITED'
-  | 'OTP_WRONG'
-  | 'OTP_EXPIRED'
-  | 'INVALID_INPUT'
-  | 'INVALID_REFRESH'
-  | 'UNAUTHENTICATED'
-  | 'STEP_UP_REQUIRED';
-
-export class AuthError extends Error {
-  readonly code: AuthErrorCode;
-  readonly httpStatus: number;
-  readonly retryAfterSeconds?: number;
-
-  constructor(code: AuthErrorCode, httpStatus: number, retryAfterSeconds?: number) {
-    super(code);
-    this.name = 'AuthError';
-    this.code = code;
-    this.httpStatus = httpStatus;
-    if (retryAfterSeconds !== undefined) this.retryAfterSeconds = retryAfterSeconds;
-  }
-}
+/** Kept as an alias: the OTP flow predates the shared ApiError. */
+export const AuthError = ApiError;
+export type AuthError = ApiError;
 
 /** Maps an Applink status code to what the app is allowed to see (design.md Screen 10). */
 function mapApplinkError(err: unknown): AuthError {

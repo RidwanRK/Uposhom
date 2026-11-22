@@ -16,6 +16,19 @@ const optionalUrl = z.preprocess(
   z.string().url().optional(),
 );
 
+const optionalAmount = z.preprocess(
+  (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+  z
+    .string()
+    .regex(/^\d+(\.\d{1,2})?$/, 'must be a decimal BDT amount such as 30.00')
+    .optional(),
+);
+
+const optionalCount = z.preprocess(
+  (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+  z.coerce.number().int().min(0).optional(),
+);
+
 const optionalString = z.preprocess(
   (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
   z.string().min(1).optional(),
@@ -39,6 +52,18 @@ const envSchema = z
     // AES-256 key for phone numbers: 64 hex characters (`openssl rand -hex 32`). Back it up with
     // the other secrets: without it every stored number is unreadable.
     PHONE_ENC_KEY: optionalString,
+
+    // Prices and monthly allowances. Placeholders until decided with the mentor (Master Plan 9):
+    // leave unset to use the defaults in src/billing/config.ts. Amounts are decimal BDT strings.
+    PLAN_FAMILY_CIRCLE_AMOUNT: optionalAmount,
+    PLAN_PHARMACY_AMOUNT: optionalAmount,
+    CAAS_AMOUNT_SCAN: optionalAmount,
+    CAAS_AMOUNT_DOCTOR_SUMMARY: optionalAmount,
+    CAAS_AMOUNT_REPORT_EXPLAIN: optionalAmount,
+    FREE_SCANS_PER_MONTH: optionalCount,
+    FREE_SMS_PER_MONTH: optionalCount,
+    PREMIUM_SCANS_PER_MONTH: optionalCount,
+    PREMIUM_SMS_PER_MONTH: optionalCount,
 
     // HMAC secret for access tokens (at least 32 characters). Mandatory in production.
     JWT_SECRET: optionalString,

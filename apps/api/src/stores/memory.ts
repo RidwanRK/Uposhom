@@ -312,6 +312,13 @@ export function createMemoryStores(): Stores {
         usage.set(key, next);
         return next;
       },
+      async incrementIfBelow(userId, counter, period, limit) {
+        const key = `${userId}|${counter}|${period}`;
+        const current = usage.get(key) ?? 0;
+        if (current >= limit) return null;
+        usage.set(key, current + 1);
+        return current + 1;
+      },
     },
 
     optOuts: {
@@ -323,6 +330,9 @@ export function createMemoryStores(): Stores {
       },
       async suppressionFor(subscriberId) {
         return suppressed.get(subscriberId) ?? null;
+      },
+      async clearStop(subscriberId) {
+        if (suppressed.get(subscriberId) === 'STOP') suppressed.delete(subscriberId);
       },
     },
 

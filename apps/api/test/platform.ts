@@ -1,6 +1,8 @@
 import { vi } from 'vitest';
 import { ApplinkError, type ApplinkClient } from '@uposhom/applink-client';
 import { buildApp } from '../src/app.js';
+import { createTokenService } from '../src/auth/tokens.js';
+import type { AccountType, UserRecord } from '../src/stores/types.js';
 import { defaultDomainPorts, type DomainPorts } from '../src/ports.js';
 import { createMemoryQueue, type MemoryQueue } from '../src/queue/memory.js';
 import type { JobQueue } from '../src/queue/types.js';
@@ -44,7 +46,21 @@ export interface Harness {
   /** POST a callback payload to the receiver. */
   callback(path: string, payload: unknown): Promise<unknown>;
   /** Registers a user whose opaque subscriber id is `subscriberId`. */
-  addUser(subscriberId?: string): Promise<void>;
+  addUser(
+    subscriberId?: string,
+    opts?: { msisdn?: string; accountType?: AccountType },
+  ): Promise<UserRecord>;
+  /** An Authorization header for the user, as the app would send. */
+  bearer(user: UserRecord): Promise<{ authorization: string }>;
+  /** Calls a route as a signed-in user. */
+  api(
+    user: UserRecord,
+    method: 'GET' | 'POST',
+    url: string,
+    payload?: object,
+    // Response bodies are checked field by field in tests, so they are deliberately loose here.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<{ statusCode: number; json: () => any; body: string }>;
 }
 
 export async function harness(
@@ -65,6 +81,13 @@ export async function harness(
     { stores, queue, applink: applink as ApplinkClient | undefined, ports, now: () => clock.now },
   );
   await app.ready();
+  const bearerFor = async (user: UserRecord) => ({
+    authorization: `Bearer ${await createTokenService('x'.repeat(40)).signAccess({
+      userId: user.id,
+      role: user.accountType === 'PHARMACY' ? 'PHARMACY_OWNER' : 'FAMILY_ADMIN',
+      isAdmin: user.isAdmin,
+    })}`,
+  });
   return {
     app,
     queue,
@@ -81,14 +104,27 @@ export async function harness(
           payload: payload as object,
         })
       ).json(),
-    addUser: async (subscriberId = SUB) => {
-      await stores.users.upsertVerified({
-        msisdn: '8801959979376',
-        accountType: 'INDIVIDUAL',
+    addUser: async (subscriberId = SUB, o = {}) =>
+      stores.users.upsertVerified({
+        msisdn: o.msisdn ?? '8801959979376',
+        accountType: o.accountType ?? 'INDIVIDUAL',
         subscriberId,
         subscriptionStatus: 'REGISTERED',
-      });
-    },
+      }),
+    bearer: async (user) => ({
+      authorization: `Bearer ${await createTokenService('x'.repeat(40)).signAccess({
+        userId: user.id,
+        role: user.accountType === 'PHARMACY' ? 'PHARMACY_OWNER' : 'FAMILY_ADMIN',
+        isAdmin: user.isAdmin,
+      })}`,
+    }),
+    api: async (user, method, url, payload) =>
+      app.inject({
+        method,
+        url: `/api/v1${url}`,
+        headers: await bearerFor(user),
+        ...(payload ? { payload } : {}),
+      }),
   };
 }
 
