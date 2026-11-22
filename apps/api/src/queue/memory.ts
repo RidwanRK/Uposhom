@@ -74,7 +74,7 @@ export function createMemoryQueue(opts: { retryDelayScale?: number } = {}): Memo
       } catch (err) {
         const limit = pending.options.retryLimit ?? 0;
         if (pending.job.retryCount < limit) {
-          const base = (pending.options.retryDelaySeconds ?? 5) * 1000 * scale;
+          const base = (pending.options.retryDelaySeconds ?? 0) * 1000 * scale;
           q.push({
             job: { ...pending.job, retryCount: pending.job.retryCount + 1 },
             options: pending.options,

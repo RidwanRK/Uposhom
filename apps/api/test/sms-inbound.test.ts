@@ -64,7 +64,7 @@ describe('inbound SMS (MO)', () => {
     await settle(h);
     expect(n).toBe(3); // the published sample's trailing dot is tolerated
     expect(await h.stores.optOuts.suppressionFor(SUB)).toBe('STOP');
-    expect(h.queue.deadLetters()).toHaveLength(0);
+    expect(await h.deadLetterCount()).toBe(0);
     await h.app.close();
   });
 
@@ -199,7 +199,7 @@ describe('delivery reports', () => {
     const res = await h.callback('sms/report', report('nobody-sent-this', 'DELIVERED'));
     expect(res).toEqual({ statusCode: 'S1000', statusDetail: 'Success' });
     await settle(h);
-    expect(h.queue.deadLetters()).toHaveLength(0);
+    expect(await h.deadLetterCount()).toBe(0);
     await h.app.close();
   });
 

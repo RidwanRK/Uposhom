@@ -10,7 +10,7 @@ export interface JobOptions {
   delaySeconds?: number;
   /** Extra attempts after the first failure. Default 0: a job that throws goes to the dead letters. */
   retryLimit?: number;
-  /** Base delay before a retry; doubles on every attempt (exponential backoff). */
+  /** Base delay before a retry, doubling on every attempt (exponential backoff). Default 0. */
   retryDelaySeconds?: number;
 }
 

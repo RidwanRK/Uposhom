@@ -35,6 +35,15 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ NODE_ENV: 'test' })).not.toThrow();
   });
 
+  it('defaults to the in-memory queue and requires DATABASE_URL for pg-boss', () => {
+    expect(loadConfig({}).QUEUE_DRIVER).toBe('memory');
+    expect(() => loadConfig({ QUEUE_DRIVER: 'pgboss' })).toThrow(/DATABASE_URL/);
+    expect(
+      loadConfig({ QUEUE_DRIVER: 'pgboss', DATABASE_URL: 'postgres://u:p@h:5432/d' }).QUEUE_DRIVER,
+    ).toBe('pgboss');
+    expect(() => loadConfig({ QUEUE_DRIVER: 'redis' })).toThrow(ConfigError);
+  });
+
   it('requires both CaaS URLs or neither', () => {
     expect(() => loadConfig({ APPLINK_CAAS_DEBIT_URL: 'http://127.0.0.1:8089/d' })).toThrow(
       /both be set, or neither/,

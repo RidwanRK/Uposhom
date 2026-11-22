@@ -172,7 +172,7 @@ describe('outbound SMS through the queue', () => {
       status: 'FAILED',
       applinkStatusCode: 'NOT_CONFIGURED',
     });
-    expect(h.queue.deadLetters()).toHaveLength(0);
+    expect(await h.deadLetterCount()).toBe(0);
     await h.app.close();
   });
 });

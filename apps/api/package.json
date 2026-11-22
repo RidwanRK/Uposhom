@@ -12,13 +12,14 @@
   },
   "dependencies": {
     "fastify": "^5.12.8",
-    "zod": "^4.6.7",
-    "jose": "^6.2.18"
+    "jose": "^6.2.18",
+    "pg-boss": "^12.39.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "tsx": "^4.23.15",
-    "esbuild": "^0.28.2",
     "@uposhom/applink-client": "workspace:*",
-    "@uposhom/shared": "workspace:*"
+    "@uposhom/shared": "workspace:*",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15"
   }
 }

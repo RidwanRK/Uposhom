@@ -80,7 +80,7 @@ describe('SMS and USSD flows against the Applink mock', () => {
     });
     await settle(h);
 
-    expect(h.queue.deadLetters()).toEqual([]);
+    expect(await h.deadLetterCount()).toBe(0);
     expect(await mock.badRequests()).toEqual([]);
     await h.app.close();
   });

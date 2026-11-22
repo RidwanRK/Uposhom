@@ -185,7 +185,7 @@ describe('USSD menu', () => {
     await h.callback('ussd/receive', ussd('*195#', 'mo-init'));
     await settle(h);
     expect(h.applink.sendUssd).toHaveBeenCalledTimes(1);
-    expect(h.queue.deadLetters()).toHaveLength(0);
+    expect(await h.deadLetterCount()).toBe(0);
     await h.app.close();
   });
 
@@ -193,7 +193,7 @@ describe('USSD menu', () => {
     const h = await harness({ applink: undefined });
     await h.callback('ussd/receive', ussd('*195#', 'mo-init'));
     await settle(h);
-    expect(h.queue.deadLetters()).toHaveLength(0);
+    expect(await h.deadLetterCount()).toBe(0);
     await h.app.close();
   });
 });

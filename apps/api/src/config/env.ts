@@ -28,6 +28,11 @@ const envSchema = z
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
     DATABASE_URL: optionalString,
 
+    // Job queue. `memory` loses queued jobs on restart; `pgboss` keeps them in Postgres and needs
+    // DATABASE_URL. Keep `memory` until the Postgres stores land: pg-boss would otherwise replay
+    // jobs against an sms_log and sessions that restarted empty.
+    QUEUE_DRIVER: z.enum(['memory', 'pgboss']).default('memory'),
+
     // HMAC secret for access tokens (at least 32 characters). Mandatory in production.
     JWT_SECRET: optionalString,
 
@@ -60,6 +65,14 @@ const envSchema = z
         code: z.ZodIssueCode.custom,
         path: ['APPLINK_CALLBACK_PATH_KEY'],
         message: 'must be set in production (unguessable callback path segment)',
+      });
+    }
+
+    if (env.QUEUE_DRIVER === 'pgboss' && env.DATABASE_URL === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['DATABASE_URL'],
+        message: 'must be set when QUEUE_DRIVER=pgboss',
       });
     }
 
