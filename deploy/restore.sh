@@ -6,6 +6,7 @@
 # Usage:
 #   restore.sh /opt/uposhom/backups/uposhom-20261122T200000Z.dump.enc
 #   restore.sh r2:backups/uposhom-20261122T200000Z.dump.enc        (download from R2 first)
+#   restore.sh rclone:gdrive:uposhom-backups/uposhom-20261122T200000Z.dump.enc   (any rclone remote)
 #
 # It creates database "uposhom_restore_check", restores into it, prints row counts for the key
 # tables, then drops it. Set KEEP=1 to leave it in place for a closer look.
@@ -30,18 +31,26 @@ fi
 
 FILE="$SRC"
 CLEANUP=""
-if [[ "$SRC" == r2:* ]]; then
-  [ -f "$ENV_FILE" ] || die "missing $ENV_FILE (R2 credentials)"
+if [[ "$SRC" == r2:* || "$SRC" == rclone:* ]]; then
+  [ -f "$ENV_FILE" ] || die "missing $ENV_FILE (where the backups are kept)"
   # shellcheck disable=SC1090
   . "$ENV_FILE"
-  export RCLONE_CONFIG_R2_TYPE=s3 RCLONE_CONFIG_R2_PROVIDER=Cloudflare
-  export RCLONE_CONFIG_R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
-  export RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
-  export RCLONE_CONFIG_R2_ENDPOINT="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
+  command -v rclone >/dev/null || die "rclone is not installed (sudo apt install rclone)"
+  if [[ "$SRC" == rclone:* ]]; then
+    # rclone:<any rclone path>, for example rclone:gdrive:uposhom-backups/uposhom-2026....dump.enc
+    REMOTE_PATH="${SRC#rclone:}"
+  else
+    # r2:<file name> inside the R2 bucket's backups/ folder
+    export RCLONE_CONFIG_R2_TYPE=s3 RCLONE_CONFIG_R2_PROVIDER=Cloudflare
+    export RCLONE_CONFIG_R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+    export RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+    export RCLONE_CONFIG_R2_ENDPOINT="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
+    REMOTE_PATH="r2:$R2_BUCKET/${SRC#r2:}"
+  fi
   FILE="$(mktemp)"
   CLEANUP="$FILE"
-  log "downloading $SRC"
-  rclone copyto "r2:$R2_BUCKET/${SRC#r2:}" "$FILE"
+  log "downloading $REMOTE_PATH"
+  rclone copyto "$REMOTE_PATH" "$FILE"
 fi
 [ -s "$FILE" ] || die "$FILE is missing or empty"
 trap '[ -n "$CLEANUP" ] && rm -f "$CLEANUP"; [ "${KEEP:-0}" = "1" ] || docker exec "$PG_CONTAINER" dropdb -U "$PG_USER" --if-exists "$SCRATCH" >/dev/null 2>&1 || true' EXIT

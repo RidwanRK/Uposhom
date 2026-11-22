@@ -236,37 +236,56 @@ echo "QUEUE_DRIVER=pgboss"  >> .env
 - Do both switches together: pg-boss replays unfinished jobs after a restart, and that is only safe
   once the SMS log and sessions survive restarts too.
 
-## 8. Backups to Cloudflare R2
+## 8. Backups, copied off the VM
 
 `deploy/backup.sh` dumps Postgres, encrypts it with AES-256 as it streams (an unencrypted copy
-never touches the disk), uploads it to R2, checks the uploaded size, and prunes copies older than 14
-days. `deploy/restore.sh` restores a backup into a scratch database, prints row counts, and drops it.
+never touches the disk), copies it off the VM, checks the uploaded size, and prunes copies older
+than 14 days. `deploy/restore.sh` restores a backup into a scratch database, prints row counts, and
+drops it. Because the file is encrypted before it leaves the VM, **any storage is safe to use**.
+
+**Where the copy goes** is your choice (set in `/opt/uposhom/backup.env`, see `backup.env.example`):
+
+| Option | Needs | Notes |
+| --- | --- | --- |
+| **Your own computer** | Nothing new | From your laptop: `scp -i $HOME\.ssh\uposhom_deploy <vm-user>@<VM_STATIC_IP>:/opt/uposhom/backups/*.dump.enc <folder>`. Manual or scheduled; only works while the laptop is on. A good first step. |
+| **Any rclone destination** (`BACKUP_REMOTE`) | An account with Google Drive, Backblaze B2, another server over SFTP, or any other rclone backend | Set the remote up once with `rclone config`, then `BACKUP_REMOTE=<remote>:<folder>`. |
+| **Cloudflare R2** (`R2_*`) | A Cloudflare account and an R2 bucket with an Object Read & Write token | Leave `BACKUP_REMOTE` empty and fill the four `R2_*` values. |
 
 One-time setup on the VM:
 
 ```bash
-sudo apt install -y rclone
-# 1. The passphrase. Keep a copy in the password manager: a backup nobody can decrypt is worth nothing.
+# 1. The passphrase. Keep a copy in the password manager and never paste it anywhere: a backup
+#    nobody can decrypt is worth nothing.
 openssl rand -base64 32 > /opt/uposhom/backup.pass && chmod 600 /opt/uposhom/backup.pass
-# 2. R2 credentials (Cloudflare dashboard: R2, create a bucket, then an Object Read & Write API
-#    token scoped to that bucket only). Start from deploy/backup.env.example.
+# 2. Prove the dump and the restore work, with no remote at all:
+bash /opt/uposhom/deploy/backup.sh --local-only
+bash /opt/uposhom/deploy/restore.sh "$(ls -t /opt/uposhom/backups/*.dump.enc | head -1)"
+# 3. To also copy off the VM: install rclone, choose a destination, and fill backup.env.
+sudo apt install -y rclone
 cp /opt/uposhom/deploy/backup.env.example /opt/uposhom/backup.env
 nano /opt/uposhom/backup.env && chmod 600 /opt/uposhom/backup.env
-# 3. Try it by hand, then schedule it for 02:00 Dhaka (20:00 UTC).
 bash /opt/uposhom/deploy/backup.sh
+# 4. Schedule it for 02:00 Dhaka (20:00 UTC).
 ( crontab -l 2>/dev/null; echo '0 20 * * * bash /opt/uposhom/deploy/backup.sh >> /var/log/uposhom-backup.log 2>&1' ) | crontab -
 ```
 
-**Prove it restores, once, before the demo:**
+Without a `backup.env`, run `backup.sh --local-only` from cron instead: you still get nightly
+encrypted dumps on the VM disk (the last 3 days are kept), which protects against a bad migration or
+a deleted row, though not against losing the VM.
+
+**Prove it restores, once, before the demo** (and again from the remote):
 
 ```bash
 bash /opt/uposhom/deploy/restore.sh /opt/uposhom/backups/<latest>.dump.enc
-bash /opt/uposhom/deploy/restore.sh r2:backups/<latest>.dump.enc      # and from R2
+bash /opt/uposhom/deploy/restore.sh r2:backups/<latest>.dump.enc                      # from R2
+bash /opt/uposhom/deploy/restore.sh rclone:<remote>:<folder>/<latest>.dump.enc        # any rclone remote
 ```
 
 You want `OK: the backup restores` and sensible row counts. The scripts are tested against a real
-Postgres (encrypt, restore, wrong passphrase refused, loose permissions refused); the R2 upload step
-needs your credentials, so run it by hand once and read the output.
+Postgres, including the upload, the size check, pruning old copies and restoring from a remote
+(rclone's local backend stands in for the remote), a wrong passphrase being refused, and a
+world-readable passphrase file being refused. The Cloudflare, Drive and B2 backends themselves need
+your credentials, so run the real upload once by hand and read the output.
 
 ## 9. When Applink's reply arrives
 
