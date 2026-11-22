@@ -17,8 +17,8 @@ Team of 4 · AppQuest 2.0 · 20 to 30 Nov 2026 · Version 2 (React Native app Ar
 
 This section is the single source of truth for ownership. Section 18 lists the same four workstreams with deliverables and checkpoints; the workstreams run in parallel from Day 0 and meet at the integration points in section 18.
 
-- A, Platform and Applink: repo, CI/CD, hosting, auth and sessions (JWT, refresh), Applink client and the local mock, all five callbacks, OTP, SMS send/receive, USSD callback, session store and send wrapper, Subscription, CaaS, entitlements and quotas, the Applink-side tables (users, otp\_sessions, consents, subscriptions\_mirror, charges, entitlements, usage\_counters, sms\_log, sms\_opt\_outs, ussd\_sessions, callback\_dedupe), security pass.
-- B, Domain and engine: Drizzle setup and migration order, the domain tables (circles, profiles, links, prescriptions, doses, escalations, reports, symptom logs, appointments, pharmacies, agent\_traces, audit\_log), schedule engine package, reminder and escalation state machine, pg-boss jobs, SMS reply-code and USSD menu logic, adherence, and the admin traces endpoint.
+- A, Platform and Applink: repo, CI/CD, hosting, auth and sessions (JWT, refresh), Applink client and the local mock, all four callbacks, OTP, SMS send/receive and the send wrapper, Subscription, CaaS, entitlements and quotas, the Applink-side tables (users, otp\_sessions, consents, subscriptions\_mirror, charges, entitlements, usage\_counters, sms\_log, sms\_opt\_outs, callback\_dedupe), security pass.
+- B, Domain and engine: Drizzle setup and migration order, the domain tables (circles, profiles, links, prescriptions, doses, escalations, reports, symptom logs, appointments, pharmacies, agent\_traces, audit\_log), schedule engine package, reminder and escalation state machine, pg-boss jobs, SMS reply-code logic, adherence, and the admin traces endpoint.
 - C, AI and data: OpenAI Agents SDK + OpenRouter (Gemini 2.5 Flash / Qwen 2.5 VL), the triage router, multi-agent handoffs, trace logging, explainer, report extraction, generic matching, symptom journaling with 999 emergency guardrail, voice spike, the drug tables and all seed data (drug table, glossary, tips, synthetic prescriptions, reports and history, pharmacies).
 - D, Product Mobile & UI: React Native app (Expo, expo-camera, expo-sqlite, Notifee alarms), Pharmacy account screens (stock management, subscription), admin-only agent-trace screen, facts carousel, demo video editing.
 - Proposal ownership: P1 to P4 by C, P5 and P6 by A, P7 by D with B on the numbers, P8 diagram by B and D. Everyone reviews P6 against the real flows.
@@ -31,7 +31,6 @@ P0, core loop and Applink (demo-ready by Tue 24 Nov night):
 - Android prescription capture (expo-camera), AI extraction, side-by-side visual confirm screen, typed-entry fallback
 - Deterministic schedule engine; dose log with taken, snooze, skip
 - Multi-channel reminders: Android rich push notifications + Applink SMS reminders with reply codes; missed-dose escalation ladder; caregiver acknowledgement
-- USSD patient and caregiver menu (*195#)
 - Subscription (Family Circle plan) with recorded consent
 - Simple Bangla explanation of the confirmed prescription
 
@@ -53,7 +52,7 @@ P2 (demo-ready by Fri 27 Nov night, time-boxed, seeded data allowed):
 - Sickness-pattern analytics over symptom logs and past confirmed prescriptions, with an Android Insights screen, on seeded synthetic history
 - Local pharmacy discovery & priority listing in Android; Pharmacy account type (separate sign-up, stock management screens) & pharmacy Subscription
 
-P3 (only if ahead): fasting-day schedule shift, emergency info card via USSD, pharmacy stock toggle by USSD.
+P3 (only if ahead): fasting-day schedule shift.
 
 Out of scope: iOS app, any web portal (consumer or pharmacy), ads or an ad-free tier, a staffed customer-support channel (a published support contact, terms of service and privacy policy are still required for Applink approval, see section 8), daily or weekly billing (monthly only), distributor and manufacturer accounts, real pharmacy stock feeds, real patient data, any diagnosis or dose recommendation.
 
@@ -112,7 +111,7 @@ uposhom/
 │   │   │   ├── config/              # Env validation, Applink credentials, static IP check
 │   │   │   ├── middleware/          # JWT auth, circle-scoped RBAC, rate-limiter, CORS
 │   │   │   ├── plugins/             # Fastify Swagger, Multipart, rate-limit (scoped to /api/v1 only, never the callbacks), Postgres (Drizzle) connector
-│   │   │   ├── plugins/applink-callbacks.ts  # Encapsulated plugin for the five callback routes: lenient JSON parser, small bodyLimit, error handler that always returns 200 S1000, no rate limiter or JWT/CSRF hooks
+│   │   │   ├── plugins/applink-callbacks.ts  # Encapsulated plugin for the four callback routes: lenient JSON parser, small bodyLimit, error handler that always returns 200 S1000, no rate limiter or JWT/CSRF hooks
 │   │   │   ├── routes/
 │   │   │   │   ├── auth.ts          # /api/v1/auth (OTP request, verify, JWT issuance, refresh, logout)
 │   │   │   │   ├── circles.ts       # /api/v1/circles, /profiles, /links (family circle, profiles, roles, invites, secondary caregiver)
@@ -129,7 +128,6 @@ uposhom/
 │   │   │   │   └── callbacks/       # Applink Inbound Webhook Handlers
 │   │   │   │       ├── sms-receive.ts             # Inbound MO reply processor
 │   │   │   │       ├── sms-delivery.ts            # DLR delivery receipts
-│   │   │   │       ├── ussd-receive.ts            # Interactive USSD session processor
 │   │   │   │       ├── subscriber-notify.ts       # Subscription lifecycle events (password stripped)
 │   │   │   │       └── charging-notify.ts         # CaaS transaction settlement
 │   │   │   ├── services/            # Business logic services bridging routes & DB
@@ -145,7 +143,6 @@ uposhom/
 │   │   │   │   ├── sms-send-job.ts         # Throttled outbound SMS queue (E1318 per-second, E1319 per-day limits)
 │   │   │   │   ├── refill-appointment-job.ts # Refill-date and follow-up appointment reminders
 │   │   │   │   ├── escalation-job.ts       # 15m/30m/50m Caregiver escalation state machine
-│   │   │   │   ├── ussd-worker.ts          # Asynchronous USSD screen dispatcher
 │   │   │   │   ├── reconciliation-cron.ts  # Daily CaaS P1003 & Subscription reconciliation
 │   │   │   │   └── digest-job.ts           # Weekly caregiver adherence summaries
 │   │   │   └── index.ts             # pg-boss worker supervisor
@@ -169,7 +166,6 @@ uposhom/
 │   │   │   ├── normalizer.ts        # Single tel: normalizer & masking handler
 │   │   │   ├── services/
 │   │   │   │   ├── sms.ts           # POST /sms/send wrapper
-│   │   │   │   ├── ussd.ts          # POST /ussd/send wrapper (encoding 440, mt-cont/mt-fin)
 │   │   │   │   ├── subscription.ts  # POST /subscription/send (register/unregister), query-base, getSubscriberChargingInfo
 │   │   │   │   ├── otp.ts           # POST /otp/request & /otp/verify
 │   │   │   │   └── caas.ts          # POST /caas/direct/debit & /caas/otp/verify (BDT decimal)
@@ -256,7 +252,7 @@ Runtime (100% Free-Tier Architecture):
 - drug\_generics (includes therapeutic\_class for pattern analysis), drug\_brands (generic id, name\_en, name\_bn plus a bn\_aliases array for common Bangla spellings, strength, form, indicative price, source, verified flag; trigram indexes on name\_en, name\_bn and bn\_aliases), drug\_info (curated Bangla summary, storage, warnings), glossary, tips
 - pharmacies, pharmacy\_stock
 - consents (user or profile as the subject, kind, amount, currency, frequency, channel, wording shown, evidence, time; a dependent's Family Link verify writes a consent row against the profile), subscriptions\_mirror (subscriber\_id, status, frequency, plan, last confirmed at and by notification or sweep), charges (external\_trx\_id primary key written before the debit call, purpose, amount, status, request\_correlator, internal\_trx\_id, reference\_id, paid\_amount, balance\_due, fulfilled\_at), entitlements and usage\_counters (granted features such as a doctor summary from a settled charge, monthly scan and SMS quotas), sms\_opt\_outs
-- sms\_log (no bodies; Applink request\_id, per-recipient status, latest delivery status), ussd\_sessions (session\_id, state, ttl), callback\_dedupe (callback type + that callback's documented key), agent\_traces, audit\_log
+- sms\_log (no bodies; Applink request\_id, per-recipient status, latest delivery status), callback\_dedupe (callback type + that callback's documented key), agent\_traces, audit\_log
 
 Database: PostgreSQL 16 self-hosted in Docker on the VM, accessed through Drizzle. The first migration runs `CREATE EXTENSION pg_trgm`. It is the single source of truth. `expo-sqlite` on the phone is only a read cache of the schedule. Agent traces, structured symptom logs and per-field OCR confidence use `jsonb`; everything else is relational.
 
@@ -282,7 +278,7 @@ Escalation ladder (state machine in code, timers on pg-boss):
 3. After 30 minutes, the path depends on whether a human flagged the item critical:
    - Non-critical: the dose is logged as missed at T+30, feeds adherence, and appears in the weekly caregiver digest. No caregiver alert is sent.
    - Critical: caregiver alert via Expo Push and SMS.
-4. Critical only: the caregiver acknowledges via Android app, SMS reply, or USSD. After 20 more minutes without acknowledgement (T+50), the secondary caregiver is alerted.
+4. Critical only: the caregiver acknowledges via Android app or SMS reply. After 20 more minutes without acknowledgement (T+50), the secondary caregiver is alerted.
 5. Critical only: after the secondary alert window ends, the dose is logged as missed and feeds adherence. If the patient takes the dose late at any point, the late intake is recorded and the missed state is replaced by taken-late, and any pending alerts are cancelled.
 
 If an SMS to the patient comes back UNDELIVERABLE, EXPIRED or REJECTED for a critical dose, the caregiver alert is brought forward instead of waiting for T+30 (non-critical doses keep the normal path).
@@ -315,7 +311,7 @@ Principle: AI reads, routes and explains, code decides. No model output sets a d
 - Voice: a Day 1 spike comparing Whisper (API via OpenRouter/OpenAI) and Gemini audio on 10 Bangla recordings. The app records audio with `expo-audio`. The transcript is shown and editable before anything is saved or acted on.
 - Voice schedule queries: the Android voice-query screen records Bangla audio, transcribes it, shows the editable transcript, then sends it to the `TriageAgent`, which hands off to `ScheduleQueryAgent` (read-only tools). The answer is shown as Bangla text and read aloud with `expo-speech` (Android text-to-speech). Nothing is modified by a voice query.
 - Sickness-pattern analytics: inputs are symptom logs and past confirmed prescriptions (each prescription item joined to a curated `therapeutic_class` on `drug_generics`, for example antibiotic, antihistamine, inhaler, antipyretic). Aggregates (counts by month, symptom category and therapeutic class, such as repeated winter antibiotic or inhaler prescriptions) are computed in SQL, a minimum record count is required, and the model only phrases the summary. Tips are chosen from a curated library. The Android Insights screen shows the charts and summary per profile. Demo on labelled synthetic history.
-- Strict Non-LLM Boundaries: Reply codes (`1`, `2`, `3`) and USSD menus (`*195#`) **never call an LLM**. They remain 100% deterministic, zero-latency code paths.
+- Strict Non-LLM Boundaries: Reply codes (`1`, `2`, `3`) **never call an LLM**. They remain 100% deterministic, zero-latency code paths.
 - Treat prescription and report text as untrusted input: model outputs are schema-bound JSON only, never executed instructions.
 
 ## 8. Applink integration (owner A)
@@ -323,10 +319,10 @@ Principle: AI reads, routes and explains, code decides. No model output sets a d
 Setup, Day 0:
 
 - Send both approval emails on Day 0 (see 19.2). The `applicationId` and `password` arrive by email only after approval, so until then all work runs against the local mock. When they land (target Day 2), prove credentials, whitelisting and the fixed IP with the free Base Size call (`POST /subscription/query-base`) before anything else. Keep credentials in environment variables.
-- Applink config is one endpoint variable per enabled service (`APPLINK_SMS_SEND_URL`, `APPLINK_USSD_SEND_URL`, `APPLINK_SUBSCRIPTION_SEND_URL`, `APPLINK_OTP_REQUEST_URL`, `APPLINK_OTP_VERIFY_URL`, `APPLINK_SUBSCRIPTION_QUERY_BASE_URL`, `APPLINK_SUBSCRIPTION_CHARGING_INFO_URL` (the nightly subscription sweep), `APPLINK_CAAS_DEBIT_URL`, `APPLINK_CAAS_OTP_VERIFY_URL`, ...). Charging needs both `APPLINK_CAAS_DEBIT_URL` and `APPLINK_CAAS_OTP_VERIFY_URL` set, or neither: with only one, a started charge cannot be completed, so the config module refuses to boot. An unset variable means that API is not enabled, and the client refuses to call it locally instead of sending a request that fails with E1309. Pointing these at `scripts/mock-applink.mjs` is the only local-versus-live switch. Never branch on `NODE_ENV` to choose a URL.
-- Install Applink-as-a-Skill in your coding tool (/plugin marketplace add hSenidMobileCPaaS/Applink-as-a-Skill, then /plugin install applink@applink). Use its CLI (for example node tools/applink.mjs show ussd-receive) to read exact request contracts. Never write parameter names from memory. Every scalar request value is a JSON string; the only non-string values are the documented arrays (`destinationAddresses`, `subscriberIds`) and the optional `applicationMetaData` object. Send only the parameters of that endpoint (`version` belongs to SMS and USSD only) and omit optional fields instead of sending null.
+- Applink config is one endpoint variable per enabled service (`APPLINK_SMS_SEND_URL`, `APPLINK_SUBSCRIPTION_SEND_URL`, `APPLINK_OTP_REQUEST_URL`, `APPLINK_OTP_VERIFY_URL`, `APPLINK_SUBSCRIPTION_QUERY_BASE_URL`, `APPLINK_SUBSCRIPTION_CHARGING_INFO_URL` (the nightly subscription sweep), `APPLINK_CAAS_DEBIT_URL`, `APPLINK_CAAS_OTP_VERIFY_URL`, ...). Charging needs both `APPLINK_CAAS_DEBIT_URL` and `APPLINK_CAAS_OTP_VERIFY_URL` set, or neither: with only one, a started charge cannot be completed, so the config module refuses to boot. An unset variable means that API is not enabled, and the client refuses to call it locally instead of sending a request that fails with E1309. Pointing these at `scripts/mock-applink.mjs` is the only local-versus-live switch. Never branch on `NODE_ENV` to choose a URL.
+- Install Applink-as-a-Skill in your coding tool (/plugin marketplace add hSenidMobileCPaaS/Applink-as-a-Skill, then /plugin install applink@applink). Use its CLI (for example node tools/applink.mjs show sms-receive) to read exact request contracts. Never write parameter names from memory. Every scalar request value is a JSON string; the only non-string values are the documented arrays (`destinationAddresses`, `subscriberIds`) and the optional `applicationMetaData` object. Send only the parameters of that endpoint (`version` belongs to SMS only) and omit optional fields instead of sending null.
 - Run the local mock server and the callback test script against our handlers.
-- Confirm the production egress IP on the server (curl -4 https://api.ipify.org) and add it to the app's allowed host addresses. Register all five callback URLs over HTTPS with a complete certificate chain, publicly reachable (no basic auth, no bot challenge), exempt from our JWT and CSRF middleware but restricted to Applink's source IP ranges (ask support@applink.com.bd for the list). The restriction is enforced in the Caddyfile with a `remote_ip` matcher on `/api/applink/*`, not in application code (the skill's template treats an empty list as allow-all and trusts a client-settable `X-Forwarded-For`). The Day 1 deploy smoke test checks that Docker preserves the real client IP at Caddy. Until Applink's IP list arrives, every callback URL carries a mandatory unguessable path segment (an environment value, `APPLINK_CALLBACK_PATH_KEY`, set on the VM and in the portal registration; the API refuses to boot in production if it is empty), and the Caddy matcher is added the day the list arrives. The five routes are `/api/applink/<key>/sms/receive`, `/sms/report`, `/ussd/receive`, `/subscription/notify` and `/caas/charging-notification`. In tests and CI the key is empty, so the skill's `scripts/test-callbacks.sh` runs against the default paths unchanged. Paths stay stable once registered. Whitelist the four team phones plus two or three family phones for Limited Production testing: any other number gets E1343, which looks like nothing happened. Confirm the inbound SMS shortcode and keyword, and that the USSD code `*195#` is the one assigned to this application (if the assigned code differs, change it everywhere before the demo script is recorded). Confirm that all five services (SMS, USSD, Subscription, OTP, CaaS) are enabled on the application, because a service that is not provisioned fails with E1309. Settle the number-masking setting with Applink (see the open questions below), because it is a provisioning choice. Leave the Query Balance endpoint unconfigured unless support has confirmed it is enabled.
+- Confirm the production egress IP on the server (curl -4 https://api.ipify.org) and add it to the app's allowed host addresses. Register all four callback URLs over HTTPS with a complete certificate chain, publicly reachable (no basic auth, no bot challenge), exempt from our JWT and CSRF middleware but restricted to Applink's source IP ranges (ask support@applink.com.bd for the list). The restriction is enforced in the Caddyfile with a `remote_ip` matcher on `/api/applink/*`, not in application code (the skill's template treats an empty list as allow-all and trusts a client-settable `X-Forwarded-For`). The Day 1 deploy smoke test checks that Docker preserves the real client IP at Caddy. Until Applink's IP list arrives, every callback URL carries a mandatory unguessable path segment (an environment value, `APPLINK_CALLBACK_PATH_KEY`, set on the VM and in the portal registration; the API refuses to boot in production if it is empty), and the Caddy matcher is added the day the list arrives. The four routes are `/api/applink/<key>/sms/receive`, `/sms/report`, `/subscription/notify` and `/caas/charging-notification`. In tests and CI the key is empty, so the skill's `scripts/test-callbacks.sh` runs against the default paths unchanged. Paths stay stable once registered. Whitelist the four team phones plus two or three family phones for Limited Production testing: any other number gets E1343, which looks like nothing happened. Confirm the inbound SMS shortcode and keyword. Confirm that all four services (SMS, Subscription, OTP, CaaS) are enabled on the application, because a service that is not provisioned fails with E1309. Settle the number-masking setting with Applink (see the open questions below), because it is a provisioning choice. Leave the Query Balance endpoint unconfigured unless support has confirmed it is enabled.
 
 Rules that apply everywhere:
 
@@ -335,11 +331,11 @@ Rules that apply everywhere:
 - Every outbound call has an explicit timeout (10 seconds). Retries happen only on transport errors and transient codes (E1318, E1319, E1341, E1601, E1603), with exponential backoff and a cap of 3 attempts. A call that moves money or sends something is never blindly retried after a timeout: CaaS generation and verification, Register, OTP request and SMS send are resolved from the charging notification, the subscriber notification, `sms_log` and the reconciliation job instead.
 - Credentials: separate Applink credentials for development and production. Production values exist only in the VM's `.env` (loaded by the compose `env_file:`, never an `ENV` line in a Dockerfile or a value in a committed compose file) and in the team's password manager. A single config module validates every required variable at startup and the process refuses to boot if one is missing. The GitHub repository is public for judging, so CI runs a secret scan (gitleaks) on every push and pull request. A written rotation procedure (rotate in the portal first, deploy the new value, check SMS volume and charges, purge history if anything leaked) is rehearsed once before the freeze, and one named team member owns the Applink account login.
 - Operations: a Slack/Discord alert fires on configuration-class errors (E1303, E1313, E1309), because they mean the integration is down. Failed callback and job processing goes to a pg-boss dead-letter queue that is reviewed daily. Base Size is polled hourly into a small metrics table together with send volume, delivery rate and charge success rate. `deploy/README.md` holds a runbook for E1303, E1313, E1343, a charge stuck at P1003, and a charging dispute (look up the ledger row by `externalTrxId`, check the charging notification, never re-charge).
-- Privacy and retention: number masking is requested if Applink allows it, because only the stored `subscriber_id` is needed for SMS, USSD and billing (the typed number is kept encrypted only so the app can show a dial button). Retention is enforced by a nightly job: `sms_log` 90 days, `callback_dedupe` 30 days, `agent_traces` 30 days, `otp_sessions` 24 hours after expiry, `ussd_sessions` removed after the session TTL, `audit_log` 1 year. On delete-my-data, or after Applink Unregister when no account remains, the `subscriber_id` and encrypted phone (including a dependent's `profiles.subscriber_id` and `phone_enc`) are deleted or anonymised. Messages, OTPs, `referenceNo` and `requestCorrelator` values are never logged.
-- Opted-out users are never re-subscribed without fresh recorded consent. `tel:all` (broadcast to the whole base) is never used: the client refuses it, and there is no broadcast feature. An inbound SMS or USSD session from a `subscriber_id` that matches neither a `users` row nor a `profiles` row gets a generic ASCII reply to register in the app and creates nothing.
+- Privacy and retention: number masking is requested if Applink allows it, because only the stored `subscriber_id` is needed for SMS and billing (the typed number is kept encrypted only so the app can show a dial button). Retention is enforced by a nightly job: `sms_log` 90 days, `callback_dedupe` 30 days, `agent_traces` 30 days, `otp_sessions` 24 hours after expiry, `audit_log` 1 year. On delete-my-data, or after Applink Unregister when no account remains, the `subscriber_id` and encrypted phone (including a dependent's `profiles.subscriber_id` and `phone_enc`) are deleted or anonymised. Messages, OTPs, `referenceNo` and `requestCorrelator` values are never logged.
+- Opted-out users are never re-subscribed without fresh recorded consent. `tel:all` (broadcast to the whole base) is never used: the client refuses it, and there is no broadcast feature. An inbound SMS from a `subscriber_id` that matches neither a `users` row nor a `profiles` row gets no reply and creates nothing (so the shortcode cannot be used as an SMS relay).
 - Send everything through the queue and throttle for the per-second (E1318) and per-day (E1319) limits.
-- `subscriberId` is opaque. Depending on how the Applink application is set up it may be a masked value, not a phone number. Store exactly what Applink returns (from OTP verify) in `users.subscriber_id`, or in `profiles.subscriber_id` for a dependent who verified their own number through Family Link, and use it for every later call. Inbound callbacks (`sourceAddress`, `destinationAddress`, `subscriberId`) are matched by `subscriber_id` to a user or to a profile (an SMS reply, USSD session, delivery report or STOP from a dependent's own phone resolves to that profile and its open doses), never by comparing against the phone number the user typed. A STOP from a dependent's number calls Unregister for that `subscriber_id` and records the opt-out against the profile. The typed number is used only to start `/otp/request`. Never put `subscriber_id` in the JWT or any client-visible token.
-- Callbacks: acknowledge first with HTTP 200 and `{ "statusCode": "S1000", "statusDetail": "Success" }`, then queue and process out of band. Always return 200, even for payloads we reject (log and discard). Validate the body schema. Verify `applicationId` on the callbacks that carry it (SMS receive, USSD receive, subscriber notification). The delivery report and charging notification do not carry it, so they rely on source-IP restriction plus matching `requestId` / `externalTrxId` against rows we created. Applink signs nothing. Dedupe keys: SMS receive `requestId`; delivery report `requestId` + `deliveryStatus`; USSD receive `requestId`; subscriber notification `subscriberId` + `status` + `timeStamp`; charging notification `externalTrxId` + `statusCode`. Strip the password from the subscriber notification (by key name, in the logger) before anything is logged. A callback is never authorisation on its own.
+- `subscriberId` is opaque. Depending on how the Applink application is set up it may be a masked value, not a phone number. Store exactly what Applink returns (from OTP verify) in `users.subscriber_id`, or in `profiles.subscriber_id` for a dependent who verified their own number through Family Link, and use it for every later call. Inbound callbacks (`sourceAddress`, `destinationAddress`, `subscriberId`) are matched by `subscriber_id` to a user or to a profile (an SMS reply, delivery report or STOP from a dependent's own phone resolves to that profile and its open doses), never by comparing against the phone number the user typed. A STOP from a dependent's number calls Unregister for that `subscriber_id` and records the opt-out against the profile. The typed number is used only to start `/otp/request`. Never put `subscriber_id` in the JWT or any client-visible token.
+- Callbacks: acknowledge first with HTTP 200 and `{ "statusCode": "S1000", "statusDetail": "Success" }`, then queue and process out of band. Always return 200, even for payloads we reject (log and discard). Validate the body schema. Verify `applicationId` on the callbacks that carry it (SMS receive, subscriber notification). The delivery report and charging notification do not carry it, so they rely on source-IP restriction plus matching `requestId` / `externalTrxId` against rows we created. Applink signs nothing. Dedupe keys: SMS receive `requestId`; delivery report `requestId` + `deliveryStatus`; subscriber notification `subscriberId` + `status` + `timeStamp`; charging notification `externalTrxId` + `statusCode`. Strip the password from the subscriber notification (by key name, in the logger) before anything is logged. A callback is never authorisation on its own.
 - Logs hold identifiers only (`requestId`, `sessionId`, `externalTrxId`, `internalTrxId`, `statusCode`): no message bodies, OTPs, `referenceNo` values or unmasked subscriber ids; subscriber ids show the last 3 digits only.
 
 By API:
@@ -351,10 +347,9 @@ By API:
   - Because verify activates a subscription, the screen shown before `/otp/request` discloses what the user is opting into (including any charge, amount, currency and frequency), and the consent row is written before the request. The same applies to a dependent verifying a Family Link OTP.
   - Store the `subscriberId` and `subscriptionStatus` from the verify response as given and treat them as opaque. Error handling: E1850 (invalid OTP) re-prompts against the same session, E1851 (expired) needs a new request, E1855 (invalid reference) needs a new request, E1856 and E1603 are surfaced as a retry-later. Sign-up also maps E1317 (number invalid or not served), E1342 (blacklisted: no retry, and no further messages to that number) and E1343 (not whitelisted, which is every number outside the test list during Limited Production) to the friendly Bangla messages in design.md Screen 10, never a raw code.
 - SMS: reminders, caregiver alerts, refill and appointment reminders, the weekly digest, SMS Q&A. Every send goes through the queue. `destinationAddresses` is always an array, the top-level `statusCode` is not enough because a multi-recipient send can partly fail (read each entry of `destinationResponses`), and `requestId` is saved in `sms_log` because delivery reports carry it. Send `deliveryStatusRequest: "1"` only for messages whose report we use. Omit `sourceAddress` unless it is a provisioned alias (else E1331). Addresses are sent without a `+`; if SMS returns E1325, try the `+` form for that endpoint only and report it to Applink support. Delivery states are DELIVERED, EXPIRED, DELETED, UNDELIVERABLE, ACCEPTED, UNKNOWN and REJECTED (SMPP spellings such as DELIVRD and UNDELIV are normalised on the way in). ACCEPTED is not DELIVERED, reports arrive late, twice, or never, and repeated UNDELIVERABLE for a number means stop messaging it. Inbound SMS (MO) arrives with the keyword included, so every reminder tells the user to reply with the keyword, for example `UPOSHOM 1`, and the parser trims, collapses whitespace and compares the keyword case-insensitively. STOP, UNSUB and OFF are honoured in every channel immediately, including queued messages, by calling Subscription Unregister. An MO SMS is not authenticated beyond the source address, so it may mark a dose taken, snoozed or skipped but never triggers a charge, a subscription change other than opt-out, or any destructive action. Bangla SMS is Unicode (UCS-2), about 70 characters per part, and each extra part is billed, so templates stay under one segment where possible. Never put an OTP or full personal data in an SMS body. Discreet mode sends a generic time-for-your-medicine text with no drug names. If one number serves several profiles, the message carries a short profile tag so replies match the right dose. The free tier has an SMS quota from config.
-- USSD: one menu set, the same in 15.4 and design.md 6.19. Patient menu: `1` today's medicines, `2` mark taken, `3` next appointment, `4` I need help (alerts the caregiver), `5` stop service, `0` exit. Caregiver menu: `1` acknowledge alert, `2` adherence snapshot, `3` stop service, `0` exit. Stop service is a two-step opt-out: option 5 (or 3) shows a confirmation screen (`1` yes, stop; `2` no, go back), and `1` calls Subscription Unregister for that `subscriber_id`, records the opt-out, cancels queued messages, and ends the session with an `mt-fin` screen confirming it (a paid Family Circle subscription is cancelled by the same call, and the confirmation screen says so). The callback response is only an acknowledgement, sent before any other work. The screen comes from a separate `/ussd/send` call (with `version`, `applicationId`, `password`, `message`, `sessionId`, `ussdOperation`, `destinationAddress`, `encoding`), the platform's `sessionId` is echoed (never generated), and terminal screens end with `mt-fin`. Encoding `440` is plain ASCII, so USSD screens are Latin script only (English or transliterated Bangla), never Bangla script. Keep each screen under about 160 characters. Session state lives in Postgres keyed by `sessionId` with a TTL of about 2 minutes. Anything slow (charging, third-party calls) is deferred and the user is told the result arrives by SMS.
-- Subscription: the Family Circle plan and the pharmacy plan. Record explicit consent with evidence (what was shown, when, which channel, amount, currency, frequency) before Register, after disclosing amount, currency and frequency. Register and Unregister send only `applicationId`, `password`, `subscriberId` and `action` (`"1"` or `"0"`). Decide the outcome from `subscriptionStatus` in the response, because S1000 only means the request was processed (the unregister sample returns S1000 for someone never registered). Applink has no "already registered" error code, so Register and Unregister are made idempotent by reading `subscriptionStatus`. Only REGISTERED and TRIAL are active states, but an active status alone never unlocks Premium, because `/otp/verify` already returns REGISTERED at free sign-up. The Premium gate is: an active `subscriptions_mirror` row for the subscriber AND a recorded `FAMILY_CIRCLE` (or pharmacy-plan) consent row AND a recorded Register call we made for that plan. `users.applink_subscription_status` (set at OTP verify) is informational only and is never read by the entitlement check. A sign-up REGISTERED with no plan consent and no plan Register stays free. If a later Register for an already-active number returns REGISTERED with no new notification, the plan screen resolves from the Register response itself (status read from `subscriptionStatus`) and the next sweep, not by waiting for a notification that may never come. REG_PENDING means activation is in progress (wait for the notification and do not re-register), TEMPORARY_BLOCKED is a billing failure (show the fix-payment path, do not log out), and UNREGISTERED and INITIAL show the re-subscribe screen. Entitlements read only the local mirror fed by the subscriber notification, and the mirror stores when and by what it was last confirmed. A nightly sweep of `getSubscriberChargingInfo` (at most 10 `subscriberIds` per call, array sent as `subscriberIds`, no space after `tel:`) reconciles stale rows, and branches on each entry's own `statusCode`. No Applink call on any login or page-load path, and if a lookup fails we serve the last known good state. A notification is not authorisation: before unlocking a paid feature it is reconciled against our own consent and subscribe records. Opt-out is available on the Android app, SMS, and USSD.
+- Subscription: the Family Circle plan and the pharmacy plan. Record explicit consent with evidence (what was shown, when, which channel, amount, currency, frequency) before Register, after disclosing amount, currency and frequency. Register and Unregister send only `applicationId`, `password`, `subscriberId` and `action` (`"1"` or `"0"`). Decide the outcome from `subscriptionStatus` in the response, because S1000 only means the request was processed (the unregister sample returns S1000 for someone never registered). Applink has no "already registered" error code, so Register and Unregister are made idempotent by reading `subscriptionStatus`. Only REGISTERED and TRIAL are active states, but an active status alone never unlocks Premium, because `/otp/verify` already returns REGISTERED at free sign-up. The Premium gate is: an active `subscriptions_mirror` row for the subscriber AND a recorded `FAMILY_CIRCLE` (or pharmacy-plan) consent row AND a recorded Register call we made for that plan. `users.applink_subscription_status` (set at OTP verify) is informational only and is never read by the entitlement check. A sign-up REGISTERED with no plan consent and no plan Register stays free. If a later Register for an already-active number returns REGISTERED with no new notification, the plan screen resolves from the Register response itself (status read from `subscriptionStatus`) and the next sweep, not by waiting for a notification that may never come. REG_PENDING means activation is in progress (wait for the notification and do not re-register), TEMPORARY_BLOCKED is a billing failure (show the fix-payment path, do not log out), and UNREGISTERED and INITIAL show the re-subscribe screen. Entitlements read only the local mirror fed by the subscriber notification, and the mirror stores when and by what it was last confirmed. A nightly sweep of `getSubscriberChargingInfo` (at most 10 `subscriberIds` per call, array sent as `subscriberIds`, no space after `tel:`) reconciles stale rows, and branches on each entry's own `statusCode`. No Applink call on any login or page-load path, and if a lookup fails we serve the last known good state. A notification is not authorisation: before unlocking a paid feature it is reconciled against our own consent and subscribe records. Opt-out is available on the Android app and by SMS.
 - CaaS: two calls then a callback, and every payment is its own flow with a new `externalTrxId` and a new OTP (a live session or an earlier OTP never authorises a charge). A ledger row (`charges`, status PENDING) is written with `externalTrxId` **before** `/caas/direct/debit` is called. The debit response is P1003 (OTP sent, nothing charged) and carries `requestCorrelator` and `internalTrxId`, which are saved, after asserting the echoed `externalTrxId` matches. `/caas/otp/verify` takes `referenceNo` (= `requestCorrelator`), `otp` and `sourceAddress`; its S1000 only means the charge was submitted. The charging notification is the only thing that settles the ledger. Fulfil only when it arrives with `statusCode` S1000, `paidAmount` covering the amount and `balanceDue` of 0. Partial (P-prefixed) or error (E-prefixed) notifications are recorded, not fulfilled. Never re-run generation to retry a verification: E1850 re-prompts for the OTP against the same `referenceNo`, and E1851 (OTP expired) abandons the charge (the user starts a new payment with a new `externalTrxId`, it is never silently restarted). E1337 (duplicate) means resolve the original from the notification. E1326 (insufficient balance) is shown to the user and not retried immediately. A reconciliation job resolves charges stuck at P1003 or timed out. Amounts are decimal BDT strings (`Currency` has a capital C on this API), come from server-side config keyed by the feature (the app sends only a `featureKey`, never an amount), and must equal what the payment sheet disclosed. `externalTrxId` is a ULID or UUIDv4, unique across all time.
-- Test matrix: USSD Stop service (confirm, then Unregister, then `mt-fin`), an SMS reply and a STOP from a dependent's own number resolving to their profile, callbacks with malformed JSON, an oversized body and a wrong content type all returning 200 S1000, duplicate callbacks (each on its own dedupe key), partial payment then full payment (two charging notifications with different `statusCode`), E1313, E1303, E1343, E1326, E1337, E1850, E1851, E1855 and timeouts, all tested from the production IP.
+- Test matrix: an SMS STOP (opt-out recorded at once, then Unregister), an SMS reply and a STOP from a dependent's own number resolving to their profile, callbacks with malformed JSON, an oversized body and a wrong content type all returning 200 S1000, duplicate callbacks (each on its own dedupe key), partial payment then full payment (two charging notifications with different `statusCode`), E1313, E1303, E1343, E1326, E1337, E1850, E1851, E1855 and timeouts, all tested from the production IP.
 - Before requesting production approval (Applink checks these): the portal application description states accurately what Uposhom does, the Family Circle price (30 BDT per month) and the 5.00 BDT pay-per-use charge are the amounts the app discloses, and terms of service, a privacy policy and a support contact (email and phone, shown in Settings and in the SMS help reply) are published and reachable by users. Limited Production testing with whitelisted numbers is finished first.
 - Open questions for the 24 Nov mentoring: (1) which numbers can be billed or messaged. Product rule: anyone can create an account with any Bangladeshi number, so sign-up never filters by operator in our code. Applink itself runs on the Banglalink network, so confirm with Applink that OTP and SMS reach numbers on other networks. If it does not, those numbers come back as E1317 and sign-up needs a fallback (not designed yet); until then they see the generic "number cannot be used" message in Screen 10. Also confirm which numbers can be billed for the paid plans. (2) Because OTP verify activates a subscription, how the Uposhom application is provisioned: whether OTP sign-up (free binding) and the paid Family Circle and pharmacy plans are the same Applink application or separate ones, and whether OTP activation itself triggers a charge. If the Day 0 emails have already gone out, send this as a follow-up now rather than waiting for the mentoring, because the answer decides the Premium gate and the Screen 10 disclosure wording. If they are separate applications the client takes credentials and endpoint variables per plan, and each has its own callback registration. (3) Whether numbers are plain or masked for this application, which decides how `subscriber_id` and the typed number relate.
 
@@ -384,7 +379,7 @@ Sat 21 Nov, Day 1
 
 Sun 22 Nov, Day 2
 
-- A: SMS send and receive through the queue; USSD skeleton.
+- A: SMS send and receive through the queue.
 - B: pg-boss jobs, reminder state machine, escalation.
 - C: explainer with numeric guard; brand matching.
 - D: Medication schedule view, dose log components (swipe-to-confirm), Notifee channels with action buttons (Taken/Snooze/Skip), Expo Push registration, caregiver view.
@@ -395,7 +390,7 @@ Mon 23 Nov, Day 3
 
 Tue 24 Nov, Day 4 (submission portal opens, mentoring starts)
 
-- A: live OTP, USSD, Subscription. B: adherence, snooze and skip, course end, refill dates. C: report extraction. D: Subscription consent and Premium upgrade screens, caregiver alert inbox with acknowledge, settings (discreet mode, opt-out, delete data), OTP sign-up polish.
+- A: live OTP, Subscription. B: adherence, snooze and skip, course end, refill dates. C: report extraction. D: Subscription consent and Premium upgrade screens, caregiver alert inbox with acknowledge, settings (discreet mode, opt-out, delete data), OTP sign-up polish.
 - Book mentor sessions for Applink integration and business model.
 - Evening: P0 demo-ready checkpoint. Record a rough full run as insurance.
 
@@ -436,7 +431,7 @@ Drop order if time runs short (cut first to last):
 5. Symptom journaling
 6. Push notifications (fall back to SMS alone)
 
-Never cut: the Android confirm screen, the engine tests, the escalation ladder, and live OTP, SMS, USSD, Subscription and CaaS.
+Never cut: the Android confirm screen, the engine tests, the escalation ladder, and live OTP, SMS, Subscription and CaaS.
 
 Risks:
 
@@ -456,14 +451,14 @@ Risks:
 
 1. 0:00 to 0:15, the problem and the caregiver and patient split.
 2. 0:15 to 0:45, snap a prescription in the Android app, side-by-side confirm screen, schedule appears, Bangla explanation.
-3. 0:45 to 1:10, a reminder alert triggers on Android + SMS arrives on a real phone and the reply is 1; then a missed critical dose triggers the caregiver SMS and a USSD acknowledgement.
-4. 1:10 to 1:30, the feature-phone USSD menu.
+3. 0:45 to 1:10, a reminder alert triggers on Android + SMS arrives on a real phone and the reply is 1; then a missed critical dose triggers the caregiver SMS and the caregiver acknowledges it.
+4. 1:10 to 1:30, SMS reply codes and STOP on a feature phone.
 5. 1:30 to 1:50, OTP link in Android app, Subscription consent, CaaS pay-per-use, generic finder.
 6. 1:50 to 2:00, the architecture and safety diagram.
 
 ## 13. Submission and after
 
-- Proposal pages: P1 name, team, track; P2 executive summary; P3 problem; P4 solution; P5 technical implementation and safety pipeline; P6 all five Applink flows; P7 revenue model, 6-month plan, promotion plan; P8 orchestration and handoff diagram with a trace screenshot.
+- Proposal pages: P1 name, team, track; P2 executive summary; P3 problem; P4 solution; P5 technical implementation and safety pipeline; P6 all four Applink flows; P7 revenue model, 6-month plan, promotion plan; P8 orchestration and handoff diagram with a trace screenshot.
 - Also required: an accessible GitHub repo with Android source code and backend, the demo video and the submission form. Optional but encouraged: a downloadable APK and the deployed backend URL. Keep the repo, URL and video accessible until the end of the finale.
 - Declare earlier code and assets, and list all AI tools used. Declare Theme 2, category 04 (Healthcare, MedTech and Longevity) and Theme 4, category 11 (Agentic AI & Autonomous Systems).
 - If shortlisted on 5 Dec: use the 6 to 16 Dec sprint to apply jury feedback and run the Applink go-live checklist (node tools/applink.mjs checklist) against the real project, with live APIs, from the production IP. Two or more members must attend the finale in person.
@@ -490,7 +485,6 @@ flowchart TD
     subgraph Domain_Core ["Deterministic Domain Engines (Zero-AI Execution)"]
         ScheduleEngine["Schedule Engine (100% Deterministic, Asia/Dhaka)"]
         EscalationSM["Caregiver Escalation State Machine"]
-        UssdSM["USSD Interactive Session Engine (Ascii 440)"]
     end
 
     subgraph Async_Workers ["Background Processing & Queue Layer"]
@@ -544,7 +538,6 @@ flowchart TD
     CallbackReceiver --> CallbackWorker
 
     CallbackWorker --> EscalationSM
-    CallbackWorker --> UssdSM
     CallbackWorker --> Postgres
 
     AgentsSDK --> NumericGuard
@@ -655,7 +648,7 @@ stateDiagram-v2
     
     Stage2Overdue --> CaregiverAlerted: Item flagged critical -> Send push to Caregiver Android app + Applink SMS
     Stage2Overdue --> FinalMissed: Item not critical -> logged missed at T+30, included in weekly digest, no caregiver alert
-    CaregiverAlerted --> Acknowledged: Caregiver acknowledges via Android app, SMS reply, or USSD
+    CaregiverAlerted --> Acknowledged: Caregiver acknowledges via Android app or SMS reply
     CaregiverAlerted --> SecondaryCaregiver: 20 mins without Caregiver ACK (T+50) -> Alert secondary
     CaregiverAlerted --> Taken: Patient takes the dose late -> alerts cancelled, recorded as taken late
     
@@ -668,51 +661,34 @@ stateDiagram-v2
 
 ---
 
-### 15.4 Flow 4: Interactive USSD Session (*195#)
-Features-phone support for patients and rural caregivers using Applink USSD APIs. Encoding `440` is plain ASCII, so every screen is Latin script (English or transliterated Bangla) and about 160 characters at most. Bangla script is only possible in the app and in SMS.
+### 15.4 Flow 4: SMS Reply Codes and STOP
+Feature-phone support for patients and rural caregivers rides on plain SMS. Every reminder tells the user to reply with the keyword and a code, and STOP, UNSUB or OFF opts out. Replies are matched by `subscriber_id`, never call an LLM, and can only mark a dose taken, snoozed or skipped, or opt out. Bangla script is possible in SMS (UCS-2, about 70 characters per part).
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor User as Feature Phone User
-    participant Applink as Applink USSD Gateway
-    participant Callback as Callback Receiver (/api/applink/ussd/receive)
-    participant Worker as USSD Session Manager
+    participant Applink as Applink SMS Gateway
+    participant Callback as Callback Receiver (/api/applink/sms/receive)
+    participant Worker as SMS Reply Processor
     participant DB as PostgreSQL
-    participant Client as Applink Client (POST /ussd/send)
+    participant Client as Applink Client (POST /subscription/send)
 
-    User->>Applink: Dials *195#
-    Applink->>Callback: POST /api/applink/ussd/receive { version: "1.0", applicationId, requestId, sessionId, ussdOperation: "mo-init", message: "*195#", sourceAddress: "tel:88019...", encoding: "440" }
+    User->>Applink: Replies "UPOSHOM 1" to a reminder
+    Applink->>Callback: POST /api/applink/sms/receive { version: "1.0", applicationId, requestId, sourceAddress: "tel:88019...", message: "UPOSHOM 1", encoding: "0" }
     Callback-->>Applink: 200 OK { statusCode: "S1000", statusDetail: "Success" }
-    
-    Callback->>Worker: Enqueue USSD Event (dedupe on requestId; applicationId verified)
-    Worker->>DB: Upsert ussd_sessions (sessionId, stage: "MAIN_MENU", subscriber_id from sourceAddress, ttl about 2 min)
-    Worker->>Client: POST /ussd/send { version: "1.0", applicationId, password, sessionId (echoed), ussdOperation: "mt-cont", destinationAddress, encoding: "440", message: "Uposhom Health:\n1. Today's medicines\n2. Mark taken\n3. Next appointment\n4. Alert my caregiver\n5. Stop service\n0. Exit" }
-    Client->>Applink: Dispatches Screen to Handset
-    Applink-->>User: Screen Renders on Phone
 
-    User->>Applink: Presses "2" (Mark Taken)
-    Applink->>Callback: POST /api/applink/ussd/receive { version: "1.0", applicationId, requestId, sessionId, ussdOperation: "mo-cont", message: "2", sourceAddress, encoding: "440" }
-    Callback-->>Applink: 200 OK { statusCode: "S1000", statusDetail: "Success" }
-    
-    Callback->>Worker: Dispatch Option "2" (dedupe on requestId, not sessionId)
-    Worker->>DB: Resolve subscriber_id to a user or a dependent profile, query its pending doses -> Mark latest due dose as 'TAKEN'
-    Worker->>Client: POST /ussd/send { version: "1.0", applicationId, password, sessionId, ussdOperation: "mt-fin", destinationAddress, encoding: "440", message: "Success: Your 8:00 AM dose (Napa Extra) has been marked as TAKEN. Stay healthy!" }
-    Client->>Applink: Terminal screen sent
-    Applink-->>User: Final Screen displays and session terminates
+    Callback->>Worker: Enqueue MO event (dedupe on requestId; applicationId verified)
+    Worker->>DB: Resolve subscriber_id to a user or a dependent profile, query its pending doses -> mark the latest due dose TAKEN (1), snoozed (2) or skipped (3)
+    Note over Worker: A sender that matches no user or profile gets no reply and creates nothing
 
-    Note over User,Applink: Opt-out in the USSD channel (a separate session): Stop service
-    User->>Applink: Presses "5" (Stop service)
-    Applink->>Callback: POST /api/applink/ussd/receive { ussdOperation: "mo-cont", message: "5", sessionId, ... }
+    Note over User,Applink: Opt-out by SMS: STOP, UNSUB or OFF
+    User->>Applink: Replies "STOP"
+    Applink->>Callback: POST /api/applink/sms/receive { ..., message: "STOP", requestId, sourceAddress }
     Callback-->>Applink: 200 OK { statusCode: "S1000", statusDetail: "Success" }
-    Callback->>Worker: Dispatch option "5" (dedupe on requestId)
-    Worker->>Client: POST /ussd/send { ussdOperation: "mt-cont", sessionId, message: "Stop Uposhom service and SMS reminders?\n1. Yes, stop\n2. No, go back" }
-    User->>Applink: Presses "1"
-    Applink->>Callback: POST /api/applink/ussd/receive { ussdOperation: "mo-cont", message: "1", sessionId, ... }
-    Callback-->>Applink: 200 OK { statusCode: "S1000", statusDetail: "Success" }
-    Worker->>Client: POST /subscription/send { applicationId, password, subscriberId, action: "0" } (decide from subscriptionStatus)
-    Worker->>DB: Record opt-out (sms_opt_outs, consent withdrawn), cancel queued messages for this subscriber_id
-    Worker->>Client: POST /ussd/send { ussdOperation: "mt-fin", sessionId, message: "Uposhom service stopped. You will get no more messages. Open the app to join again." }
+    Callback->>Worker: Enqueue MO event (dedupe on requestId)
+    Worker->>DB: Record opt-out (sms_opt_outs, consent withdrawn) at once; queued messages for this subscriber_id are skipped when they come up
+    Worker->>Client: POST /subscription/send { applicationId, password, subscriberId, action: "0" } (retried until subscriptionStatus says UNREGISTERED)
 ```
 
 ---
@@ -810,8 +786,8 @@ All endpoints adhere strictly to the Applink contract and Fastify API standards.
 > - Strip `password` from the incoming payload **before** any logging occurs (redact by key name in the logger).
 > - Process payloads asynchronously using `pg-boss`, deduplicating on each callback's own key (listed per callback below).
 > - Payloads are unauthenticated JSON: validate the schema, restrict by Applink source IP (enforced by a `remote_ip` matcher in the Caddyfile, not in app code), and never treat a callback as authorisation on its own.
-> - The five route paths are ours, registered in the Applink portal, HTTPS with a full certificate chain, publicly reachable, exempt from JWT/CSRF middleware, and stable once registered. Each carries a mandatory unguessable path segment in production (`APPLINK_CALLBACK_PATH_KEY`, empty only in tests and CI) until Applink's IP list is in the Caddyfile; the paths below are shown without it.
-> - The five callback routes live in their own Fastify plugin (see 4.1): a lenient JSON parser, a small `bodyLimit`, an error handler that returns the S1000 acknowledgement, and no app-level rate limiter (rate-limiting is done at Caddy). Fastify's defaults would otherwise answer malformed JSON with 400, an oversized body with 413, an unsupported content type with 415 and the rate limiter with 429, and Applink may retry on any of them.
+> - The four route paths are ours, registered in the Applink portal, HTTPS with a full certificate chain, publicly reachable, exempt from JWT/CSRF middleware, and stable once registered. Each carries a mandatory unguessable path segment in production (`APPLINK_CALLBACK_PATH_KEY`, empty only in tests and CI) until Applink's IP list is in the Caddyfile; the paths below are shown without it.
+> - The four callback routes live in their own Fastify plugin (see 4.1): a lenient JSON parser, a small `bodyLimit`, an error handler that returns the S1000 acknowledgement, and no app-level rate limiter (rate-limiting is done at Caddy). Fastify's defaults would otherwise answer malformed JSON with 400, an oversized body with 413, an unsupported content type with 415 and the rate limiter with 429, and Applink may retry on any of them.
 > - Callback fields such as `sourceAddress`, `destinationAddress` and `subscriberId` are matched to a user through the stored opaque `users.subscriber_id`, or to a dependent profile through `profiles.subscriber_id`, never by the phone number the user typed.
 
 ---
@@ -819,7 +795,7 @@ All endpoints adhere strictly to the Applink contract and Fastify API standards.
 #### `POST /api/applink/sms/receive`
 Fires when a subscriber sends an SMS to the Applink shortcode with our keyword. **Dedupe key**: `requestId`.
 - **Headers**: `Content-Type: application/json;charset=utf-8`
-- **Request Body Contract** (every field is present; `encoding` here is `"0"` for text, `"240"` or `"245"`, never `"440"` which is USSD only):
+- **Request Body Contract** (every field is present; `encoding` here is `"0"` for text, `"240"` or `"245"`):
 ```json
 {
   "version": "1.0",
@@ -870,38 +846,6 @@ Delivery status report (DLR) for dispatched medication reminders. Only sent for 
   - Match `requestId` against a row in `sms_log` that we created from the `/sms/send` response. Ignore (acknowledge and discard) anything that matches no row.
   - Store the latest status per `requestId`. Reports arrive out of order, late, repeated or never, so the handler is idempotent. `ACCEPTED` is not `DELIVERED`.
   - On `UNDELIVERABLE`, `EXPIRED` or `REJECTED`: mark the message failed. If the dose is critical, bring the caregiver alert forward (non-critical doses keep the normal ladder and go to the digest). Repeated `UNDELIVERABLE` for one subscriber marks the number dead and stops further SMS to it.
-
----
-
-#### `POST /api/applink/ussd/receive`
-Fires when user dials the USSD code or responds to a menu prompt. **Dedupe key**: `requestId` (not `sessionId`, which repeats for every message in a session).
-- **Request Body Contract**:
-```json
-{
-  "version": "1.0",
-  "applicationId": "APP_000375",
-  "message": "1",
-  "requestId": "1330933229901",
-  "sessionId": "1330929317043",
-  "ussdOperation": "mo-cont",
-  "sourceAddress": "tel:8801973579363",
-  "vlrAddress": "tel:8801973579363",
-  "encoding": "440"
-}
-```
-  `vlrAddress` is optional. `ussdOperation` inbound is only `mo-init` or `mo-cont`.
-- **Response** (an acknowledgement only; the screen comes from a separate `/ussd/send`):
-```json
-{
-  "statusCode": "S1000",
-  "statusDetail": "Success"
-}
-```
-- **Async Action**:
-  - Verify `applicationId`, dedupe on `requestId`, load the session from `ussd_sessions` by `sessionId` (TTL about 2 minutes, shared across instances).
-  - If `ussdOperation == "mo-init"`, initialize menu and send root screen via `POST /ussd/send` (`mt-cont`).
-  - If `ussdOperation == "mo-cont"`, dispatch based on current state (e.g. `1` -> List Medicines).
-  - If terminal step, send final message with `ussdOperation: "mt-fin"` to end session cleanly. Every screen is plain ASCII (`encoding: "440"`) and about 160 characters at most. Slow work is deferred and the user is told the result comes by SMS.
 
 ---
 
@@ -984,7 +928,6 @@ The core helper `post(path, body)` injects credentials and validates string type
 | Service | Method & Path | Mandatory Payload | Expected Success Code |
 | :--- | :--- | :--- | :--- |
 | **Send SMS** | `POST /sms/send` | `{ applicationId, password, version: "1.0", message, destinationAddresses: ["tel:880..."] }` plus optional `deliveryStatusRequest: "1"`, `sourceAddress` (a provisioned alias only), `encoding` | `S1000` (also read each `destinationResponses` entry; save `requestId`) |
-| **Send USSD Screen** | `POST /ussd/send` | `{ version: "1.0", applicationId, password, sessionId, ussdOperation: ("mt-cont"\|"mt-fin"), destinationAddress: "tel:880...", message }` plus optional `encoding: "440"` | `S1000` |
 | **Register Sub** | `POST /subscription/send` | `{ applicationId, password, subscriberId: "tel:880...", action: "1" }` (no `version`) | `S1000`, outcome from `subscriptionStatus` |
 | **Unregister Sub** | `POST /subscription/send` | `{ applicationId, password, subscriberId: "tel:880...", action: "0" }` (no `version`) | `S1000`, outcome from `subscriptionStatus` |
 | **Sub Base Size** | `POST /subscription/query-base` | `{ applicationId, password }` | `S1000` (`baseSize` is a string; used as the free connectivity smoke test) |
@@ -1240,7 +1183,7 @@ Agents and engineers must verify each item prior to declaring a milestone comple
 - [ ] **No Raw PII in Logs**: `subscriberId` (last 3 digits only), message contents, OTPs and OTP `referenceNo` values are masked or absent in all structured JSON application logs.
 - [ ] **Stateless Client**: The app never calls Applink directly and contains zero Applink secrets or keys (no `EXPO_PUBLIC_` Applink variables).
 - [ ] **Opaque subscriberId**: `users.subscriber_id` (and `profiles.subscriber_id` for a dependent's own verified number) is stored exactly as Applink returned it from OTP verify, used for every later call and callback match, and never placed in a JWT or any client-visible token.
-- [ ] **Callback Source Restriction**: All five callback routes are reachable only from Applink's source IP ranges (enforced by a Caddy `remote_ip` matcher, with Docker's client-IP preservation tested), over HTTPS with a full certificate chain, outside JWT/CSRF middleware. Until the IP list arrives, each URL carries the mandatory unguessable path segment.
+- [ ] **Callback Source Restriction**: All four callback routes are reachable only from Applink's source IP ranges (enforced by a Caddy `remote_ip` matcher, with Docker's client-IP preservation tested), over HTTPS with a full certificate chain, outside JWT/CSRF middleware. Until the IP list arrives, each URL carries the mandatory unguessable path segment.
 - [ ] **Callbacks always acknowledge**: malformed JSON, an oversized body, a wrong content type and a burst of requests all get HTTP 200 with the S1000 body (`scripts/test-callbacks.sh` passes against the callback plugin).
 
 ### B. Applink Protocol Correctness
@@ -1249,11 +1192,10 @@ Agents and engineers must verify each item prior to declaring a milestone comple
 - [ ] **CaaS Idempotency**: `externalTrxId` (ULID or UUIDv4) is generated and saved *before* calling debit; never generated fresh on retries; OTP generation is never re-run to retry a verification (E1850 re-prompts on the same `referenceNo`).
 - [ ] **OTP Flow**: `/otp/request` returns a `referenceNo` stored server-side only; `/otp/verify` sends `referenceNo` + `otp`; the 5-minute validity, attempt cap and per-number/per-IP request rate limits are enforced on our side; the opt-in is disclosed before the request.
 - [ ] **Subscription Requests**: Register and Unregister send only `applicationId`, `password`, `subscriberId` and `action`; the outcome is read from `subscriptionStatus`; no `version` field.
-- [ ] **String Values Everywhere**: Scalar request values are strings (`"amount": "5.00"`, `"action": "1"`); only the documented arrays (`destinationAddresses`, `subscriberIds`) and the optional `applicationMetaData` object are not. `version` is sent only to SMS and USSD.
+- [ ] **String Values Everywhere**: Scalar request values are strings (`"amount": "5.00"`, `"action": "1"`); only the documented arrays (`destinationAddresses`, `subscriberIds`) and the optional `applicationMetaData` object are not. `version` is sent only to SMS.
 - [ ] **Capitalization Rules**: CaaS generation uses `"Currency": "BDT"`; Query Balance uses `"currency"`; the charging notification's `TotalAmount` has a capital T while `paidAmount` and `balanceDue` do not.
 - [ ] **Address Normalization**: All MSISDNs are passed through `normalizeMsisdn()` producing `tel:8801...` (no `+`, no space).
 - [ ] **Immediate 200 Callback Ack**: Inbound webhooks return `200 OK` with `{ statusCode: "S1000", statusDetail: "Success" }` within <500ms, before any other work.
-- [ ] **USSD Encoding**: All USSD screens use ASCII encoding `440` (Latin script, about 160 characters at most), echo the platform's `sessionId`, and end with `mt-fin` on terminal screens.
 - [ ] **SMS Handling**: `destinationAddresses` is an array; each `destinationResponses` entry's `statusCode` is read; `requestId` is saved in `sms_log`; delivery states are DELIVERED, EXPIRED, DELETED, UNDELIVERABLE, ACCEPTED, UNKNOWN and REJECTED (there is no FAILED); the MO keyword is trimmed and compared case-insensitively; STOP, UNSUB and OFF call Subscription Unregister.
 
 ### C. Safety & Domain Core Integrity
@@ -1275,16 +1217,16 @@ Agents and engineers must verify each item prior to declaring a milestone comple
 ### E. Automated Test Matrix
 - [ ] Unit test suite for `packages/schedule-engine` passes with 100% branch coverage across 30 synthetic prescriptions.
 - [ ] Conformance test passes against local `scripts/mock-applink.mjs` with zero `BAD` lines.
-- [ ] Callback replay curls verify deduplication on each callback's own key: `requestId` (SMS receive and USSD receive), `requestId` + `deliveryStatus` (delivery report), `subscriberId` + `status` + `timeStamp` (subscriber notification), and `externalTrxId` + `statusCode` (charging notification, including partial payment followed by full payment).
+- [ ] Callback replay curls verify deduplication on each callback's own key: `requestId` (SMS receive), `requestId` + `deliveryStatus` (delivery report), `subscriberId` + `status` + `timeStamp` (subscriber notification), and `externalTrxId` + `statusCode` (charging notification, including partial payment followed by full payment).
 - [ ] Callback and request payloads in the mock and in tests match the published contracts (`node tools/applink.mjs validate <id> '<json>'` passes for every request body we build).
 
 ### F. Applink Go-Live Readiness (run `node tools/applink.mjs checklist` before requesting full production approval)
 - [ ] **Credentials**: separate dev and production credentials; production only in the VM `.env` via `env_file`; startup validation refuses to boot on a missing variable; gitleaks passes in CI; rotation procedure rehearsed once; a named owner can log in to the Applink portal.
-- [ ] **Network**: production egress IP confirmed on the VM with `curl -4 https://api.ipify.org` and added to Allowed Host Addresses; all five callback URLs HTTPS with a full chain, stable, publicly reachable, IP-restricted to Applink's ranges and exempt from JWT/CSRF; TLS verification never disabled.
-- [ ] **Provisioning**: SMS, USSD, Subscription, OTP and CaaS are all enabled on the application; the shortcode, SMS keyword and USSD code match what the app and demo say; the masking setting is decided; Query Balance is unconfigured unless confirmed.
+- [ ] **Network**: production egress IP confirmed on the VM with `curl -4 https://api.ipify.org` and added to Allowed Host Addresses; all four callback URLs HTTPS with a full chain, stable, publicly reachable, IP-restricted to Applink's ranges and exempt from JWT/CSRF; TLS verification never disabled.
+- [ ] **Provisioning**: SMS, Subscription, OTP and CaaS are all enabled on the application; the shortcode and SMS keyword match what the app and demo say; the masking setting is decided; Query Balance is unconfigured unless confirmed.
 - [ ] **Resilience**: explicit 10 s timeout on every call; retries only for transport errors and transient codes, capped at 3; no blind retry of money or send calls; throttle for E1318 and E1319; pg-boss dead-letter queue reviewed.
 - [ ] **Charging**: ledger row written before the debit; `requestCorrelator` and `internalTrxId` stored; E1851 abandons; E1337 resolved from the notification; amounts server-side and equal to what was disclosed; reconciliation job tested with a charge stuck at P1003.
-- [ ] **Consent and opt-out**: consent evidence stored for every Register and every OTP opt-in; STOP, UNSUB and OFF work by SMS, in the app and on USSD and cancel queued messages; no re-subscribe without fresh consent; `tel:all` blocked.
+- [ ] **Consent and opt-out**: consent evidence stored for every Register and every OTP opt-in; STOP, UNSUB and OFF work by SMS and in the app and cancel queued messages; no re-subscribe without fresh consent; `tel:all` blocked.
 - [ ] **Privacy and retention**: subscriber ids masked in logs; no message bodies, OTPs, `referenceNo` or `requestCorrelator` in logs; retention job running; data deleted or anonymised on delete-my-data.
 - [ ] **Operations**: alert on E1303, E1313 and E1309; Base Size and delivery and charge success metrics collected; runbook in `deploy/README.md` covers E1303, E1313, E1343, a stuck P1003 and a charging dispute.
 - [ ] **Approval pack**: accurate portal application description; terms of service, privacy policy and support contact published in the app; charges match the disclosed amounts; Limited Production testing with whitelisted numbers completed, from the production egress IP.
@@ -1297,7 +1239,7 @@ Ownership is defined once, in section 2 (workstreams A to D). This section lists
 
 ```mermaid
 flowchart LR
-    A["A: Platform & Applink (CI, hosting, Applink client, callbacks, OTP/SMS/USSD/Subscription/CaaS, entitlements)"]
+    A["A: Platform & Applink (CI, hosting, Applink client, callbacks, OTP/SMS/Subscription/CaaS, entitlements)"]
     B["B: Domain & Engine (migrations, schedule engine, jobs, escalation, adherence, admin traces API)"]
     C["C: AI & Data (agents, vision, guards, report vault, drug tables, seed data)"]
     D["D: Mobile & UI (Expo app, Pharmacy account, admin trace screen)"]
@@ -1318,10 +1260,10 @@ Integration checkpoints (all four attend): Day 1 evening (contracts frozen in `p
 * **Role**: Platform & Telco Infrastructure Architect
 * **Core Responsibilities**:
   1. Monorepo, Docker Compose (`postgres:16`, API, worker; pg-boss runs on Postgres, no Redis), CI/CD, the free VM, Caddy, backups.
-  2. Migrations for the Applink and billing tables: `users`, `otp_sessions`, `sessions`, `consents`, `subscriptions_mirror`, `charges`, `entitlements`, `usage_counters`, `sms_log`, `sms_opt_outs`, `ussd_sessions`, `callback_dedupe` (B owns the Drizzle setup and migration order, see below).
-  3. `packages/applink-client`: universal `post()` helper, `tel:` normalizer, type-safe wrappers for SMS, USSD, Subscription, OTP and CaaS, one endpoint variable per enabled service.
-  4. Fastify callback receivers (`/api/applink/*` (sms/receive, sms/report, ussd/receive, subscription/notify, caas/charging-notification)) with immediate HTTP 200 S1000 ACK, password stripping, per-callback dedupe and `pg-boss` job dispatching.
-  5. Local mock telco (`scripts/mock-applink.mjs`), auth (OTP sign-up, JWT access plus refresh tokens, step-up) and the USSD callback, session store and send wrapper.
+  2. Migrations for the Applink and billing tables: `users`, `otp_sessions`, `sessions`, `consents`, `subscriptions_mirror`, `charges`, `entitlements`, `usage_counters`, `sms_log`, `sms_opt_outs`, `callback_dedupe` (B owns the Drizzle setup and migration order, see below).
+  3. `packages/applink-client`: universal `post()` helper, `tel:` normalizer, type-safe wrappers for SMS, Subscription, OTP and CaaS, one endpoint variable per enabled service.
+  4. Fastify callback receivers (`/api/applink/*` (sms/receive, sms/report, subscription/notify, caas/charging-notification)) with immediate HTTP 200 S1000 ACK, password stripping, per-callback dedupe and `pg-boss` job dispatching.
+  5. Local mock telco (`scripts/mock-applink.mjs`), auth (OTP sign-up, JWT access plus refresh tokens, step-up) and the SMS send wrapper.
   6. CaaS pay-per-use billing service (ledger row, debit OTP, verify, reconciliation, entitlement release) and Subscription mirror sync, entitlements and quotas.
 * **Checkpoint artifacts**:
   - `pnpm test:applink` runs against the mock server with a 100% pass rate, and every request body we build passes `node tools/applink.mjs validate`.
@@ -1337,12 +1279,11 @@ Integration checkpoints (all four attend): Day 1 evening (contracts frozen in `p
   2. `packages/schedule-engine`: pure TypeScript, zero I/O deterministic dose calculator. Parses Latin/Bangla digits (`1+0+1 BDPC`, `½+0+½`, `OD`, `TDS`, `AC/PC`) into exact `Asia/Dhaka` timestamps. It runs on the server only.
   3. pg-boss queue consumers for reminders, refill and appointment reminders, and the weekly digest, with rate-limit throttling.
   4. The Escalation State Machine (section 6): T+0 reminder SMS with reply codes (keyword + 1, 2, 3) and the device alarm; T+15m repeat SMS; T+30m caregiver alert for critical doses (non-critical doses are logged missed at T+30 and go to the digest); T+50m secondary caregiver alert for critical doses, then the dose is logged missed.
-  5. The SMS reply-code command processor and the USSD menu logic (the A-owned `ussd-receive` hands off to it; screens are ASCII 440).
+  5. The SMS reply-code command processor (the A-owned `sms-receive` hands off to it).
   6. Adherence, the admin `GET /api/v1/admin/traces` endpoint and the `agent_traces` table that C writes into.
 * **Checkpoint artifacts**:
   - 100% branch coverage on `packages/schedule-engine` across 30 test prescriptions.
   - Automated integration test simulating a missed critical dose triggers the exact 15m, 30m and 50m sequence, and a missed non-critical dose is logged at T+30 with no caregiver alert.
-  - Interactive USSD test script dials `*195#` and navigates 3 menu tiers in mock mode.
   - The abbreviation and meal-offset table is reviewed by the named pharmacist or doctor by Day 7.
 
 ---
@@ -1457,7 +1398,6 @@ flowchart TD
    - Inbound webhook URLs registered with Applink portal (`<key>` is the mandatory unguessable `APPLINK_CALLBACK_PATH_KEY` until Applink's IP list is enforced in the Caddyfile; it stays in the URL afterwards because paths are stable once registered):
      - `https://<domain>/api/applink/<key>/sms/receive`
      - `https://<domain>/api/applink/<key>/sms/report`
-     - `https://<domain>/api/applink/<key>/ussd/receive`
      - `https://<domain>/api/applink/<key>/subscription/notify`
      - `https://<domain>/api/applink/<key>/caas/charging-notification`
 
@@ -1530,7 +1470,6 @@ jobs:
           # The only local-versus-live switch is the endpoint variables (no real credentials in CI)
           export APPLINK_APP_ID=APP_MOCK APPLINK_PASSWORD=mock-not-a-real-password
           export APPLINK_SMS_SEND_URL=http://127.0.0.1:8089/sms/send
-          export APPLINK_USSD_SEND_URL=http://127.0.0.1:8089/ussd/send
           export APPLINK_SUBSCRIPTION_SEND_URL=http://127.0.0.1:8089/subscription/send
           export APPLINK_SUBSCRIPTION_QUERY_BASE_URL=http://127.0.0.1:8089/subscription/query-base
           export APPLINK_OTP_REQUEST_URL=http://127.0.0.1:8089/otp/request

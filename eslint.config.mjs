@@ -10,6 +10,9 @@ export default tseslint.config(
       '**/build-artifacts/**',
       'apps/mobile/android/**',
       'apps/mobile/.expo/**',
+      // Vendored from the Applink skill, kept byte-for-byte.
+      'tools/catalog.mjs',
+      'scripts/mock-applink.mjs',
     ],
   },
   js.configs.recommended,

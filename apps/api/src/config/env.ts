@@ -28,16 +28,28 @@ const envSchema = z
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
     DATABASE_URL: optionalString,
 
+    // Job queue. `memory` loses queued jobs on restart; `pgboss` keeps them in Postgres and needs
+    // DATABASE_URL. Keep `memory` until the Postgres stores land: pg-boss would otherwise replay
+    // jobs against an sms_log and sessions that restarted empty.
+    QUEUE_DRIVER: z.enum(['memory', 'pgboss']).default('memory'),
+
+    // HMAC secret for access tokens (at least 32 characters). Mandatory in production.
+    JWT_SECRET: optionalString,
+
     // Applink credentials (set when approval lands)
     APPLINK_APP_ID: optionalString,
     APPLINK_PASSWORD: optionalString,
+
+    // Keyword subscribers put at the start of an MO SMS (UPOSHOM 1). Confirm with Applink.
+    SMS_KEYWORD: z.string().trim().min(1).default('UPOSHOM'),
+    // Only a provisioned alias works as the SMS sender (else E1331). Unset uses the default.
+    APPLINK_SMS_SOURCE_ADDRESS: optionalString,
 
     // Unguessable path segment for the five callback URLs. Mandatory in production.
     APPLINK_CALLBACK_PATH_KEY: z.string().default(''),
 
     // One endpoint variable per enabled Applink service
     APPLINK_SMS_SEND_URL: optionalUrl,
-    APPLINK_USSD_SEND_URL: optionalUrl,
     APPLINK_SUBSCRIPTION_SEND_URL: optionalUrl,
     APPLINK_SUBSCRIPTION_QUERY_BASE_URL: optionalUrl,
     APPLINK_SUBSCRIPTION_CHARGING_INFO_URL: optionalUrl,
@@ -52,6 +64,23 @@ const envSchema = z
         code: z.ZodIssueCode.custom,
         path: ['APPLINK_CALLBACK_PATH_KEY'],
         message: 'must be set in production (unguessable callback path segment)',
+      });
+    }
+
+    if (env.QUEUE_DRIVER === 'pgboss' && env.DATABASE_URL === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['DATABASE_URL'],
+        message: 'must be set when QUEUE_DRIVER=pgboss',
+      });
+    }
+
+    if (env.NODE_ENV === 'production' && (env.JWT_SECRET ?? '').length < 32) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['JWT_SECRET'],
+        message:
+          'must be set in production (at least 32 characters, for example openssl rand -hex 32)',
       });
     }
 

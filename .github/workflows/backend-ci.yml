@@ -23,6 +23,22 @@ jobs:
   test-and-verify:
     name: Lint, Test & Telco Mock Conformance
     runs-on: ubuntu-latest
+    # A real Postgres so the pg-boss queue is tested the way it runs in production.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: uposhom_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://postgres:test@127.0.0.1:5432/uposhom_test
     steps:
       - name: Checkout Monorepo (full history for the secret scan)
         uses: actions/checkout@v4
@@ -72,7 +88,6 @@ jobs:
           # The only local-versus-live switch is the endpoint variables (no real credentials in CI)
           export APPLINK_APP_ID=APP_MOCK APPLINK_PASSWORD=mock-not-a-real-password
           export APPLINK_SMS_SEND_URL=http://127.0.0.1:8089/sms/send
-          export APPLINK_USSD_SEND_URL=http://127.0.0.1:8089/ussd/send
           export APPLINK_SUBSCRIPTION_SEND_URL=http://127.0.0.1:8089/subscription/send
           export APPLINK_SUBSCRIPTION_QUERY_BASE_URL=http://127.0.0.1:8089/subscription/query-base
           export APPLINK_OTP_REQUEST_URL=http://127.0.0.1:8089/otp/request

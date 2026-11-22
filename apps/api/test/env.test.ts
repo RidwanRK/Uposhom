@@ -16,13 +16,32 @@ describe('loadConfig', () => {
     );
   });
 
-  it('boots in production when the callback path key is set', () => {
-    const cfg = loadConfig({ NODE_ENV: 'production', APPLINK_CALLBACK_PATH_KEY: 'k3y' });
+  it('boots in production when the callback path key and JWT secret are set', () => {
+    const cfg = loadConfig({
+      NODE_ENV: 'production',
+      APPLINK_CALLBACK_PATH_KEY: 'k3y',
+      JWT_SECRET: 'x'.repeat(32),
+    });
     expect(cfg.APPLINK_CALLBACK_PATH_KEY).toBe('k3y');
+  });
+
+  it('refuses to boot in production without a long enough JWT_SECRET', () => {
+    const base = { NODE_ENV: 'production', APPLINK_CALLBACK_PATH_KEY: 'k3y' };
+    expect(() => loadConfig(base)).toThrow(/JWT_SECRET/);
+    expect(() => loadConfig({ ...base, JWT_SECRET: 'short' })).toThrow(/JWT_SECRET/);
   });
 
   it('allows an empty callback path key in test and development', () => {
     expect(() => loadConfig({ NODE_ENV: 'test' })).not.toThrow();
+  });
+
+  it('defaults to the in-memory queue and requires DATABASE_URL for pg-boss', () => {
+    expect(loadConfig({}).QUEUE_DRIVER).toBe('memory');
+    expect(() => loadConfig({ QUEUE_DRIVER: 'pgboss' })).toThrow(/DATABASE_URL/);
+    expect(
+      loadConfig({ QUEUE_DRIVER: 'pgboss', DATABASE_URL: 'postgres://u:p@h:5432/d' }).QUEUE_DRIVER,
+    ).toBe('pgboss');
+    expect(() => loadConfig({ QUEUE_DRIVER: 'redis' })).toThrow(ConfigError);
   });
 
   it('requires both CaaS URLs or neither', () => {

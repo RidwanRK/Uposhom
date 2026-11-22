@@ -34,7 +34,7 @@ to `main` redeploys the live VM.
 * **AI Sickness History:** Combines symptom logs and past prescriptions to detect recurring illness patterns and offer preventive lifestyle tips, shown on an in-app Insights screen.
 * **Generic Drug Finder & Pharmacy Discovery:** Suggests lower-priced alternatives with the same ingredient, strength and form (indicative prices; a doctor or pharmacist confirms any substitution) and lists nearby pharmacies whose owners have marked them in stock.
 * **Bangla Voice Support:** Hands-free spoken Bangla input for symptom logging and schedule questions ("what is my next medicine?"), with the answer read aloud, for elderly or low-literacy users.
-* **USSD & SMS Access:** Feature-phone menu (`*195#`) and SMS reply codes sent with the shortcode keyword (`UPOSHOM 1` taken, `UPOSHOM 2` snooze, `UPOSHOM 3` skip) for users without smartphones or data.
+* **SMS Access:** SMS reply codes sent with the shortcode keyword (`UPOSHOM 1` taken, `UPOSHOM 2` snooze, `UPOSHOM 3` skip) for users without smartphones or data.
 * **Health Advice Carousel:** Auto-swiping homepage tips on medicine storage and safe usage.
 
 ## 💳 Tiers & Pricing Model
@@ -69,7 +69,7 @@ to `main` redeploys the live VM.
 3. **AI Pipeline:** Vision-model text extraction and JSON structuring through OpenRouter, multi-agent Bangla assistant (OpenAI Agents SDK), and Bangla Speech-to-Text.
 4. **Deterministic Rule Engine:** Non-AI TypeScript package plus pg-boss worker that computes exact reminder timestamps and escalation rules.
 5. **Data & Storage:** PostgreSQL for schedules/users and encrypted Cloudflare R2 object storage for medical scans.
-6. **Applink Telecom APIs:** Carrier integration for OTPs, SMS alerts, USSD, and airtime micro-billing (backend only).
+6. **Applink Telecom APIs:** Carrier integration for OTPs, SMS alerts, and airtime micro-billing (backend only).
 
 > **Sign-up:** Anyone can create an account with any Bangladeshi mobile number. A number Applink rejects sees a clear message at sign-up instead of a silent failure, and during Limited Production only whitelisted test numbers can sign up. Plans are billed to the mobile account (prepaid is debited, postpaid is added to the bill).
 
@@ -92,5 +92,5 @@ Everything is TypeScript except SQL. The app and the server share zod schemas an
 * **Database:** PostgreSQL 16, self-hosted in Docker on the VM, with Drizzle ORM. `pg_trgm` powers drug-name search (Latin names, plus a Bangla name and aliases column for Bangla input). No Redis.
 * **Storage:** Cloudflare R2 (encrypted object storage for prescription and report images)
 * **AI:** `@openai/agents` through OpenRouter (`google/gemini-2.5-flash` for vision and agents, `qwen/qwen2.5-vl-72b-instruct` fallback); Bangla speech-to-text chosen in a Day 1 spike (Whisper or Gemini audio)
-* **Telecom & Billing:** Applink APIs (OTP, SMS, USSD, Subscription, CaaS), called from the backend only
+* **Telecom & Billing:** Applink APIs (OTP, SMS, Subscription, CaaS), called from the backend only
 * **Hosting & CI:** One free always-on VM with a fixed IPv4 (Oracle Cloud Always Free first, Google Cloud e2-micro as the free fallback) running Docker Compose (API, worker, Postgres) behind Caddy. GitHub Actions builds the images into GHCR, deploys over SSH, and builds the APK, which is published as a public GitHub Release asset. Nothing is compiled on the VM.

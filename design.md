@@ -228,7 +228,7 @@ Empowering caregivers to manage multiple dependents remotely.
   - A gear icon in the screen header opens Settings (Screen 15). Tapping a profile card opens Profile Details (Screen 14).
 * **Add Dependent Modal**:
   - Input name, age, relationship, and optional phone number.
-  - If dependent has their own phone: Applink Family Link SMS OTP verification step (the `subscriberId` it returns is stored on that profile, so the dependent's SMS replies, `*195#` sessions and STOP resolve to their own profile) (backend calls `/otp/request` then `/otp/verify`; the app only talks to our own API) to record explicit family-linking consent. A verified Applink OTP also activates a subscription for that number, so the dialog first tells the dependent what they are opting into (including any charge) and the OTP expires after 5 minutes.
+  - If dependent has their own phone: Applink Family Link SMS OTP verification step (the `subscriberId` it returns is stored on that profile, so the dependent's SMS replies and STOP resolve to their own profile) (backend calls `/otp/request` then `/otp/verify`; the app only talks to our own API) to record explicit family-linking consent. A verified Applink OTP also activates a subscription for that number, so the dialog first tells the dependent what they are opting into (including any charge) and the OTP expires after 5 minutes.
   - Meal anchor time customizers: Setting custom morning, noon, and night meal times for that specific dependent.
 
 ---
@@ -340,7 +340,7 @@ Opened from `প্রিমিয়াম নিন` prompts (Free-tier limits
 * **Plan card**: lists what Premium adds (up to 6 dependent profiles, caregiver alerts, unlimited vault, pattern insights, doctor summaries).
 * **Mandatory consent dialog** before anything is requested: `মাসিক চার্জ: ৩০ টাকা (৳৩০) আপনার মোবাইল অ্যাকাউন্ট থেকে কাটা হবে, প্রতি মাসে স্বয়ংক্রিয়ভাবে নবায়ন হবে, যেকোনো সময় বাতিল করা যাবে।` (Amount, currency, charged to the mobile account, monthly renewal, cancel any time). The consent checkbox is unticked by default and the button `নিশ্চিত করুন (Confirm Carrier Subscription)` stays disabled until it is ticked.
 * **After confirming**: a `অনুরোধ পাঠানো হয়েছে, নিশ্চিতকরণের অপেক্ষায় আছি` (request sent, waiting for confirmation) state. Premium unlocks only when the server's subscription record says so (the screen refreshes itself), never from the tap alone.
-* **Cancel**: a visible `সাবস্ক্রিপশন বাতিল করুন` button on the same screen, with a confirmation. The same opt-out also works by SMS (`STOP`) and USSD.
+* **Cancel**: a visible `সাবস্ক্রিপশন বাতিল করুন` button on the same screen, with a confirmation. The same opt-out also works by SMS (`STOP`).
 * Pharmacy accounts see the same layout in their Subscription tab with the pharmacy plan.
 
 ---
@@ -368,7 +368,7 @@ Opened from a profile card in the Family tab.
 
 * **Fields**: name, relationship, age, allergies (free text, shown on the confirm screen as a reminder), meal times (সকাল, দুপুর, বিকাল, রাত) and quiet hours (no non-critical SMS or sound).
 * **Roles**: each linked person is shown with a role chip (`অ্যাডমিন`, `যত্নকারী (Caregiver)`, `দর্শক (Viewer)`). The admin can change roles, invite a person, and choose the **secondary caregiver** (alerted if the first caregiver does not acknowledge). Removing a person asks for a step-up code (see Screen 10).
-* **Own phone**: shows whether the dependent's number is linked (verified) and allows re-verification. Once linked, the dependent can reply to reminders, dial `*195#` and send `STOP` from their own phone, and those are matched to this profile. An unlinked number gets a generic reply to register in the app.
+* **Own phone**: shows whether the dependent's number is linked (verified) and allows re-verification. Once linked, the dependent can reply to reminders and send `STOP` from their own phone, and those are matched to this profile. An unlinked number gets a generic reply to register in the app.
 
 ---
 
@@ -402,13 +402,11 @@ Shown once after sign-in and reachable from Settings. Reminders must keep firing
 
 ---
 
-### 6.19 Feature-phone Menus (USSD `*195#` and SMS)
-Not an app screen, but part of the experience. USSD uses plain ASCII, so screens are in Latin script (English or transliterated Bangla) and stay under about 160 characters.
+### 6.19 Feature-phone SMS Replies
+Not an app screen, but part of the experience for users without smartphones or data.
 
-* **Patient menu**: `1. Aajker ushudh (Today's medicines)`, `2. Kheyechi (Mark taken)`, `3. Porer appointment`, `4. Sahajyo dorkar (Alert my caregiver)`, `5. Seba bondho korun (Stop service)`, `0. Exit`.
-* **Caregiver menu**: `1. Alert dekhun / acknowledge`, `2. Adherence snapshot`, `3. Seba bondho korun (Stop service)`, `0. Exit`.
-* **Stop service**: choosing it shows a confirmation screen (`1. Yes, stop` / `2. No, go back`). Yes unregisters the number, ends the session with a final screen saying the service has stopped (and that a paid plan is cancelled too), and stops all queued messages. This is the USSD opt-out that Screen 11 refers to.
 * **SMS reply**: every reminder SMS tells the user to reply with the keyword and a code, for example `UPOSHOM 1` (taken), `UPOSHOM 2` (snooze), `UPOSHOM 3` (skip). Bangla SMS is limited to about 70 characters per part, so reminder text is short.
+* **Stop**: replying `STOP`, `UNSUB` or `OFF` unregisters the number and stops all queued messages (and cancels a paid plan too). This is the SMS opt-out that Screen 11 refers to. No confirmation SMS is sent.
 
 ---
 
