@@ -465,7 +465,7 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
       async listOpen(olderThan, limit) {
         const { rows } = await pool.query(
           `SELECT * FROM charges
-           WHERE status IN ('PENDING', 'OTP_SENT', 'PROCESSING') AND updated_at < $1
+           WHERE status IN ('PENDING', 'OTP_SENT', 'PROCESSING', 'PARTIAL') AND updated_at < $1
            ORDER BY updated_at LIMIT $2`,
           [olderThan, limit],
         );

@@ -15,6 +15,7 @@ import { createServices, type Services } from './services/index.js';
 import { applinkCallbackRoutes } from './routes/applink-callbacks.js';
 import { authRoutes } from './routes/auth.js';
 import { billingRoutes } from './routes/billing.js';
+import { caasRoutes } from './routes/caas.js';
 import { optOutRoutes } from './routes/optout.js';
 import { createMemoryStores } from './stores/memory.js';
 import type { Stores } from './stores/types.js';
@@ -128,6 +129,9 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
     }),
     { prefix: '/api/v1/billing' },
   );
+  void app.register(caasRoutes({ users: stores.users, caas: services.caas }), {
+    prefix: '/api/v1/billing/caas',
+  });
   void app.register(
     optOutRoutes({
       users: stores.users,

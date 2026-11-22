@@ -18,7 +18,7 @@ const PATHS: Record<ServiceName, string> = {
 export interface MockApplink {
   stop(): void;
   /** A real client pointed at the mock. `scenario` is the mock's path prefix, e.g. '/fail-E1850'. */
-  client(scenario?: string): ReturnType<typeof createApplinkClient>;
+  client(scenario?: string, fetchImpl?: typeof fetch): ReturnType<typeof createApplinkClient>;
   /** Client whose OTP verify answers with a failure but whose OTP request succeeds. */
   clientWithVerifyFailure(code: string): ReturnType<typeof createApplinkClient>;
   badRequests(): Promise<unknown[]>;
@@ -39,7 +39,7 @@ export async function startMockApplink(port: number): Promise<MockApplink> {
     }
   }
 
-  const make = (urlFor: (service: ServiceName, path: string) => string) =>
+  const make = (urlFor: (service: ServiceName, path: string) => string, fetchImpl?: typeof fetch) =>
     createApplinkClient({
       applicationId: 'APP_MOCK',
       password: 'mock-not-a-real-password',
@@ -47,11 +47,12 @@ export async function startMockApplink(port: number): Promise<MockApplink> {
         (Object.entries(PATHS) as [ServiceName, string][]).map(([s, p]) => [s, urlFor(s, p)]),
       ),
       timeoutMs: 2000,
+      ...(fetchImpl ? { fetch: fetchImpl } : {}),
     });
 
   return {
     stop: () => void proc.kill(),
-    client: (scenario = '') => make((_s, p) => `${base}${scenario}${p}`),
+    client: (scenario = '', fetchImpl) => make((_s, p) => `${base}${scenario}${p}`, fetchImpl),
     clientWithVerifyFailure: (code) =>
       make((s, p) => (s === 'otpVerify' ? `${base}/fail-${code}${p}` : `${base}${p}`)),
     badRequests: async () => {

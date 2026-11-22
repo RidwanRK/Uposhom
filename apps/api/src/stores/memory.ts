@@ -267,7 +267,8 @@ export function createMemoryStores(): Stores {
         return [...charges.values()]
           .filter(
             (c) =>
-              ['PENDING', 'OTP_SENT', 'PROCESSING'].includes(c.status) && c.updatedAt < olderThan,
+              ['PENDING', 'OTP_SENT', 'PROCESSING', 'PARTIAL'].includes(c.status) &&
+              c.updatedAt < olderThan,
           )
           .slice(0, limit);
       },
