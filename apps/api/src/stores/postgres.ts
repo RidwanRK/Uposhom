@@ -51,7 +51,7 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
   const otp = (r: Row): OtpSessionRecord => ({
     id: r['id'] as string,
     msisdn: phone.decrypt(r['phone_enc'] as string),
-    purpose: r['purpose'] as 'SIGNUP',
+    purpose: r['purpose'] as OtpSessionRecord['purpose'],
     referenceNo: r['reference_no'] as string,
     attempts: r['attempts'] as number,
     expiresAt: r['expires_at'] as Date,

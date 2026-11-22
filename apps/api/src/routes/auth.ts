@@ -6,6 +6,8 @@ import {
   otpVerifyResponse,
   refreshBody,
   refreshResponse,
+  stepUpVerifyBody,
+  stepUpVerifyResponse,
 } from '@uposhom/shared';
 import { AuthError, type OtpService } from '../auth/otp-service.js';
 
@@ -19,7 +21,7 @@ function sendError(reply: FastifyReply, err: AuthError): FastifyReply {
   });
 }
 
-/** /api/v1/auth: OTP sign-up, refresh and logout. Applink is never called on a login path. */
+/** /api/v1/auth: OTP sign-up, step-up, refresh and logout. Applink is never called on a login path. */
 export function authRoutes(otp: OtpService) {
   return async function register(app: FastifyInstance): Promise<void> {
     app.setErrorHandler((err: unknown, _req, reply) => {
@@ -54,6 +56,22 @@ export function authRoutes(otp: OtpService) {
           circle: null,
         }),
       );
+    });
+
+    // Step-up: re-prove the phone before a sensitive action. The code goes to the signed-in
+    // user's own number, never to one named in the request.
+    app.post('/step-up/request', { preHandler: app.authenticate }, async (req, reply) => {
+      if (!req.auth) throw new AuthError('UNAUTHENTICATED', 401);
+      await otp.requestStepUp({ userId: req.auth.userId, ip: req.ip });
+      return reply.send({ success: true });
+    });
+
+    app.post('/step-up/verify', { preHandler: app.authenticate }, async (req, reply) => {
+      if (!req.auth) throw new AuthError('UNAUTHENTICATED', 401);
+      const body = stepUpVerifyBody.safeParse(req.body);
+      if (!body.success) throw new AuthError('INVALID_INPUT', 400);
+      const stepUpToken = await otp.verifyStepUp({ userId: req.auth.userId, otp: body.data.otp });
+      return reply.send(stepUpVerifyResponse.parse({ stepUpToken }));
     });
 
     app.post('/refresh', async (req, reply) => {

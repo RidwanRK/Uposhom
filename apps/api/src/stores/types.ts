@@ -33,10 +33,12 @@ export interface UserStore {
   }): Promise<UserRecord>;
 }
 
+export type OtpPurpose = 'SIGNUP' | 'STEP_UP';
+
 export interface OtpSessionRecord {
   id: string;
   msisdn: string;
-  purpose: 'SIGNUP';
+  purpose: OtpPurpose;
   /** Kept server-side only. Never logged, never returned to the app. */
   referenceNo: string;
   attempts: number;
@@ -49,7 +51,7 @@ export interface OtpSessionStore {
   /** Invalidates any earlier open session for the number, then stores this one. */
   create(input: {
     msisdn: string;
-    purpose: 'SIGNUP';
+    purpose: OtpPurpose;
     referenceNo: string;
     expiresAt: Date;
   }): Promise<OtpSessionRecord>;

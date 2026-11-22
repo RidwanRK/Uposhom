@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { ApplinkClient } from '@uposhom/applink-client';
 import { createOtpService } from './auth/otp-service.js';
+import { registerAuthGuard } from './auth/guard.js';
 import { createTokenService } from './auth/tokens.js';
 import { createApplinkFromConfig } from './applink.js';
 import type { CallbackSink } from './callbacks/events.js';
@@ -104,6 +105,7 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
 
   // Without a configured secret (development and tests only) tokens last as long as the process.
   const tokens = createTokenService(config.JWT_SECRET ?? randomBytes(32).toString('hex'));
+  registerAuthGuard(app, tokens);
   const otp = createOtpService({
     stores,
     applink,

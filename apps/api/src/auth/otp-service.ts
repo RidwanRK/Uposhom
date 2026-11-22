@@ -4,7 +4,7 @@ import {
   normalizeBdMsisdn,
   type ApplinkClient,
 } from '@uposhom/applink-client';
-import type { AccountType, Stores, UserRecord } from '../stores/types.js';
+import type { AccountType, OtpPurpose, Stores, UserRecord } from '../stores/types.js';
 import { REFRESH_TOKEN_TTL_MS, hashRefreshToken, type Role, type TokenService } from './tokens.js';
 
 export const OTP_VALIDITY_SECONDS = 300; // Applink OTPs are valid five minutes
@@ -27,7 +27,9 @@ export type AuthErrorCode =
   | 'OTP_WRONG'
   | 'OTP_EXPIRED'
   | 'INVALID_INPUT'
-  | 'INVALID_REFRESH';
+  | 'INVALID_REFRESH'
+  | 'UNAUTHENTICATED'
+  | 'STEP_UP_REQUIRED';
 
 export class AuthError extends Error {
   readonly code: AuthErrorCode;
@@ -90,19 +92,19 @@ export function maskMsisdn(msisdn: string): string {
 export function createOtpService(deps: OtpServiceDeps) {
   const now = deps.now ?? (() => new Date());
 
-  async function requestOtp(input: { msisdn: string; ip: string }): Promise<{
-    maskedPhone: string;
-    expiresInSeconds: number;
-  }> {
-    const msisdn = normalizeBdMsisdn(input.msisdn);
-    if (!msisdn) throw new AuthError('NUMBER_NOT_ACCEPTED', 422);
+  /** Rate limits, consent (sign-up only), Applink request, and the stored session. */
+  async function sendOtp(
+    msisdn: string,
+    ip: string,
+    purpose: OtpPurpose,
+  ): Promise<{ maskedPhone: string; expiresInSeconds: number }> {
     if (!deps.applink) throw new AuthError('SERVICE_TROUBLE', 503);
 
     const t = now();
     const checks = [
       [`otp:num:${msisdn}`, LIMITS.perNumber],
       [`otp:day:${msisdn}`, LIMITS.perNumberDaily],
-      [`otp:ip:${input.ip}`, LIMITS.perIp],
+      [`otp:ip:${ip}`, LIMITS.perIp],
     ] as const;
     for (const [key, rule] of checks) {
       const res = await deps.stores.rateLimit.hit(key, rule.limit, rule.windowMs, t);
@@ -110,11 +112,11 @@ export function createOtpService(deps: OtpServiceDeps) {
     }
 
     // The consent row is written before the request: verify activates an Applink subscription,
-    // and the screen that precedes this call discloses that (Master Plan section 8).
-    await deps.stores.consents.record(
-      { msisdn, kind: 'SIGNUP_OTP_V1', channel: 'APP', ip: input.ip },
-      t,
-    );
+    // and the screen that precedes this call discloses that (Master Plan section 8). A step-up
+    // code only re-proves a number that already consented.
+    if (purpose === 'SIGNUP') {
+      await deps.stores.consents.record({ msisdn, kind: 'SIGNUP_OTP_V1', channel: 'APP', ip }, t);
+    }
 
     let referenceNo: string | undefined;
     try {
@@ -134,25 +136,21 @@ export function createOtpService(deps: OtpServiceDeps) {
 
     await deps.stores.otpSessions.create({
       msisdn,
-      purpose: 'SIGNUP',
+      purpose,
       referenceNo,
       expiresAt: new Date(t.getTime() + OTP_VALIDITY_SECONDS * 1000),
     });
     return { maskedPhone: maskMsisdn(msisdn), expiresInSeconds: OTP_VALIDITY_SECONDS };
   }
 
-  async function verifyOtp(input: {
-    msisdn: string;
-    otp: string;
-    accountType?: AccountType | undefined;
-  }): Promise<VerifiedSession> {
-    const msisdn = normalizeBdMsisdn(input.msisdn);
-    if (!msisdn || !/^\d{4,8}$/.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
+  /** Attempt cap, expiry, the Applink verify call, error mapping. Returns what Applink answered. */
+  async function checkOtp(msisdn: string, otp: string, purpose: OtpPurpose) {
     if (!deps.applink) throw new AuthError('SERVICE_TROUBLE', 503);
 
     const t = now();
     const session = await deps.stores.otpSessions.findOpen(msisdn, t);
-    if (!session || session.attempts >= MAX_VERIFY_ATTEMPTS) {
+    // A code requested for one purpose can never be spent on another.
+    if (!session || session.purpose !== purpose || session.attempts >= MAX_VERIFY_ATTEMPTS) {
       throw new AuthError('OTP_EXPIRED', 410);
     }
     // Count the attempt before calling Applink, so a crash cannot grant a free retry.
@@ -161,7 +159,7 @@ export function createOtpService(deps: OtpServiceDeps) {
 
     let verified;
     try {
-      verified = await deps.applink.verifyOtp({ referenceNo: session.referenceNo, otp: input.otp });
+      verified = await deps.applink.verifyOtp({ referenceNo: session.referenceNo, otp });
     } catch (err) {
       const mapped = mapApplinkError(err);
       if (mapped.code === 'OTP_EXPIRED') await deps.stores.otpSessions.consume(session.id, t);
@@ -173,8 +171,28 @@ export function createOtpService(deps: OtpServiceDeps) {
       }
       throw mapped;
     }
-
     await deps.stores.otpSessions.consume(session.id, t);
+    return verified;
+  }
+
+  async function requestOtp(input: { msisdn: string; ip: string }): Promise<{
+    maskedPhone: string;
+    expiresInSeconds: number;
+  }> {
+    const msisdn = normalizeBdMsisdn(input.msisdn);
+    if (!msisdn) throw new AuthError('NUMBER_NOT_ACCEPTED', 422);
+    return sendOtp(msisdn, input.ip, 'SIGNUP');
+  }
+
+  async function verifyOtp(input: {
+    msisdn: string;
+    otp: string;
+    accountType?: AccountType | undefined;
+  }): Promise<VerifiedSession> {
+    const msisdn = normalizeBdMsisdn(input.msisdn);
+    if (!msisdn || !/^\d{4,8}$/.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
+
+    const verified = await checkOtp(msisdn, input.otp, 'SIGNUP');
 
     // subscriberId and subscriptionStatus are stored exactly as returned and treated as opaque.
     const user = await deps.stores.users.upsertVerified({
@@ -184,6 +202,26 @@ export function createOtpService(deps: OtpServiceDeps) {
       subscriptionStatus: verified.subscriptionStatus ?? null,
     });
     return issueSession(user);
+  }
+
+  /** A fresh code for the signed-in user's own number, before a sensitive action. */
+  async function requestStepUp(input: { userId: string; ip: string }) {
+    const user = await deps.stores.users.findById(input.userId);
+    if (!user) throw new AuthError('INVALID_REFRESH', 401);
+    return sendOtp(user.msisdn, input.ip, 'STEP_UP');
+  }
+
+  /** Proves the person holding the phone is the signed-in user. Returns a five-minute token. */
+  async function verifyStepUp(input: { userId: string; otp: string }): Promise<string> {
+    if (!/^\d{4,8}$/.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
+    const user = await deps.stores.users.findById(input.userId);
+    if (!user) throw new AuthError('INVALID_REFRESH', 401);
+    const verified = await checkOtp(user.msisdn, input.otp, 'STEP_UP');
+    // Whoever answered must be the subscriber we know. A different id means a different person.
+    if (user.subscriberId && verified.subscriberId && verified.subscriberId !== user.subscriberId) {
+      throw new AuthError('OTP_WRONG', 401);
+    }
+    return deps.tokens.signStepUp(user.id, now());
   }
 
   async function issueSession(user: UserRecord): Promise<VerifiedSession> {
@@ -231,7 +269,7 @@ export function createOtpService(deps: OtpServiceDeps) {
     if (session) await deps.stores.sessions.revoke(session.id, now());
   }
 
-  return { requestOtp, verifyOtp, refresh, logout };
+  return { requestOtp, verifyOtp, requestStepUp, verifyStepUp, refresh, logout };
 }
 
 export type OtpService = ReturnType<typeof createOtpService>;
