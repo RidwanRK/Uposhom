@@ -3,7 +3,7 @@
  *
  * OpenAI Agents SDK + OpenRouter Pipeline for Uposhom.
  * Multi-agent orchestration, deterministic safety guards, prescription vision OCR,
- * report vault parsing, DGDA generic finder, and agent execution telemetry.
+ * report vault parsing, DGDA generic finder, voice spike & transcription, and agent telemetry.
  */
 
 // Configuration & Client
@@ -26,4 +26,12 @@ export * from './agents/triage-agent.js';
 
 // Vision & Document Intake
 export * from './vision/ocr-extract.js';
+export * from './vision/intake.js';
 export * from './vision/report-vault.js';
+
+// Prescription Lay-Bangla Explainer
+export * from './explainer/index.js';
+
+// Voice Processing & Spike Evaluation
+export * from './voice/voice-spike.js';
+export * from './voice/transcribe.js';

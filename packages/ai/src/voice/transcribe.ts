@@ -46,18 +46,19 @@ export async function transcribeBanglaAudio(
 
   const client = createOpenRouterClient(apiKey);
 
-  // If audioData is already a string (e.g. data URI or filepath), handle appropriately
-  // For OpenRouter/OpenAI Whisper endpoint:
   try {
     let filePayload: File | Blob;
     if (typeof audioData === 'string') {
-      // Base64 or mock string
       const buffer = Buffer.from(audioData.replace(/^data:audio\/\w+;base64,/, ''), 'base64');
       filePayload = new File([buffer], 'audio.m4a', { type: 'audio/m4a' });
-    } else if (audioData instanceof Uint8Array || Buffer.isBuffer(audioData)) {
-      filePayload = new File([audioData], 'audio.m4a', { type: 'audio/m4a' });
+    } else if (audioData instanceof Blob) {
+      filePayload = audioData;
     } else {
-      filePayload = audioData as Blob;
+      const arrayBuffer =
+        audioData instanceof Buffer
+          ? audioData.buffer.slice(audioData.byteOffset, audioData.byteOffset + audioData.byteLength)
+          : audioData;
+      filePayload = new File([arrayBuffer as ArrayBuffer], 'audio.m4a', { type: 'audio/m4a' });
     }
 
     const transcription = await client.audio.transcriptions.create({
@@ -72,8 +73,7 @@ export async function transcribeBanglaAudio(
       transcript: transcription.text.trim(),
     });
   } catch (error) {
-    // If audio endpoint fails, provide graceful fallback if mock is available or rethrow
     const errMsg = error instanceof Error ? error.message : String(error);
-    throw new Error(`Voice transcription failed: ${errMsg}`);
+    throw new Error(`Voice transcription failed: ${errMsg}`, { cause: error });
   }
 }
