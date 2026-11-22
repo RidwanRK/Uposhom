@@ -1,0 +1,69 @@
+{
+  "id": "rx-synth-028",
+  "style": "printed",
+  "title": "Severe Chronic Recurrent Oral Candidiasis & Gastritis",
+  "patient": {
+    "name": "Salma Begum",
+    "age": 41,
+    "gender": "Female",
+    "diagnosis": "Oral Candidiasis & Dyspepsia"
+  },
+  "doctor": {
+    "name": "Dr. Dewan Saifuddin Ahmed",
+    "degrees": "MBBS, MD (Gastro)",
+    "bmdcReg": "A-17650",
+    "workplace": "BSMMU Gastroenterology"
+  },
+  "date": "2026-11-04",
+  "rawText": "BANGABANDHU SHEIKH MUJIB MEDICAL UNIVERSITY\nDepartment of Gastroenterology, Shahbag, Dhaka\nDr. Dewan Saifuddin Ahmed, MBBS, MD\nBMDC: A-17650    Date: 04/11/2026\nPatient: Salma Begum, 41Y/F\n\nRx:\n1. Cap. Flugal 150mg (Fluconazole)\n   ১টি বড়ি সপ্তাহে ১ বার (STAT) -- ২ সপ্তাহ (CRITICAL)\n2. Tab. Pantonix 20mg (Pantoprazole)\n   ১+০+১ (খাবার ৩০ মিনিট আগে AC) -- ১৪ দিন\n3. Tab. Motigut 10mg (Domperidone)\n   ১+১+১ (খাবার ১৫ মিনিট আগে AC) -- ৭ দিন\n\nনির্দেশনা: অতিরিক্ত মসলাযুক্ত খাবার এড়িয়ে চলুন। মুখ পরিষ্কার রাখুন।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Flugal",
+      "genericName": "Fluconazole",
+      "strength": "150mg",
+      "form": "Capsule",
+      "pattern": "STAT",
+      "mealRelation": "PC",
+      "durationDays": 14,
+      "confidence": 0.95,
+      "isCritical": true,
+      "pillCount": 2
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Pantonix",
+      "genericName": "Pantoprazole",
+      "strength": "20mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "confidence": 0.94,
+      "isCritical": false,
+      "pillCount": 28
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Flugal",
+      "dosageStrength": "150mg",
+      "form": "Capsule",
+      "parsedPattern": "STAT",
+      "mealRelation": "PC",
+      "durationDays": 14,
+      "isCritical": true,
+      "pillCount": 2
+    },
+    {
+      "brandName": "Pantonix",
+      "dosageStrength": "20mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 28
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "profileId": "prof-demo-insights-01",
+  "timeline": [
+    {
+      "id": "tl-001",
+      "date": "2025-11-05",
+      "kind": "SYMPTOM",
+      "title": "তীব্র শুকনো কাশি ও জ্বর ভাব",
+      "therapeuticClass": "respiratory_symptom"
+    },
+    {
+      "id": "tl-002",
+      "date": "2025-11-06",
+      "kind": "PRESCRIPTION",
+      "title": "Tab. Zithrox 500mg (Azithromycin)",
+      "therapeuticClass": "antibiotic"
+    },
+    {
+      "id": "tl-003",
+      "date": "2025-11-06",
+      "kind": "PRESCRIPTION",
+      "title": "Tab. Monas 10mg (Montelukast)",
+      "therapeuticClass": "antiasthmatic_respiratory"
+    },
+    {
+      "id": "tl-004",
+      "date": "2025-12-10",
+      "kind": "SYMPTOM",
+      "title": "বুকে সাঁ সাঁ আওয়াজ ও রাতে শ্বাসকষ্ট",
+      "therapeuticClass": "respiratory_symptom"
+    },
+    {
+      "id": "tl-005",
+      "date": "2025-12-11",
+      "kind": "PRESCRIPTION",
+      "title": "Respihaler 100mcg (Salbutamol Inhaler)",
+      "therapeuticClass": "antiasthmatic_respiratory"
+    },
+    {
+      "id": "tl-006",
+      "date": "2025-12-11",
+      "kind": "PRESCRIPTION",
+      "title": "Tab. Fexo 120mg (Fexofenadine)",
+      "therapeuticClass": "antihistamine"
+    },
+    {
+      "id": "tl-007",
+      "date": "2026-01-14",
+      "kind": "SYMPTOM",
+      "title": "সর্দি, কফ ও শ্বাসনালির সংক্রমণ",
+      "therapeuticClass": "respiratory_symptom"
+    },
+    {
+      "id": "tl-008",
+      "date": "2026-01-15",
+      "kind": "PRESCRIPTION",
+      "title": "Cap. Cef-3 200mg (Cefixime)",
+      "therapeuticClass": "antibiotic"
+    },
+    {
+      "id": "tl-009",
+      "date": "2026-01-15",
+      "kind": "PRESCRIPTION",
+      "title": "Tab. Napa Extend 665mg (Paracetamol)",
+      "therapeuticClass": "analgesic_antipyretic"
+    },
+    {
+      "id": "tl-010",
+      "date": "2026-03-20",
+      "kind": "SYMPTOM",
+      "title": "বুক জ্বালাপোড়া ও টক ঢেকুর",
+      "therapeuticClass": "gastro_symptom"
+    },
+    {
+      "id": "tl-011",
+      "date": "2026-03-21",
+      "kind": "PRESCRIPTION",
+      "title": "Cap. Seclo 20mg (Omeprazole)",
+      "therapeuticClass": "ppi_antiulcerant"
+    },
+    {
+      "id": "tl-012",
+      "date": "2026-06-12",
+      "kind": "PRESCRIPTION",
+      "title": "Tab. Camlod 5mg (Amlodipine)",
+      "therapeuticClass": "antihypertensive"
+    },
+    {
+      "id": "tl-013",
+      "date": "2026-09-05",
+      "kind": "PRESCRIPTION",
+      "title": "Tab. Camlod 5mg (Amlodipine Refill)",
+      "therapeuticClass": "antihypertensive"
+    },
+    {
+      "id": "tl-014",
+      "date": "2026-11-02",
+      "kind": "SYMPTOM",
+      "title": "শীতের শুরুতে আবার ঠান্ডা ও শ্বাসকষ্ট",
+      "therapeuticClass": "respiratory_symptom"
+    },
+    {
+      "id": "tl-015",
+      "date": "2026-11-03",
+      "kind": "PRESCRIPTION",
+      "title": "Tab. Zithrox 500mg (Azithromycin)",
+      "therapeuticClass": "antibiotic"
+    },
+    {
+      "id": "tl-016",
+      "date": "2026-11-03",
+      "kind": "PRESCRIPTION",
+      "title": "Respihaler 100mcg (Salbutamol Inhaler)",
+      "therapeuticClass": "antiasthmatic_respiratory"
+    }
+  ],
+  "patterns": [
+    {
+      "id": "pattern-winter-antibiotic",
+      "sentenceBn": "বিগত দুই বছরে প্রতি শীত মৌসুমে (নভেম্বর-জানুয়ারি) আপনার অ্যান্টিবায়োটিক ও শ্বাসকষ্টের ওষুধের প্রেসক্রিপশন ৩ গুণ বৃদ্ধি পেয়েছে।",
+      "monthly": [
+        { "month": "2025-10", "count": 0 },
+        { "month": "2025-11", "count": 2 },
+        { "month": "2025-12", "count": 2 },
+        { "month": "2026-01", "count": 2 },
+        { "month": "2026-02", "count": 0 },
+        { "month": "2026-10", "count": 0 },
+        { "month": "2026-11", "count": 2 }
+      ],
+      "tipBn": "শীতের শুরুতে ইনফ্লুয়েঞ্জা ও নিউমোনিয়ার টিকা নেওয়ার বিষয়ে আপনার চিকিৎসকের পরামর্শ নিন এবং ধুলোবালি ও ঠান্ডা বাতাস এড়িয়ে চলুন।"
+    },
+    {
+      "id": "pattern-antihypertensive-maintenance",
+      "sentenceBn": "উচ্চ রক্তচাপের ওষুধ (Amlodipine) নিয়মিত সেবনের ফলে বিগত ৬ মাসে রক্তচাপ স্বাভাবিক মাত্রায় স্থিতিশীল রয়েছে।",
+      "monthly": [
+        { "month": "2026-06", "count": 1 },
+        { "month": "2026-07", "count": 1 },
+        { "month": "2026-08", "count": 1 },
+        { "month": "2026-09", "count": 1 },
+        { "month": "2026-10", "count": 1 },
+        { "month": "2026-11", "count": 1 }
+      ],
+      "tipBn": "রক্তচাপ স্বাভাবিক থাকলেও চিকিৎসকের অনুমতি ছাড়া নিজে নিজে রক্তচাপের ওষুধ বন্ধ করবেন না।"
+    }
+  ],
+  "patternsLocked": false
+}

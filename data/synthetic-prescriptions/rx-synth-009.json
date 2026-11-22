@@ -1,0 +1,69 @@
+{
+  "id": "rx-synth-009",
+  "style": "printed",
+  "title": "Acute Uncomplicated Urinary Tract Infection (UTI)",
+  "patient": {
+    "name": "Tasnim Fatima",
+    "age": 26,
+    "gender": "Female",
+    "diagnosis": "Acute Cystitis / UTI"
+  },
+  "doctor": {
+    "name": "Dr. Fahmida Sultana",
+    "degrees": "MBBS, FCPS (Gynae & Obs)",
+    "bmdcReg": "A-39915",
+    "workplace": "Dhaka Medical College Hospital"
+  },
+  "date": "2026-11-13",
+  "rawText": "DHAKA MEDICAL COLLEGE HOSPITAL\nDepartment of Obstetrics & Gynaecology\nDr. Fahmida Sultana, MBBS, FCPS\nBMDC: A-39915    Date: 13/11/2026\nPatient: Tasnim Fatima, 26Y/F, Dysuria & frequency\n\nRx:\n1. Tab. Ciprocin 500mg (Ciprofloxacin)\n   ১+০+১ (ভরা পেটে) -- ৭ দিন (কোর্স সম্পন্ন করুন)\n2. Tab. Urispas 200mg (Flavoxate)\n   ১+১+১ (খাবার পর) -- ৫ দিন\n3. Tab. Napa 500mg\n   ১+১+১ (ব্যথা হলে) -- ৩ দিন\n\nউপদেশ:\n- প্রতিদিন অন্তত ৩-৪ লিটার বিশুদ্ধ পানি পান করুন।\n- প্রস্রাব আটকে রাখবেন না।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Ciprocin",
+      "genericName": "Ciprofloxacin",
+      "strength": "500mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 7,
+      "confidence": 0.95,
+      "isCritical": true,
+      "pillCount": 14
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Urispas",
+      "genericName": "Flavoxate Hydrochloride",
+      "strength": "200mg",
+      "form": "Tablet",
+      "pattern": "1+1+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "confidence": 0.93,
+      "isCritical": false,
+      "pillCount": 15
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Ciprocin",
+      "dosageStrength": "500mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 7,
+      "isCritical": true,
+      "pillCount": 14
+    },
+    {
+      "brandName": "Urispas",
+      "dosageStrength": "200mg",
+      "form": "Tablet",
+      "parsedPattern": "1+1+1",
+      "mealRelation": "PC",
+      "durationDays": 5,
+      "isCritical": false,
+      "pillCount": 15
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-026",
+  "style": "printed",
+  "title": "Severe Iron Deficiency Anemia & Nutritional Deficiency",
+  "patient": {
+    "name": "Meherun Nesa",
+    "age": 27,
+    "gender": "Female",
+    "diagnosis": "Moderate Hypochromic Microcytic Anemia (Hb: 8.5)"
+  },
+  "doctor": {
+    "name": "Dr. Nasreen Sultana",
+    "degrees": "MBBS, FCPS (Haematology)",
+    "bmdcReg": "A-29800",
+    "workplace": "BSMMU Haematology"
+  },
+  "date": "2026-11-08",
+  "rawText": "BANGABANDHU SHEIKH MUJIB MEDICAL UNIVERSITY\nDepartment of Haematology, Shahbag, Dhaka\nDr. Nasreen Sultana, MBBS, FCPS\nBMDC: A-29800    Date: 08/11/2026\nPatient: Meherun Nesa, 27Y/F, Hb: 8.5 g/dL, Ferritin: 11 ng/mL\n\nRx:\n1. Tab. Fe-Plus (Iron + Folic Acid)\n   ১+০+১ (ভরা পেটে PC) -- ৬০ দিন (CRITICAL)\n2. Tab. Coralcal-D\n   ০+১+০ (দুপুরে খাবার পর PC) -- ৬০ দিন\n3. Cap. Trupan 20mg (Pantoprazole)\n   ১+০+০ (সকালে খালি পেটে AC) -- ৩০ দিন\n\nউপদেশ:\n- চা বা কফির সাথে আয়রন বড়ি খাবেন না (অন্তত ২ ঘণ্টা ব্যবধান রাখবেন)।\n- কচু শাক, ডালিম, কলিজা ও ভিটামিন সি সমৃদ্ধ ফলমূল বেশি খান।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Fe-Plus",
+      "genericName": "Iron Polymaltose Complex + Folic Acid",
+      "strength": "50mg+0.5mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 60,
+      "confidence": 0.95,
+      "isCritical": true,
+      "pillCount": 120
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Coralcal-D",
+      "genericName": "Calcium Carbonate + Vitamin D3",
+      "strength": "500mg+200IU",
+      "form": "Tablet",
+      "pattern": "0+1+0",
+      "mealRelation": "PC",
+      "durationDays": 60,
+      "confidence": 0.94,
+      "isCritical": false,
+      "pillCount": 60
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Trupan",
+      "genericName": "Pantoprazole",
+      "strength": "20mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 30,
+      "confidence": 0.96,
+      "isCritical": false,
+      "pillCount": 30
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Fe-Plus",
+      "dosageStrength": "50mg+0.5mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 60,
+      "isCritical": true,
+      "pillCount": 120
+    },
+    {
+      "brandName": "Coralcal-D",
+      "dosageStrength": "500mg+200IU",
+      "form": "Tablet",
+      "parsedPattern": "0+1+0",
+      "mealRelation": "PC",
+      "durationDays": 60,
+      "isCritical": false,
+      "pillCount": 60
+    },
+    {
+      "brandName": "Trupan",
+      "dosageStrength": "20mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 30,
+      "isCritical": false,
+      "pillCount": 30
+    }
+  ]
+}

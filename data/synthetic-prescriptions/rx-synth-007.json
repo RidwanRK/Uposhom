@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-007",
+  "style": "printed",
+  "title": "Adult Bronchial Asthma",
+  "patient": {
+    "name": "Selina Begum",
+    "age": 48,
+    "gender": "Female",
+    "diagnosis": "Moderate Persistent Asthma"
+  },
+  "doctor": {
+    "name": "Dr. Masud Parvez",
+    "degrees": "MBBS, DTCD, MD (Chest Diseases)",
+    "bmdcReg": "A-33510",
+    "workplace": "National Institute of Diseases of the Chest & Hospital (NIDCH)"
+  },
+  "date": "2026-11-15",
+  "rawText": "NATIONAL INSTITUTE OF DISEASES OF THE CHEST & HOSPITAL (NIDCH)\nMohakhali, Dhaka-1212\nDr. Masud Parvez, MBBS, DTCD, MD (Chest)\nBMDC: A-33510    Date: 15/11/2026\nPatient: Selina Begum, 48Y/F\n\nPrescription:\n1. Respihaler 100mcg (Salbutamol Inhaler)\n   ২ পাফ করে দিনে ৩ বার (শ্বাসকষ্টের সময় প্রয়োজনে) -- ১ মাস\n2. Tab. Provair 10mg (Montelukast)\n   ০+০+১ (রাতে খাবার পর) -- ১ মাস\n3. Tab. Bilasten 20mg (Bilastine)\n   ১+০+০ (সকালে খালি পেটে) -- ১৪ দিন\n\nনির্দেশনা:\n- ইনহেলার ব্যবহারের পর ভালো করে মুখ কুলি করবেন।\n- ধুলোবালি, ঠান্ডা বাতাস ও অ্যালার্জি উদ্রেককারী পরিবেশ এড়িয়ে চলুন।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Respihaler",
+      "genericName": "Salbutamol",
+      "strength": "100mcg/puff",
+      "form": "Inhaler",
+      "pattern": "1+1+1",
+      "mealRelation": "NONE",
+      "durationDays": 30,
+      "confidence": 0.95,
+      "isCritical": true,
+      "pillCount": 1
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Provair",
+      "genericName": "Montelukast Sodium",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.94,
+      "isCritical": false,
+      "pillCount": 30
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Bilasten",
+      "genericName": "Bilastine",
+      "strength": "20mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "confidence": 0.93,
+      "isCritical": false,
+      "pillCount": 14
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Respihaler",
+      "dosageStrength": "100mcg/puff",
+      "form": "Inhaler",
+      "parsedPattern": "1+1+1",
+      "mealRelation": "NONE",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 1
+    },
+    {
+      "brandName": "Provair",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": false,
+      "pillCount": 30
+    },
+    {
+      "brandName": "Bilasten",
+      "dosageStrength": "20mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 14
+    }
+  ]
+}

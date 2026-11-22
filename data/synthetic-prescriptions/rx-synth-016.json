@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-016",
+  "style": "printed",
+  "title": "Severe Migraine with Aura (STAT + SOS Protocol)",
+  "patient": {
+    "name": "Sultana Razia",
+    "age": 34,
+    "gender": "Female",
+    "diagnosis": "Acute Migraine Attack"
+  },
+  "doctor": {
+    "name": "Dr. Kazi Mohibur Rahman",
+    "degrees": "MBBS, FCPS, MD (Neurology)",
+    "bmdcReg": "A-25410",
+    "workplace": "National Institute of Neurosciences & Hospital (NINS)"
+  },
+  "date": "2026-11-20",
+  "rawText": "NATIONAL INSTITUTE OF NEUROSCIENCES & HOSPITAL (NINS)\nSher-e-Bangla Nagar, Dhaka\nDr. Kazi Mohibur Rahman, MBBS, FCPS, MD (Neurology)\nBMDC Reg: A-25410    Date: 20/11/2026\nPatient: Sultana Razia, 34Y/F\n\nRx:\n1. Tab. Torax 10mg (Ketorolac)\n   ১টি বড়ি এখনই খাবেন (STAT), এরপর তীব্র ব্যথায় ১টি করে (SOS/PRN) -- ৩ দিন\n2. Tab. Motigut 10mg (Domperidone)\n   ১+১+১ (খাবার ১৫ মিনিট পূর্বে) -- ৫ দিন\n3. Cap. Maxpro 20mg (Esomeprazole)\n   ১+০+১ (খাবার ৩০ মিনিট আগে AC) -- ১৪ দিন\n\nউপদেশ: অন্ধকার ও শান্ত ঘরে বিশ্রাম নিন। তীব্র আলো ও কোলাহল পরিহার করুন।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Torax",
+      "genericName": "Ketorolac Tromethamine",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "STAT",
+      "mealRelation": "PC",
+      "durationDays": 3,
+      "confidence": 0.94,
+      "isCritical": false,
+      "pillCount": 6
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Motigut",
+      "genericName": "Domperidone",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "1+1+1",
+      "mealRelation": "AC",
+      "durationDays": 5,
+      "confidence": 0.95,
+      "isCritical": false,
+      "pillCount": 15
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Maxpro",
+      "genericName": "Esomeprazole",
+      "strength": "20mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "confidence": 0.96,
+      "isCritical": false,
+      "pillCount": 28
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Torax",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "STAT",
+      "mealRelation": "PC",
+      "durationDays": 3,
+      "isCritical": false,
+      "pillCount": 6
+    },
+    {
+      "brandName": "Motigut",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "1+1+1",
+      "mealRelation": "AC",
+      "durationDays": 5,
+      "isCritical": false,
+      "pillCount": 15
+    },
+    {
+      "brandName": "Maxpro",
+      "dosageStrength": "20mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 28
+    }
+  ]
+}

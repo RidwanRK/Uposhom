@@ -1,0 +1,69 @@
+{
+  "id": "rx-synth-027",
+  "style": "handwritten",
+  "title": "Severe Chronic Gouty Arthritis Attack (Pain relief)",
+  "patient": {
+    "name": "Abul Kashem",
+    "age": 55,
+    "gender": "Male",
+    "diagnosis": "Acute Gout Attack with Hyperuricemia (Uric Acid: 8.8)"
+  },
+  "doctor": {
+    "name": "Dr. S. M. Jahangir",
+    "degrees": "MBBS, FCPS (Medicine)",
+    "bmdcReg": "A-23490",
+    "workplace": "Rajshahi Medical College Hospital"
+  },
+  "date": "2026-11-06",
+  "rawText": "RMCH Medicine OPD\nDr. S. M. Jahangir, MBBS, FCPS\nBMDC: A-23490    Date: 06/11/2026\nPt: Abul Kashem, 55M, Great toe inflamed, hot, severe pain\n\nRx:\n- Tab. Naprosyn 500mg\n  1+0+1 PC (খাবার পর ভরা পেটে) -- ৭ দিন\n- Tab. Finix 20mg (Rabeprazole)\n  1+0+1 AC (খাবার ৩০মি আগে) -- ১৪ দিন\n- Tab. Torax 10mg\n  1+0+0 PC (জরুরি ব্যথায়) -- ৩ দিন\n\nAdv: Avoid red meat, organ meats, alcohol, and purine rich foods.",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Naprosyn",
+      "genericName": "Naproxen Sodium",
+      "strength": "500mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 7,
+      "confidence": 0.88,
+      "isCritical": false,
+      "pillCount": 14
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Finix",
+      "genericName": "Rabeprazole Sodium",
+      "strength": "20mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "confidence": 0.87,
+      "isCritical": false,
+      "pillCount": 28
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Naprosyn",
+      "dosageStrength": "500mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 7,
+      "isCritical": false,
+      "pillCount": 14
+    },
+    {
+      "brandName": "Finix",
+      "dosageStrength": "20mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 28
+    }
+  ]
+}

@@ -1,0 +1,2740 @@
+[
+  {
+    "id": "dgda-napa-500",
+    "nameEn": "Napa",
+    "nameBn": "নাপা",
+    "generic": "Paracetamol",
+    "genericBn": "প্যারাসিটামল",
+    "therapeuticClass": "analgesic_antipyretic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 1.2,
+    "bnAliases": [
+      "নাপা",
+      "নাপা ৫০০",
+      "নাপা ট্যাবলেট",
+      "Napa 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-ace-500",
+    "nameEn": "Ace",
+    "nameBn": "এইস",
+    "generic": "Paracetamol",
+    "genericBn": "প্যারাসিটামল",
+    "therapeuticClass": "analgesic_antipyretic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 1.2,
+    "bnAliases": [
+      "এইস",
+      "এইস ৫০০",
+      "Ace 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-fast-500",
+    "nameEn": "Fast",
+    "nameBn": "ফাস্ট",
+    "generic": "Paracetamol",
+    "genericBn": "প্যারাসিটামল",
+    "therapeuticClass": "analgesic_antipyretic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "The ACME Laboratories Ltd.",
+    "indicativePrice": 1.0,
+    "bnAliases": [
+      "ফাস্ট",
+      "ফাস্ট ৫০০",
+      "Fast 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-renova-500",
+    "nameEn": "Renova",
+    "nameBn": "রেনোভা",
+    "generic": "Paracetamol",
+    "genericBn": "প্যারাসিটামল",
+    "therapeuticClass": "analgesic_antipyretic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Renata Limited",
+    "indicativePrice": 1.15,
+    "bnAliases": [
+      "রেনোভা",
+      "Renova 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-reset-500",
+    "nameEn": "Reset",
+    "nameBn": "রিসেট",
+    "generic": "Paracetamol",
+    "genericBn": "প্যারাসিটামল",
+    "therapeuticClass": "analgesic_antipyretic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 1.0,
+    "bnAliases": [
+      "রিসেট",
+      "Reset 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-pyrex-500",
+    "nameEn": "Pyrex",
+    "nameBn": "পাইরেক্স",
+    "generic": "Paracetamol",
+    "genericBn": "প্যারাসিটামল",
+    "therapeuticClass": "analgesic_antipyretic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Sanofi Bangladesh Ltd.",
+    "indicativePrice": 1.25,
+    "bnAliases": [
+      "পাইরেক্স"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-napa-extend",
+    "nameEn": "Napa Extend",
+    "nameBn": "নাপা এক্সটেন্ড",
+    "generic": "Paracetamol",
+    "genericBn": "প্যারাসিটামল",
+    "therapeuticClass": "analgesic_antipyretic",
+    "strength": "665mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 2.5,
+    "bnAliases": [
+      "নাপা এক্সটেন্ড",
+      "নাপা ৬৬৫",
+      "Napa XR"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-ace-xr",
+    "nameEn": "Ace XR",
+    "nameBn": "এইস এক্সআর",
+    "generic": "Paracetamol",
+    "genericBn": "প্যারাসিটামল",
+    "therapeuticClass": "analgesic_antipyretic",
+    "strength": "665mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 2.5,
+    "bnAliases": [
+      "এইস এক্স আর",
+      "Ace XR"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-fast-xr",
+    "nameEn": "Fast XR",
+    "nameBn": "ফাস্ট এক্সআর",
+    "generic": "Paracetamol",
+    "genericBn": "প্যারাসিটামল",
+    "therapeuticClass": "analgesic_antipyretic",
+    "strength": "665mg",
+    "form": "Tablet",
+    "manufacturer": "The ACME Laboratories Ltd.",
+    "indicativePrice": 2.25,
+    "bnAliases": [
+      "ফাস্ট এক্স আর"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-napa-syp",
+    "nameEn": "Napa Syrup",
+    "nameBn": "নাপা সিরাপ",
+    "generic": "Paracetamol",
+    "genericBn": "প্যারাসিটামল",
+    "therapeuticClass": "analgesic_antipyretic",
+    "strength": "120mg/5ml",
+    "form": "Syrup",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 35.0,
+    "bnAliases": [
+      "নাপা সিরাপ",
+      "Napa Syrup"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-ace-syp",
+    "nameEn": "Ace Syrup",
+    "nameBn": "এইস সিরাপ",
+    "generic": "Paracetamol",
+    "genericBn": "প্যারাসিটামল",
+    "therapeuticClass": "analgesic_antipyretic",
+    "strength": "120mg/5ml",
+    "form": "Syrup",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 35.0,
+    "bnAliases": [
+      "এইস সিরাপ",
+      "Ace Syrup"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-seclo-20",
+    "nameEn": "Seclo 20",
+    "nameBn": "সেকলো ২০",
+    "generic": "Omeprazole",
+    "genericBn": "ওমিপ্রাজল",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "20mg",
+    "form": "Capsule",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 6.0,
+    "bnAliases": [
+      "সেকলো",
+      "সেকলো ২০",
+      "সেকলো ক্যাপসুল",
+      "Seclo 20"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-losectil-20",
+    "nameEn": "Losectil 20",
+    "nameBn": "লোসেকটিল ২০",
+    "generic": "Omeprazole",
+    "genericBn": "ওমিপ্রাজল",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "20mg",
+    "form": "Capsule",
+    "manufacturer": "Eskayef Pharmaceuticals Ltd.",
+    "indicativePrice": 6.0,
+    "bnAliases": [
+      "লোসেকটিল",
+      "লোসেকটিল ২০",
+      "Losectil 20"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-omeu-20",
+    "nameEn": "Omeu 20",
+    "nameBn": "ওমিউ ২০",
+    "generic": "Omeprazole",
+    "genericBn": "ওমিপ্রাজল",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "20mg",
+    "form": "Capsule",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 5.5,
+    "bnAliases": [
+      "ওমিউ",
+      "ওমিউ ২০"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-proceptin-20",
+    "nameEn": "Proceptin 20",
+    "nameBn": "প্রোসেপটিন ২০",
+    "generic": "Omeprazole",
+    "genericBn": "ওমিপ্রাজল",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "20mg",
+    "form": "Capsule",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 5.0,
+    "bnAliases": [
+      "প্রোসেপটিন"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-sergel-20",
+    "nameEn": "Sergel 20",
+    "nameBn": "সারজেল ২০",
+    "generic": "Esomeprazole",
+    "genericBn": "এসোমিপ্রাজল",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "20mg",
+    "form": "Tablet",
+    "manufacturer": "Healthcare Pharmaceuticals Ltd.",
+    "indicativePrice": 8.0,
+    "bnAliases": [
+      "সারজেল",
+      "সারজেল ২০",
+      "Sergel 20"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-maxpro-20",
+    "nameEn": "Maxpro 20",
+    "nameBn": "ম্যাক্সপ্রো ২০",
+    "generic": "Esomeprazole",
+    "genericBn": "এসোমিপ্রাজল",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "20mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 8.0,
+    "bnAliases": [
+      "ম্যাক্সপ্রো",
+      "ম্যাক্সপ্রো ২০",
+      "Maxpro 20"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-nexum-20",
+    "nameEn": "Nexum 20",
+    "nameBn": "নেক্সাম ২০",
+    "generic": "Esomeprazole",
+    "genericBn": "এসোমিপ্রাজল",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "20mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 7.5,
+    "bnAliases": [
+      "নেক্সাম",
+      "Nexum 20"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-opton-20",
+    "nameEn": "Opton 20",
+    "nameBn": "অপটন ২০",
+    "generic": "Esomeprazole",
+    "genericBn": "এসোমিপ্রাজল",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "20mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 7.0,
+    "bnAliases": [
+      "অপটন",
+      "Opton 20"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-sergel-40",
+    "nameEn": "Sergel 40",
+    "nameBn": "সারজেল ৪০",
+    "generic": "Esomeprazole",
+    "genericBn": "এসোমিপ্রাজল",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "40mg",
+    "form": "Tablet",
+    "manufacturer": "Healthcare Pharmaceuticals Ltd.",
+    "indicativePrice": 12.0,
+    "bnAliases": [
+      "সারজেল ৪০",
+      "Sergel 40"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-maxpro-40",
+    "nameEn": "Maxpro 40",
+    "nameBn": "ম্যাক্সপ্রো ৪০",
+    "generic": "Esomeprazole",
+    "genericBn": "এসোমিপ্রাজল",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "40mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 12.0,
+    "bnAliases": [
+      "ম্যাক্সপ্রো ৪০",
+      "Maxpro 40"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-trupan-20",
+    "nameEn": "Trupan 20",
+    "nameBn": "ট্রুপান ২০",
+    "generic": "Pantoprazole",
+    "genericBn": "প্যান্টোপ্রাজল",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "20mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 7.0,
+    "bnAliases": [
+      "ট্রুপান",
+      "Trupan 20"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-pantonix-20",
+    "nameEn": "Pantonix 20",
+    "nameBn": "প্যান্টোনিক্স ২০",
+    "generic": "Pantoprazole",
+    "genericBn": "প্যান্টোপ্রাজল",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "20mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 6.5,
+    "bnAliases": [
+      "প্যান্টোনিক্স",
+      "Pantonix 20"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-pantobex-20",
+    "nameEn": "Pantobex 20",
+    "nameBn": "প্যান্টোবেক্স ২০",
+    "generic": "Pantoprazole",
+    "genericBn": "প্যান্টোপ্রাজল",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "20mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 7.0,
+    "bnAliases": [
+      "প্যান্টোবেক্স"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-camlod-5",
+    "nameEn": "Camlod 5",
+    "nameBn": "ক্যামলড ৫",
+    "generic": "Amlodipine",
+    "genericBn": "অ্যামলোডিপিন",
+    "therapeuticClass": "antihypertensive",
+    "strength": "5mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 5.0,
+    "bnAliases": [
+      "ক্যামলড",
+      "ক্যামলড ৫",
+      "Camlod 5"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-amlocard-5",
+    "nameEn": "Amlocard 5",
+    "nameBn": "অ্যামলোকার্ড ৫",
+    "generic": "Amlodipine",
+    "genericBn": "অ্যামলোডিপিন",
+    "therapeuticClass": "antihypertensive",
+    "strength": "5mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 4.5,
+    "bnAliases": [
+      "অ্যামলোকার্ড",
+      "Amlocard 5"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-lodipin-5",
+    "nameEn": "Lodipin 5",
+    "nameBn": "লোডিপিন ৫",
+    "generic": "Amlodipine",
+    "genericBn": "অ্যামলোডিপিন",
+    "therapeuticClass": "antihypertensive",
+    "strength": "5mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 4.0,
+    "bnAliases": [
+      "লোডিপিন",
+      "Lodipin 5"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-osartil-50",
+    "nameEn": "Osartil 50",
+    "nameBn": "ওসারটিল ৫০",
+    "generic": "Losartan Potassium",
+    "genericBn": "লোসারটান পটাশিয়াম",
+    "therapeuticClass": "antihypertensive",
+    "strength": "50mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 8.0,
+    "bnAliases": [
+      "ওসারটিল",
+      "ওসারটিল ৫০",
+      "Osartil 50"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-angilock-50",
+    "nameEn": "Angilock 50",
+    "nameBn": "এনজিলক ৫০",
+    "generic": "Losartan Potassium",
+    "genericBn": "লোসারটান পটাশিয়াম",
+    "therapeuticClass": "antihypertensive",
+    "strength": "50mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 8.0,
+    "bnAliases": [
+      "এনজিলক",
+      "Angilock 50"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-losan-50",
+    "nameEn": "Losan 50",
+    "nameBn": "লোসান ৫০",
+    "generic": "Losartan Potassium",
+    "genericBn": "লোসারটান পটাশিয়াম",
+    "therapeuticClass": "antihypertensive",
+    "strength": "50mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 8.0,
+    "bnAliases": [
+      "লোসান",
+      "Losan 50"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-comet-500",
+    "nameEn": "Comet 500",
+    "nameBn": "কমেট ৫০০",
+    "generic": "Metformin Hydrochloride",
+    "genericBn": "মেটফরমিন হাইড্রোক্লোরাইড",
+    "therapeuticClass": "antidiabetic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 4.0,
+    "bnAliases": [
+      "কমেট",
+      "কমেট ৫০০",
+      "Comet 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-daomet-500",
+    "nameEn": "Daomet 500",
+    "nameBn": "ডাওমেট ৫০০",
+    "generic": "Metformin Hydrochloride",
+    "genericBn": "মেটফরমিন হাইড্রোক্লোরাইড",
+    "therapeuticClass": "antidiabetic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 3.5,
+    "bnAliases": [
+      "ডাওমেট",
+      "Daomet 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-informet-500",
+    "nameEn": "Informet 500",
+    "nameBn": "ইনফরমেট ৫০০",
+    "generic": "Metformin Hydrochloride",
+    "genericBn": "মেটফরমিন হাইড্রোক্লোরাইড",
+    "therapeuticClass": "antidiabetic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 3.5,
+    "bnAliases": [
+      "ইনফরমেট",
+      "Informet 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-comet-850",
+    "nameEn": "Comet 850",
+    "nameBn": "কমেট ৮৫০",
+    "generic": "Metformin Hydrochloride",
+    "genericBn": "মেটফরমিন হাইড্রোক্লোরাইড",
+    "therapeuticClass": "antidiabetic",
+    "strength": "850mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 5.5,
+    "bnAliases": [
+      "কমেট ৮৫০",
+      "Comet 850"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-daomet-850",
+    "nameEn": "Daomet 850",
+    "nameBn": "ডাওমেট ৮৫০",
+    "generic": "Metformin Hydrochloride",
+    "genericBn": "মেটফরমিন হাইড্রোক্লোরাইড",
+    "therapeuticClass": "antidiabetic",
+    "strength": "850mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 5.0,
+    "bnAliases": [
+      "ডাওমেট ৮৫০"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-comprid-80",
+    "nameEn": "Comprid 80",
+    "nameBn": "কমপ্রিড ৮০",
+    "generic": "Gliclazide",
+    "genericBn": "গ্লিক্লাজাইড",
+    "therapeuticClass": "antidiabetic",
+    "strength": "80mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 8.0,
+    "bnAliases": [
+      "কমপ্রিড",
+      "Comprid 80"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-diapro-80",
+    "nameEn": "Diapro 80",
+    "nameBn": "ডায়াপ্রো ৮০",
+    "generic": "Gliclazide",
+    "genericBn": "গ্লিক্লাজাইড",
+    "therapeuticClass": "antidiabetic",
+    "strength": "80mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 7.5,
+    "bnAliases": [
+      "ডায়াপ্রো",
+      "Diapro 80"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-glucozid-80",
+    "nameEn": "Glucozid 80",
+    "nameBn": "গ্লুকোজাইড ৮০",
+    "generic": "Gliclazide",
+    "genericBn": "গ্লিক্লাজাইড",
+    "therapeuticClass": "antidiabetic",
+    "strength": "80mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 7.0,
+    "bnAliases": [
+      "গ্লুকোজাইড",
+      "Glucozid 80"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-zithrox-500",
+    "nameEn": "Zithrox 500",
+    "nameBn": "জিথ্রক্স ৫০০",
+    "generic": "Azithromycin",
+    "genericBn": "অ্যাজিথ্রোমাইসিন",
+    "therapeuticClass": "antibiotic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 35.0,
+    "bnAliases": [
+      "জিথ্রক্স",
+      "জিথ্রক্স ৫০০",
+      "Zithrox 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-azithral-500",
+    "nameEn": "Azithral 500",
+    "nameBn": "অ্যাজিথ্রাল ৫০০",
+    "generic": "Azithromycin",
+    "genericBn": "অ্যাজিথ্রোমাইসিন",
+    "therapeuticClass": "antibiotic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 35.0,
+    "bnAliases": [
+      "অ্যাজিথ্রাল",
+      "Azithral 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-odaz-500",
+    "nameEn": "Odaz 500",
+    "nameBn": "ওডাজ ৫০০",
+    "generic": "Azithromycin",
+    "genericBn": "অ্যাজিথ্রোমাইসিন",
+    "therapeuticClass": "antibiotic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 30.0,
+    "bnAliases": [
+      "ওডাজ",
+      "Odaz 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-tridosil-500",
+    "nameEn": "Tridosil 500",
+    "nameBn": "ট্রিডোসিল ৫০০",
+    "generic": "Azithromycin",
+    "genericBn": "অ্যাজিথ্রোমাইসিন",
+    "therapeuticClass": "antibiotic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Renata Limited",
+    "indicativePrice": 32.0,
+    "bnAliases": [
+      "ট্রিডোসিল",
+      "Tridosil 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-cef-3-200",
+    "nameEn": "Cef-3 200",
+    "nameBn": "সেফ-৩ ২০০",
+    "generic": "Cefixime",
+    "genericBn": "সেফিক্সিম",
+    "therapeuticClass": "antibiotic",
+    "strength": "200mg",
+    "form": "Capsule",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 40.0,
+    "bnAliases": [
+      "সেফ-৩",
+      "সেফ ৩",
+      "Cef-3 200"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-triocim-200",
+    "nameEn": "Triocim 200",
+    "nameBn": "ট্রিওসিম ২০০",
+    "generic": "Cefixime",
+    "genericBn": "সেফিক্সিম",
+    "therapeuticClass": "antibiotic",
+    "strength": "200mg",
+    "form": "Capsule",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 38.0,
+    "bnAliases": [
+      "ট্রিওসিম",
+      "Triocim 200"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-denvar-200",
+    "nameEn": "Denvar 200",
+    "nameBn": "ডেনভার ২০০",
+    "generic": "Cefixime",
+    "genericBn": "সেফিক্সিম",
+    "therapeuticClass": "antibiotic",
+    "strength": "200mg",
+    "form": "Capsule",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 36.0,
+    "bnAliases": [
+      "ডেনভার",
+      "Denvar 200"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-ciprocin-500",
+    "nameEn": "Ciprocin 500",
+    "nameBn": "সিপ্রোসিন ৫০০",
+    "generic": "Ciprofloxacin",
+    "genericBn": "সিপ্রোফ্লক্সাসিন",
+    "therapeuticClass": "antibiotic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 15.0,
+    "bnAliases": [
+      "সিপ্রোসিন",
+      "সিপ্রোসিন ৫০০",
+      "Ciprocin 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-neofloxin-500",
+    "nameEn": "Neofloxin 500",
+    "nameBn": "নিওফ্লক্সিন ৫০০",
+    "generic": "Ciprofloxacin",
+    "genericBn": "সিপ্রোফ্লক্সাসিন",
+    "therapeuticClass": "antibiotic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 14.0,
+    "bnAliases": [
+      "নিওফ্লক্সিন",
+      "Neofloxin 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-ciprox-500",
+    "nameEn": "Ciprox 500",
+    "nameBn": "সিপ্রক্স ৫০০",
+    "generic": "Ciprofloxacin",
+    "genericBn": "সিপ্রোফ্লক্সাসিন",
+    "therapeuticClass": "antibiotic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 13.0,
+    "bnAliases": [
+      "সিপ্রক্স",
+      "Ciprox 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-monas-10",
+    "nameEn": "Monas 10",
+    "nameBn": "মোনাস ১০",
+    "generic": "Montelukast Sodium",
+    "genericBn": "মন্টেলুকাস্ট সোডিয়াম",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "The ACME Laboratories Ltd.",
+    "indicativePrice": 16.0,
+    "bnAliases": [
+      "মোনাস",
+      "মোনাস ১০",
+      "Monas 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-montene-10",
+    "nameEn": "Montene 10",
+    "nameBn": "মন্টিন ১০",
+    "generic": "Montelukast Sodium",
+    "genericBn": "মন্টেলুকাস্ট সোডিয়াম",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 16.0,
+    "bnAliases": [
+      "মন্টিন",
+      "Montene 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-odmon-10",
+    "nameEn": "Odmon 10",
+    "nameBn": "ওডমন ১০",
+    "generic": "Montelukast Sodium",
+    "genericBn": "মন্টেলুকাস্ট সোডিয়াম",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 15.0,
+    "bnAliases": [
+      "ওডমন",
+      "Odmon 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-provair-10",
+    "nameEn": "Provair 10",
+    "nameBn": "প্রোভায়ার ১০",
+    "generic": "Montelukast Sodium",
+    "genericBn": "মন্টেলুকাস্ট সোডিয়াম",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "UniMed UniHealth Pharmaceuticals",
+    "indicativePrice": 14.0,
+    "bnAliases": [
+      "প্রোভায়ার",
+      "Provair 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-fexo-120",
+    "nameEn": "Fexo 120",
+    "nameBn": "ফেক্সো ১২০",
+    "generic": "Fexofenadine Hydrochloride",
+    "genericBn": "ফেক্সোফেনাডিন হাইড্রোক্লোরাইড",
+    "therapeuticClass": "antihistamine",
+    "strength": "120mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 9.0,
+    "bnAliases": [
+      "ফেক্সো",
+      "ফেক্সো ১২০",
+      "Fexo 120"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-fenadin-120",
+    "nameEn": "Fenadin 120",
+    "nameBn": "ফেনাডিন ১২০",
+    "generic": "Fexofenadine Hydrochloride",
+    "genericBn": "ফেক্সোফেনাডিন হাইড্রোক্লোরাইড",
+    "therapeuticClass": "antihistamine",
+    "strength": "120mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 9.0,
+    "bnAliases": [
+      "ফেনাডিন",
+      "Fenadin 120"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-rino-120",
+    "nameEn": "Rino 120",
+    "nameBn": "রিনো ১২০",
+    "generic": "Fexofenadine Hydrochloride",
+    "genericBn": "ফেক্সোফেনাডিন হাইড্রোক্লোরাইড",
+    "therapeuticClass": "antihistamine",
+    "strength": "120mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 8.0,
+    "bnAliases": [
+      "রিনো",
+      "Rino 120"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-bilasten-20",
+    "nameEn": "Bilasten 20",
+    "nameBn": "বিলাস্টেন ২০",
+    "generic": "Bilastine",
+    "genericBn": "বিলাস্টিন",
+    "therapeuticClass": "antihistamine",
+    "strength": "20mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 15.0,
+    "bnAliases": [
+      "বিলাস্টেন",
+      "Bilasten 20"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-bilaid-20",
+    "nameEn": "Bilaid 20",
+    "nameBn": "বিলাইড ২০",
+    "generic": "Bilastine",
+    "genericBn": "বিলাস্টিন",
+    "therapeuticClass": "antihistamine",
+    "strength": "20mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 14.0,
+    "bnAliases": [
+      "বিলাইড",
+      "Bilaid 20"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-atova-10",
+    "nameEn": "Atova 10",
+    "nameBn": "আতোভা ১০",
+    "generic": "Atorvastatin Calcium",
+    "genericBn": "অ্যাটরভাস্ট্যাটিন ক্যালসিয়াম",
+    "therapeuticClass": "statin_lipid_lowering",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 12.0,
+    "bnAliases": [
+      "আতোভা",
+      "Atova 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-anzitor-10",
+    "nameEn": "Anzitor 10",
+    "nameBn": "অ্যানজিটর ১০",
+    "generic": "Atorvastatin Calcium",
+    "genericBn": "অ্যাটরভাস্ট্যাটিন ক্যালসিয়াম",
+    "therapeuticClass": "statin_lipid_lowering",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 12.0,
+    "bnAliases": [
+      "অ্যানজিটর",
+      "Anzitor 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-lipicon-10",
+    "nameEn": "Lipicon 10",
+    "nameBn": "লিপিকন ১০",
+    "generic": "Atorvastatin Calcium",
+    "genericBn": "অ্যাটরভাস্ট্যাটিন ক্যালসিয়াম",
+    "therapeuticClass": "statin_lipid_lowering",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 10.0,
+    "bnAliases": [
+      "লিপিকন",
+      "Lipicon 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-rovator-10",
+    "nameEn": "Rovator 10",
+    "nameBn": "রোভাটর ১০",
+    "generic": "Rosuvastatin Calcium",
+    "genericBn": "রোজুভাস্ট্যাটিন ক্যালসিয়াম",
+    "therapeuticClass": "statin_lipid_lowering",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 18.0,
+    "bnAliases": [
+      "রোভাটর",
+      "Rovator 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-rostar-10",
+    "nameEn": "Rostar 10",
+    "nameBn": "রোস্টার ১০",
+    "generic": "Rosuvastatin Calcium",
+    "genericBn": "রোজুভাস্ট্যাটিন ক্যালসিয়াম",
+    "therapeuticClass": "statin_lipid_lowering",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 18.0,
+    "bnAliases": [
+      "রোস্টার",
+      "Rostar 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-rosuva-10",
+    "nameEn": "Rosuva 10",
+    "nameBn": "রোজুভা ১০",
+    "generic": "Rosuvastatin Calcium",
+    "genericBn": "রোজুভাস্ট্যাটিন ক্যালসিয়াম",
+    "therapeuticClass": "statin_lipid_lowering",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 16.0,
+    "bnAliases": [
+      "রোজুভা",
+      "Rosuva 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-plagrin-75",
+    "nameEn": "Plagrin 75",
+    "nameBn": "প্লাগ্রিন ৭৫",
+    "generic": "Clopidogrel Bisulfate",
+    "genericBn": "ক্লোপিডোগ্রেল বাইসালফেট",
+    "therapeuticClass": "antiplatelet_cardiac",
+    "strength": "75mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 12.0,
+    "bnAliases": [
+      "প্লাগ্রিন",
+      "প্লাগ্রিন ৭৫",
+      "Plagrin 75"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-anclog-75",
+    "nameEn": "Anclog 75",
+    "nameBn": "এনক্লগ ৭৫",
+    "generic": "Clopidogrel Bisulfate",
+    "genericBn": "ক্লোপিডোগ্রেল বাইসালফেট",
+    "therapeuticClass": "antiplatelet_cardiac",
+    "strength": "75mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 12.0,
+    "bnAliases": [
+      "এনক্লগ",
+      "Anclog 75"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-lopirel-75",
+    "nameEn": "Lopirel 75",
+    "nameBn": "লোপিরেল ৭৫",
+    "generic": "Clopidogrel Bisulfate",
+    "genericBn": "ক্লোপিডোগ্রেল বাইসালফেট",
+    "therapeuticClass": "antiplatelet_cardiac",
+    "strength": "75mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 10.0,
+    "bnAliases": [
+      "লোপিরেল",
+      "Lopirel 75"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-ecosprin-75",
+    "nameEn": "Ecosprin 75",
+    "nameBn": "ইকোস্প্রিন ৭৫",
+    "generic": "Aspirin",
+    "genericBn": "অ্যাসপিরিন",
+    "therapeuticClass": "antiplatelet_cardiac",
+    "strength": "75mg",
+    "form": "Tablet",
+    "manufacturer": "The ACME Laboratories Ltd.",
+    "indicativePrice": 1.0,
+    "bnAliases": [
+      "ইকোস্প্রিন",
+      "ইকোস্প্রিন ৭৫",
+      "Ecosprin 75"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-solprin-75",
+    "nameEn": "Solprin 75",
+    "nameBn": "সলপ্রিন ৭৫",
+    "generic": "Aspirin",
+    "genericBn": "অ্যাসপিরিন",
+    "therapeuticClass": "antiplatelet_cardiac",
+    "strength": "75mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 1.0,
+    "bnAliases": [
+      "সলপ্রিন",
+      "Solprin 75"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-bisocor-2-5",
+    "nameEn": "Bisocor 2.5",
+    "nameBn": "বাইসোকর ২.৫",
+    "generic": "Bisoprolol Fumarate",
+    "genericBn": "বাইসোপ্রোলল ফিউমারেট",
+    "therapeuticClass": "antihypertensive",
+    "strength": "2.5mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 6.0,
+    "bnAliases": [
+      "বাইসোকর",
+      "Bisocor 2.5"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-cardibis-2-5",
+    "nameEn": "Cardibis 2.5",
+    "nameBn": "কার্ডিবাইস ২.৫",
+    "generic": "Bisoprolol Fumarate",
+    "genericBn": "বাইসোপ্রোলল ফিউমারেট",
+    "therapeuticClass": "antihypertensive",
+    "strength": "2.5mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 6.0,
+    "bnAliases": [
+      "কার্ডিবাইস",
+      "Cardibis 2.5"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-bislol-2-5",
+    "nameEn": "Bislol 2.5",
+    "nameBn": "বিসলল ২.৫",
+    "generic": "Bisoprolol Fumarate",
+    "genericBn": "বাইসোপ্রোলল ফিউমারেট",
+    "therapeuticClass": "antihypertensive",
+    "strength": "2.5mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 5.5,
+    "bnAliases": [
+      "বিসলল",
+      "Bislol 2.5"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-motigut-10",
+    "nameEn": "Motigut 10",
+    "nameBn": "মোটিগাট ১০",
+    "generic": "Domperidone",
+    "genericBn": "ডমপেরিডন",
+    "therapeuticClass": "prokinetic_antiemetic",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 3.5,
+    "bnAliases": [
+      "মোটিগাট",
+      "মোটিগাট ১০",
+      "Motigut 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-omidon-10",
+    "nameEn": "Omidon 10",
+    "nameBn": "অমিডন ১০",
+    "generic": "Domperidone",
+    "genericBn": "ডমপেরিডন",
+    "therapeuticClass": "prokinetic_antiemetic",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 3.5,
+    "bnAliases": [
+      "অমিডন",
+      "অমিডন ১০",
+      "Omidon 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-vidon-10",
+    "nameEn": "Vidon 10",
+    "nameBn": "ভিডন ১০",
+    "generic": "Domperidone",
+    "genericBn": "ডমপেরিডন",
+    "therapeuticClass": "prokinetic_antiemetic",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 3.0,
+    "bnAliases": [
+      "ভিডন",
+      "Vidon 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-coralcal-d",
+    "nameEn": "Coralcal-D",
+    "nameBn": "কোরালক্যাল-ডি",
+    "generic": "Calcium Carbonate + Vitamin D3",
+    "genericBn": "ক্যালসিয়াম কার্বনেট + ভিটামিন ডি৩",
+    "therapeuticClass": "supplements_vitamins",
+    "strength": "500mg+200IU",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 10.0,
+    "bnAliases": [
+      "কোরালক্যাল",
+      "কোরালক্যাল ডি",
+      "Coralcal D"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-calbo-d",
+    "nameEn": "Calbo-D",
+    "nameBn": "ক্যালবো-ডি",
+    "generic": "Calcium Carbonate + Vitamin D3",
+    "genericBn": "ক্যালসিয়াম কার্বনেট + ভিটামিন ডি৩",
+    "therapeuticClass": "supplements_vitamins",
+    "strength": "500mg+200IU",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 8.0,
+    "bnAliases": [
+      "ক্যালবো",
+      "ক্যালবো ডি",
+      "Calbo D"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-ostocal-d",
+    "nameEn": "Ostocal-D",
+    "nameBn": "অস্টোক্যাল-ডি",
+    "generic": "Calcium Carbonate + Vitamin D3",
+    "genericBn": "ক্যালসিয়াম কার্বনেট + ভিটামিন ডি৩",
+    "therapeuticClass": "supplements_vitamins",
+    "strength": "500mg+200IU",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 7.5,
+    "bnAliases": [
+      "অস্টোক্যাল",
+      "Ostocal D"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-aristocal-d",
+    "nameEn": "Aristocal-D",
+    "nameBn": "অ্যারিস্টোক্যাল-ডি",
+    "generic": "Calcium Carbonate + Vitamin D3",
+    "genericBn": "ক্যালসিয়াম কার্বনেট + ভিটামিন ডি৩",
+    "therapeuticClass": "supplements_vitamins",
+    "strength": "500mg+200IU",
+    "form": "Tablet",
+    "manufacturer": "Aristopharma Ltd.",
+    "indicativePrice": 7.0,
+    "bnAliases": [
+      "অ্যারিস্টোক্যাল ডি"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-thyrox-50",
+    "nameEn": "Thyrox 50",
+    "nameBn": "থাইরক্স ৫০",
+    "generic": "Levothyroxine Sodium",
+    "genericBn": "লেভোথাইরক্সিন সোডিয়াম",
+    "therapeuticClass": "thyroid",
+    "strength": "50mcg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 3.0,
+    "bnAliases": [
+      "থাইরক্স",
+      "থাইরক্স ৫০",
+      "Thyrox 50"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-eltroxin-50",
+    "nameEn": "Eltroxin 50",
+    "nameBn": "এলট্রক্সিন ৫০",
+    "generic": "Levothyroxine Sodium",
+    "genericBn": "লেভোথাইরক্সিন সোডিয়াম",
+    "therapeuticClass": "thyroid",
+    "strength": "50mcg",
+    "form": "Tablet",
+    "manufacturer": "GlaxoSmithKline Bangladesh",
+    "indicativePrice": 4.0,
+    "bnAliases": [
+      "এলট্রক্সিন",
+      "Eltroxin 50"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-thyro-50",
+    "nameEn": "Thyro 50",
+    "nameBn": "থাইরো ৫০",
+    "generic": "Levothyroxine Sodium",
+    "genericBn": "লেভোথাইরক্সিন সোডিয়াম",
+    "therapeuticClass": "thyroid",
+    "strength": "50mcg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 2.8,
+    "bnAliases": [
+      "থাইরো ৫০",
+      "Thyro 50"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-ventolin-evohaler",
+    "nameEn": "Ventolin Evohaler",
+    "nameBn": "ভেন্টোলিন ইভোহেলার",
+    "generic": "Salbutamol",
+    "genericBn": "সালবিউটামল",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "100mcg/puff",
+    "form": "Inhaler",
+    "manufacturer": "GlaxoSmithKline Bangladesh",
+    "indicativePrice": 275.0,
+    "bnAliases": [
+      "ভেন্টোলিন",
+      "ভেন্টোলিন ইনহেলার",
+      "Ventolin"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-respihaler-100",
+    "nameEn": "Respihaler",
+    "nameBn": "রেস্পিহেলার",
+    "generic": "Salbutamol",
+    "genericBn": "সালবিউটামল",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "100mcg/puff",
+    "form": "Inhaler",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 220.0,
+    "bnAliases": [
+      "রেস্পিহেলার",
+      "Respihaler"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-salmol-inhaler",
+    "nameEn": "Salmol Inhaler",
+    "nameBn": "সালমল ইনহেলার",
+    "generic": "Salbutamol",
+    "genericBn": "সালবিউটামল",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "100mcg/puff",
+    "form": "Inhaler",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 230.0,
+    "bnAliases": [
+      "সালমল ইনহেলার",
+      "Salmol Inhaler"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-naprosyn-500",
+    "nameEn": "Naprosyn 500",
+    "nameBn": "নেপরোসিন ৫০০",
+    "generic": "Naproxen Sodium",
+    "genericBn": "ন্যাপ্রোক্সেন সোডিয়াম",
+    "therapeuticClass": "nsaid_musculoskeletal",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 12.0,
+    "bnAliases": [
+      "নেপরোসিন",
+      "Naprosyn 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-anaprox-500",
+    "nameEn": "Anaprox 500",
+    "nameBn": "অ্যানাপ্রক্স ৫০০",
+    "generic": "Naproxen Sodium",
+    "genericBn": "ন্যাপ্রোক্সেন সোডিয়াম",
+    "therapeuticClass": "nsaid_musculoskeletal",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 11.0,
+    "bnAliases": [
+      "অ্যানাপ্রক্স",
+      "Anaprox 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-xenapro-500",
+    "nameEn": "Xenapro 500",
+    "nameBn": "জেনাঅপ্রক্স ৫০০",
+    "generic": "Naproxen Sodium",
+    "genericBn": "ন্যাপ্রোক্সেন সোডিয়াম",
+    "therapeuticClass": "nsaid_musculoskeletal",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 10.0,
+    "bnAliases": [
+      "জেনাঅপ্রক্স"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-torax-10",
+    "nameEn": "Torax 10",
+    "nameBn": "টোরাক্স ১০",
+    "generic": "Ketorolac Tromethamine",
+    "genericBn": "কেটোরোলাক ট্রোমিথামিন",
+    "therapeuticClass": "nsaid_musculoskeletal",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 12.0,
+    "bnAliases": [
+      "টোরাক্স",
+      "Torax 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-rolac-10",
+    "nameEn": "Rolac 10",
+    "nameBn": "রোলাক ১০",
+    "generic": "Ketorolac Tromethamine",
+    "genericBn": "কেটোরোলাক ট্রোমিথামিন",
+    "therapeuticClass": "nsaid_musculoskeletal",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 12.0,
+    "bnAliases": [
+      "রোলাক",
+      "Rolac 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-min痛-10",
+    "nameEn": "Ketonic 10",
+    "nameBn": "কিটোনিক ১০",
+    "generic": "Ketorolac Tromethamine",
+    "genericBn": "কেটোরোলাক ট্রোমিথামিন",
+    "therapeuticClass": "nsaid_musculoskeletal",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 11.5,
+    "bnAliases": [
+      "কিটোনিক",
+      "Ketonic 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-edemin-40",
+    "nameEn": "Edemin 40",
+    "nameBn": "এডেমিন ৪০",
+    "generic": "Furosemide",
+    "genericBn": "ফিউরোসেমাইড",
+    "therapeuticClass": "antihypertensive",
+    "strength": "40mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 2.0,
+    "bnAliases": [
+      "এডেমিন",
+      "Edemin 40"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-fusid-40",
+    "nameEn": "Fusid 40",
+    "nameBn": "ফিউসিড ৪০",
+    "generic": "Furosemide",
+    "genericBn": "ফিউরোসেমাইড",
+    "therapeuticClass": "antihypertensive",
+    "strength": "40mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 1.8,
+    "bnAliases": [
+      "ফিউসিড",
+      "Fusid 40"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-urispas-200",
+    "nameEn": "Urispas 200",
+    "nameBn": "ইউরিসপাস ২০০",
+    "generic": "Flavoxate Hydrochloride",
+    "genericBn": "ফ্ল্যাভোক্সেট হাইড্রোক্লোরাইড",
+    "therapeuticClass": "antispasmodic_urinary",
+    "strength": "200mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 14.0,
+    "bnAliases": [
+      "ইউরিসপাস",
+      "Urispas 200"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-urislow-200",
+    "nameEn": "Urislow 200",
+    "nameBn": "ইউরিস্লো ২০০",
+    "generic": "Flavoxate Hydrochloride",
+    "genericBn": "ফ্ল্যাভোক্সেট হাইড্রোক্লোরাইড",
+    "therapeuticClass": "antispasmodic_urinary",
+    "strength": "200mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 13.0,
+    "bnAliases": [
+      "ইউরিস্লো"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-baby-zinc-20",
+    "nameEn": "Baby Zinc 20",
+    "nameBn": "বেবি জিংক ২০",
+    "generic": "Zinc Sulfate Monohydrate",
+    "genericBn": "জিংক সালফেট মনোহাইড্রেট",
+    "therapeuticClass": "supplements_vitamins",
+    "strength": "20mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 2.0,
+    "bnAliases": [
+      "বেবি জিংক",
+      "Baby Zinc"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-zincare-20",
+    "nameEn": "Zincare 20",
+    "nameBn": "জিংককেয়ার ২০",
+    "generic": "Zinc Sulfate Monohydrate",
+    "genericBn": "জিংক সালফেট মনোহাইড্রেট",
+    "therapeuticClass": "supplements_vitamins",
+    "strength": "20mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 2.0,
+    "bnAliases": [
+      "জিংককেয়ার"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-orsaline-n",
+    "nameEn": "ORSaline-N",
+    "nameBn": "ওআরস্যালাইন-এন",
+    "generic": "Oral Rehydration Salt (ORS)",
+    "genericBn": "খাবার স্যালাইন",
+    "therapeuticClass": "supplements_vitamins",
+    "strength": "Standard 500ml",
+    "form": "Powder",
+    "manufacturer": "SMC Enterprise Ltd.",
+    "indicativePrice": 6.0,
+    "bnAliases": [
+      "ওআরস্যালাইন",
+      "খাবার স্যালাইন",
+      "এসএমসি স্যালাইন",
+      "ORSaline"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-or-saline-square",
+    "nameEn": "Tasty Saline",
+    "nameBn": "টেস্টি স্যালাইন",
+    "generic": "Oral Rehydration Salt (ORS)",
+    "genericBn": "খাবার স্যালাইন",
+    "therapeuticClass": "supplements_vitamins",
+    "strength": "Standard 500ml",
+    "form": "Powder",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 6.0,
+    "bnAliases": [
+      "টেস্টি স্যালাইন"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-flexi-100",
+    "nameEn": "Flexi 100",
+    "nameBn": "ফ্লেক্সি ১০০",
+    "generic": "Aceclofenac",
+    "genericBn": "অ্যাসেক্লোফেনাক",
+    "therapeuticClass": "nsaid_musculoskeletal",
+    "strength": "100mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 6.0,
+    "bnAliases": [
+      "ফ্লেক্সি",
+      "Flexi 100"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-aceclo-100",
+    "nameEn": "Aceclo 100",
+    "nameBn": "অ্যাসেক্লো ১০০",
+    "generic": "Aceclofenac",
+    "genericBn": "অ্যাসেক্লোফেনাক",
+    "therapeuticClass": "nsaid_musculoskeletal",
+    "strength": "100mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 5.5,
+    "bnAliases": [
+      "অ্যাসেক্লো",
+      "Aceclo 100"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-mervan-100",
+    "nameEn": "Mervan 100",
+    "nameBn": "মারভান ১০০",
+    "generic": "Aceclofenac",
+    "genericBn": "অ্যাসেক্লোফেনাক",
+    "therapeuticClass": "nsaid_musculoskeletal",
+    "strength": "100mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 5.5,
+    "bnAliases": [
+      "মারভান"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-telma-40",
+    "nameEn": "Telma 40",
+    "nameBn": "টেলমা ৪০",
+    "generic": "Telmisartan",
+    "genericBn": "টেলমিসারটান",
+    "therapeuticClass": "antihypertensive",
+    "strength": "40mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 10.0,
+    "bnAliases": [
+      "টেলমা",
+      "Telma 40"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-angitel-40",
+    "nameEn": "Angitel 40",
+    "nameBn": "এনজিটেল ৪০",
+    "generic": "Telmisartan",
+    "genericBn": "টেলমিসারটান",
+    "therapeuticClass": "antihypertensive",
+    "strength": "40mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 9.5,
+    "bnAliases": [
+      "এনজিটেল",
+      "Angitel 40"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-telsartan-40",
+    "nameEn": "Telsartan 40",
+    "nameBn": "টেলসারটান ৪০",
+    "generic": "Telmisartan",
+    "genericBn": "টেলমিসারটান",
+    "therapeuticClass": "antihypertensive",
+    "strength": "40mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 9.5,
+    "bnAliases": [
+      "টেলসারটান"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-kilbac-500",
+    "nameEn": "Kilbac 500",
+    "nameBn": "কিলব্যাক ৫০০",
+    "generic": "Cefuroxime Axetil",
+    "genericBn": "সেফুরোক্সিম অ্যাক্সেটিল",
+    "therapeuticClass": "antibiotic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 50.0,
+    "bnAliases": [
+      "কিলব্যাক",
+      "Kilbac 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-cetil-500",
+    "nameEn": "Cetil 500",
+    "nameBn": "সেটিল ৫০০",
+    "generic": "Cefuroxime Axetil",
+    "genericBn": "সেফুরোক্সিম অ্যাক্সেটিল",
+    "therapeuticClass": "antibiotic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 55.0,
+    "bnAliases": [
+      "সেটিল",
+      "Cetil 500"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-cerox-a-500",
+    "nameEn": "Cerox-A 500",
+    "nameBn": "সেরোক্স-এ ৫০০",
+    "generic": "Cefuroxime Axetil",
+    "genericBn": "সেফুরোক্সিম অ্যাক্সেটিল",
+    "therapeuticClass": "antibiotic",
+    "strength": "500mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 52.0,
+    "bnAliases": [
+      "সেরোক্স-এ"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-moxaclav-625",
+    "nameEn": "Moxaclav 625",
+    "nameBn": "মক্সাক্ল্যাভ ৬২৫",
+    "generic": "Amoxicillin + Clavulanic Acid",
+    "genericBn": "অ্যামোক্সিসিলিন + ক্লাভুলানিক এসিড",
+    "therapeuticClass": "antibiotic",
+    "strength": "500mg+125mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 45.0,
+    "bnAliases": [
+      "মক্সাক্ল্যাভ",
+      "Moxaclav 625"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-fimoxyl-625",
+    "nameEn": "Fimoxyl 625",
+    "nameBn": "ফিমোক্সিল ৬২৫",
+    "generic": "Amoxicillin + Clavulanic Acid",
+    "genericBn": "অ্যামোক্সিসিলিন + ক্লাভুলানিক এসিড",
+    "therapeuticClass": "antibiotic",
+    "strength": "500mg+125mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 45.0,
+    "bnAliases": [
+      "ফিমোক্সিল",
+      "Fimoxyl 625"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-clavroc-625",
+    "nameEn": "Clavroc 625",
+    "nameBn": "ক্ল্যাভরক ৬২৫",
+    "generic": "Amoxicillin + Clavulanic Acid",
+    "genericBn": "অ্যামোক্সিসিলিন + ক্লাভুলানিক এসিড",
+    "therapeuticClass": "antibiotic",
+    "strength": "500mg+125mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 42.0,
+    "bnAliases": [
+      "ক্ল্যাভরক"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-linaglip-5",
+    "nameEn": "Linaglip 5",
+    "nameBn": "লিনাঙ্গলিপ ৫",
+    "generic": "Linagliptin",
+    "genericBn": "লিনাংগ্লিপটিন",
+    "therapeuticClass": "antidiabetic",
+    "strength": "5mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 22.0,
+    "bnAliases": [
+      "লিনাঙ্গলিপ",
+      "Linaglip 5"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-treglu-5",
+    "nameEn": "Treglu 5",
+    "nameBn": "ট্রেগ্লু ৫",
+    "generic": "Linagliptin",
+    "genericBn": "লিনাংগ্লিপটিন",
+    "therapeuticClass": "antidiabetic",
+    "strength": "5mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 22.0,
+    "bnAliases": [
+      "ট্রেগ্লু",
+      "Treglu 5"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-linata-5",
+    "nameEn": "Linata 5",
+    "nameBn": "লিনাটা ৫",
+    "generic": "Linagliptin",
+    "genericBn": "লিনাংগ্লিপটিন",
+    "therapeuticClass": "antidiabetic",
+    "strength": "5mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 20.0,
+    "bnAliases": [
+      "লিনাটা"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-empaglif-10",
+    "nameEn": "Empaglif 10",
+    "nameBn": "এম্পাগ্লিফ ১০",
+    "generic": "Empagliflozin",
+    "genericBn": "এম্পাগ্লিফ্লোজিন",
+    "therapeuticClass": "antidiabetic",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 30.0,
+    "bnAliases": [
+      "এম্পাগ্লিফ",
+      "Empaglif 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-empa-10",
+    "nameEn": "Empa 10",
+    "nameBn": "এম্পা ১০",
+    "generic": "Empagliflozin",
+    "genericBn": "এম্পাগ্লিফ্লোজিন",
+    "therapeuticClass": "antidiabetic",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 28.0,
+    "bnAliases": [
+      "এম্পা",
+      "Empa 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-gluflo-10",
+    "nameEn": "Gluflo 10",
+    "nameBn": "গ্লুফ্লো ১০",
+    "generic": "Empagliflozin",
+    "genericBn": "এম্পাগ্লিফ্লোজিন",
+    "therapeuticClass": "antidiabetic",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 28.0,
+    "bnAliases": [
+      "গ্লুফ্লো"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-doxomax-400",
+    "nameEn": "Doxomax 400",
+    "nameBn": "ডক্সোম্যাক্স ৪০০",
+    "generic": "Doxophylline",
+    "genericBn": "ডক্সোফাইলিন",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "400mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 9.0,
+    "bnAliases": [
+      "ডক্সোম্যাক্স",
+      "Doxomax 400"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-doxivent-400",
+    "nameEn": "Doxivent 400",
+    "nameBn": "ডক্সিভেন্ট ৪০০",
+    "generic": "Doxophylline",
+    "genericBn": "ডক্সোফাইলিন",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "400mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 9.0,
+    "bnAliases": [
+      "ডক্সিভেন্ট",
+      "Doxivent 400"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-pulmodox-400",
+    "nameEn": "Pulmodox 400",
+    "nameBn": "পালমোডক্স ৪০০",
+    "generic": "Doxophylline",
+    "genericBn": "ডক্সোফাইলিন",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "400mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 8.0,
+    "bnAliases": [
+      "পালমোডক্স"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-brofex-syp",
+    "nameEn": "Brofex Syrup",
+    "nameBn": "ব্রোফেক্স সিরাপ",
+    "generic": "Ambroxol Hydrochloride",
+    "genericBn": "অ্যামব্রোক্সল হাইড্রোক্লোরাইড",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "15mg/5ml",
+    "form": "Syrup",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 45.0,
+    "bnAliases": [
+      "ব্রোফেক্স",
+      "Brofex"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-ambrox-syp",
+    "nameEn": "Ambrox Syrup",
+    "nameBn": "অ্যামব্রক্স সিরাপ",
+    "generic": "Ambroxol Hydrochloride",
+    "genericBn": "অ্যামব্রোক্সল হাইড্রোক্লোরাইড",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "15mg/5ml",
+    "form": "Syrup",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 45.0,
+    "bnAliases": [
+      "অ্যামব্রক্স",
+      "Ambrox"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-neuro-b",
+    "nameEn": "Neuro-B",
+    "nameBn": "নিউরো-বি",
+    "generic": "Vitamin B1 + B6 + B12",
+    "genericBn": "ভিটামিন বি১ + বি৬ + বি১২",
+    "therapeuticClass": "supplements_vitamins",
+    "strength": "100mg+200mg+200mcg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 8.0,
+    "bnAliases": [
+      "নিউরো বি",
+      "Neuro B"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-neobion",
+    "nameEn": "Neobion",
+    "nameBn": "নিওবায়ন",
+    "generic": "Vitamin B1 + B6 + B12",
+    "genericBn": "ভিটামিন বি১ + বি৬ + বি১২",
+    "therapeuticClass": "supplements_vitamins",
+    "strength": "100mg+200mg+200mcg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 8.0,
+    "bnAliases": [
+      "নিওবায়ন",
+      "Neobion"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-tribion",
+    "nameEn": "Tribion",
+    "nameBn": "ট্রাইবায়ন",
+    "generic": "Vitamin B1 + B6 + B12",
+    "genericBn": "ভিটামিন বি১ + বি৬ + বি১২",
+    "therapeuticClass": "supplements_vitamins",
+    "strength": "100mg+200mg+200mcg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 7.5,
+    "bnAliases": [
+      "ট্রাইবায়ন"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-fe-plus",
+    "nameEn": "Fe-Plus",
+    "nameBn": "এফই-প্লাস",
+    "generic": "Iron Polymaltose Complex + Folic Acid",
+    "genericBn": "আয়রন পলিম্যালটোজ + ফলিক এসিড",
+    "therapeuticClass": "supplements_vitamins",
+    "strength": "50mg+0.5mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 6.0,
+    "bnAliases": [
+      "এফই প্লাস",
+      "Fe Plus"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-folifer",
+    "nameEn": "Folifer",
+    "nameBn": "ফোলিফার",
+    "generic": "Iron Polymaltose Complex + Folic Acid",
+    "genericBn": "আয়রন পলিম্যালটোজ + ফলিক এসিড",
+    "therapeuticClass": "supplements_vitamins",
+    "strength": "50mg+0.5mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 6.0,
+    "bnAliases": [
+      "ফোলিফার"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-filmet-400",
+    "nameEn": "Filmet 400",
+    "nameBn": "ফিলমেট ৪০০",
+    "generic": "Metronidazole",
+    "genericBn": "মেট্রোনিডাজল",
+    "therapeuticClass": "antibiotic",
+    "strength": "400mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 2.5,
+    "bnAliases": [
+      "ফিলমেট",
+      "Filmet 400"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-amodis-400",
+    "nameEn": "Amodis 400",
+    "nameBn": "অ্যামোডিস ৪০০",
+    "generic": "Metronidazole",
+    "genericBn": "মেট্রোনিডাজল",
+    "therapeuticClass": "antibiotic",
+    "strength": "400mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 2.5,
+    "bnAliases": [
+      "অ্যামোডিস",
+      "Amodis 400"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-flamet-400",
+    "nameEn": "Flamet 400",
+    "nameBn": "ফ্লামেট ৪০০",
+    "generic": "Metronidazole",
+    "genericBn": "মেট্রোনিডাজল",
+    "therapeuticClass": "antibiotic",
+    "strength": "400mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 2.2,
+    "bnAliases": [
+      "ফ্লামেট"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-flugal-150",
+    "nameEn": "Flugal 150",
+    "nameBn": "ফ্লুগাল ১৫০",
+    "generic": "Fluconazole",
+    "genericBn": "ফ্লুকোনাজল",
+    "therapeuticClass": "antifungal",
+    "strength": "150mg",
+    "form": "Capsule",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 25.0,
+    "bnAliases": [
+      "ফ্লুগাল",
+      "Flugal 150"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-diflu-150",
+    "nameEn": "Diflu 150",
+    "nameBn": "ডাইফ্লু ১৫০",
+    "generic": "Fluconazole",
+    "genericBn": "ফ্লুকোনাজল",
+    "therapeuticClass": "antifungal",
+    "strength": "150mg",
+    "form": "Capsule",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 25.0,
+    "bnAliases": [
+      "ডাইফ্লু",
+      "Diflu 150"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-lucan-150",
+    "nameEn": "Lucan-R 150",
+    "nameBn": "লুকান-আর ১৫০",
+    "generic": "Fluconazole",
+    "genericBn": "ফ্লুকোনাজল",
+    "therapeuticClass": "antifungal",
+    "strength": "150mg",
+    "form": "Capsule",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 22.0,
+    "bnAliases": [
+      "লুকান"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-nitrovas-spray",
+    "nameEn": "Nitrovas Spray",
+    "nameBn": "নাইট্রোভ্যাস স্প্রে",
+    "generic": "Nitroglycerin",
+    "genericBn": "নাইট্রোগ্লিসারিন",
+    "therapeuticClass": "antianginal_cardiac",
+    "strength": "0.4mg/metered spray",
+    "form": "Sublingual Spray",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 320.0,
+    "bnAliases": [
+      "নাইট্রোভ্যাস",
+      "Nitrovas"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-nitromint-spray",
+    "nameEn": "Nitromint Spray",
+    "nameBn": "নাইট্রোমিন্ট স্প্রে",
+    "generic": "Nitroglycerin",
+    "genericBn": "নাইট্রোগ্লিসারিন",
+    "therapeuticClass": "antianginal_cardiac",
+    "strength": "0.4mg/metered spray",
+    "form": "Sublingual Spray",
+    "manufacturer": "Egis Pharmaceuticals",
+    "indicativePrice": 380.0,
+    "bnAliases": [
+      "নাইট্রোমিন্ট",
+      "Nitromint"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-entacyd-plus",
+    "nameEn": "Entacyd Plus",
+    "nameBn": "এন্টাসিড প্লাস",
+    "generic": "Aluminium Hydroxide + Magnesium Hydroxide + Simethicone",
+    "genericBn": "অ্যালুমিনিয়াম হাইড্রক্সাইড + ম্যাগনেসিয়াম হাইড্রক্সাইড + সিমেথিকোন",
+    "therapeuticClass": "antacid_gastro",
+    "strength": "200ml",
+    "form": "Suspension",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 95.0,
+    "bnAliases": [
+      "এন্টাসিড প্লাস",
+      "Entacyd Plus"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-flatamex-syp",
+    "nameEn": "Flatamex Plus",
+    "nameBn": "ফ্ল্যাটামেক্স প্লাস",
+    "generic": "Aluminium Hydroxide + Magnesium Hydroxide + Simethicone",
+    "genericBn": "অ্যালুমিনিয়াম হাইড্রক্সাইড + ম্যাগনেসিয়াম হাইড্রক্সাইড + সিমেথিকোন",
+    "therapeuticClass": "antacid_gastro",
+    "strength": "200ml",
+    "form": "Suspension",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 95.0,
+    "bnAliases": [
+      "ফ্ল্যাটামেক্স",
+      "Flatamex"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-osmolax-syp",
+    "nameEn": "Osmolax Syrup",
+    "nameBn": "অসমোল্যাক্স সিরাপ",
+    "generic": "Lactulose",
+    "genericBn": "ল্যাকটুলোজ",
+    "therapeuticClass": "laxative_gastro",
+    "strength": "3.35g/5ml",
+    "form": "Syrup",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 160.0,
+    "bnAliases": [
+      "অসমোল্যাক্স",
+      "Osmolax"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-avilac-syp",
+    "nameEn": "Avilac Syrup",
+    "nameBn": "অ্যাভিলাক সিরাপ",
+    "generic": "Lactulose",
+    "genericBn": "ল্যাকটুলোজ",
+    "therapeuticClass": "laxative_gastro",
+    "strength": "3.35g/5ml",
+    "form": "Syrup",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 150.0,
+    "bnAliases": [
+      "অ্যাভিলাক",
+      "Avilac"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-budicort-200",
+    "nameEn": "Budicort 200",
+    "nameBn": "বিউডিকর্ট ২০০",
+    "generic": "Budesonide",
+    "genericBn": "বুডেসোনাইড",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "200mcg/puff",
+    "form": "Inhaler",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 310.0,
+    "bnAliases": [
+      "বিউডিকর্ট",
+      "Budicort 200"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-pulmicort-200",
+    "nameEn": "Pulmicort 200",
+    "nameBn": "পালমিকর্ট ২০০",
+    "generic": "Budesonide",
+    "genericBn": "বুডেসোনাইড",
+    "therapeuticClass": "antiasthmatic_respiratory",
+    "strength": "200mcg/puff",
+    "form": "Inhaler",
+    "manufacturer": "AstraZeneca / Beximco",
+    "indicativePrice": 380.0,
+    "bnAliases": [
+      "পালমিকর্ট",
+      "Pulmicort"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-anadol-50",
+    "nameEn": "Anadol 50",
+    "nameBn": "অ্যানাডল ৫০",
+    "generic": "Tramadol Hydrochloride",
+    "genericBn": "ট্রামাডল হাইড্রোক্লোরাইড",
+    "therapeuticClass": "analgesic_antipyretic",
+    "strength": "50mg",
+    "form": "Capsule",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 12.0,
+    "bnAliases": [
+      "অ্যানাডল",
+      "Anadol 50"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-tramaprid-50",
+    "nameEn": "Tramaprid 50",
+    "nameBn": "ট্রামাপ্রিড ৫০",
+    "generic": "Tramadol Hydrochloride",
+    "genericBn": "ট্রামাডল হাইড্রোক্লোরাইড",
+    "therapeuticClass": "analgesic_antipyretic",
+    "strength": "50mg",
+    "form": "Capsule",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 11.0,
+    "bnAliases": [
+      "ট্রামাপ্রিড"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-clofenac-50",
+    "nameEn": "Clofenac 50",
+    "nameBn": "ক্লোফেনাক ৫০",
+    "generic": "Diclofenac Sodium",
+    "genericBn": "ডাইক্লোফেনাক সোডিয়াম",
+    "therapeuticClass": "nsaid_musculoskeletal",
+    "strength": "50mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 4.0,
+    "bnAliases": [
+      "ক্লোফেনাক",
+      "Clofenac 50"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-voltalin-50",
+    "nameEn": "Voltalin 50",
+    "nameBn": "ভোল্টালিন ৫০",
+    "generic": "Diclofenac Sodium",
+    "genericBn": "ডাইক্লোফেনাক সোডিয়াম",
+    "therapeuticClass": "nsaid_musculoskeletal",
+    "strength": "50mg",
+    "form": "Tablet",
+    "manufacturer": "Novartis / Beximco",
+    "indicativePrice": 4.5,
+    "bnAliases": [
+      "ভোল্টালিন",
+      "Voltalin 50"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-alatrol-10",
+    "nameEn": "Alatrol 10",
+    "nameBn": "অ্যালাট্রোল ১০",
+    "generic": "Cetirizine Dihydrochloride",
+    "genericBn": "সেটিরিজিন ডাইহাইড্রোক্লোরাইড",
+    "therapeuticClass": "antihistamine",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 3.5,
+    "bnAliases": [
+      "অ্যালাট্রোল",
+      "Alatrol 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-atrizin-10",
+    "nameEn": "Atrizin 10",
+    "nameBn": "অ্যাট্রিজিন ১০",
+    "generic": "Cetirizine Dihydrochloride",
+    "genericBn": "সেটিরিজিন ডাইহাইড্রোক্লোরাইড",
+    "therapeuticClass": "antihistamine",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 3.5,
+    "bnAliases": [
+      "অ্যাট্রিজিন",
+      "Atrizin 10"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-cetriz-10",
+    "nameEn": "Cetriz 10",
+    "nameBn": "সেট্রিজ ১০",
+    "generic": "Cetirizine Dihydrochloride",
+    "genericBn": "সেটিরিজিন ডাইহাইড্রোক্লোরাইড",
+    "therapeuticClass": "antihistamine",
+    "strength": "10mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 3.0,
+    "bnAliases": [
+      "সেট্রিজ"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-emistat-8",
+    "nameEn": "Emistat 8",
+    "nameBn": "এমেস্ট্যাট ৮",
+    "generic": "Ondansetron",
+    "genericBn": "অনডানসেট্রন",
+    "therapeuticClass": "prokinetic_antiemetic",
+    "strength": "8mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 8.0,
+    "bnAliases": [
+      "এমেস্ট্যাট",
+      "Emistat 8"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-onsat-8",
+    "nameEn": "Onsat 8",
+    "nameBn": "অনস্যাট ৮",
+    "generic": "Ondansetron",
+    "genericBn": "অনডানসেট্রন",
+    "therapeuticClass": "prokinetic_antiemetic",
+    "strength": "8mg",
+    "form": "Tablet",
+    "manufacturer": "Incepta Pharmaceuticals Ltd.",
+    "indicativePrice": 7.5,
+    "bnAliases": [
+      "অনস্যাট"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-ondan-8",
+    "nameEn": "Ondan 8",
+    "nameBn": "অনডান ৮",
+    "generic": "Ondansetron",
+    "genericBn": "অনডানসেট্রন",
+    "therapeuticClass": "prokinetic_antiemetic",
+    "strength": "8mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 8.0,
+    "bnAliases": [
+      "অনডান"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-finix-20",
+    "nameEn": "Finix 20",
+    "nameBn": "ফিনিক্স ২০",
+    "generic": "Rabeprazole Sodium",
+    "genericBn": "রেবিপ্রাজল সোডিয়াম",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "20mg",
+    "form": "Tablet",
+    "manufacturer": "Square Pharmaceuticals PLC",
+    "indicativePrice": 7.0,
+    "bnAliases": [
+      "ফিনিক্স",
+      "Finix 20"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  },
+  {
+    "id": "dgda-rabeca-20",
+    "nameEn": "Rabeca 20",
+    "nameBn": "রাবেকা ২০",
+    "generic": "Rabeprazole Sodium",
+    "genericBn": "রেবিপ্রাজল সোডিয়াম",
+    "therapeuticClass": "ppi_antiulcerant",
+    "strength": "20mg",
+    "form": "Tablet",
+    "manufacturer": "Beximco Pharmaceuticals Ltd.",
+    "indicativePrice": 7.0,
+    "bnAliases": [
+      "রাবেকা"
+    ],
+    "verified": true,
+    "source": "DGDA Bangladesh Registered Allopathic Drugs Database"
+  }
+]

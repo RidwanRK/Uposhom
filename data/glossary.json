@@ -1,0 +1,322 @@
+[
+  {
+    "id": "fbs",
+    "testName": "Fasting Blood Sugar (রক্তের গ্লুকোজ - খালি পেটে)",
+    "category": "Diabetes",
+    "standardRange": "3.9 - 6.1 mmol/L",
+    "unit": "mmol/L",
+    "explanationBn": "খালি পেটে রক্তের শর্করার বা গ্লুকোজের স্বাভাবিক মাত্রা নির্দেশ করে। এর মান স্বাভাবিকের বেশি হলে ডায়াবেটিসের ঝুঁকি থাকতে পারে। কোনো পরিবর্তনের ক্ষেত্রে অবশ্যই চিকিৎসকের পরামর্শ নিন।"
+  },
+  {
+    "id": "2habf",
+    "testName": "2 Hours Post Meal Glucose (রক্তের গ্লুকোজ - খাওয়ার ২ ঘণ্টা পর)",
+    "category": "Diabetes",
+    "standardRange": "< 7.8 mmol/L",
+    "unit": "mmol/L",
+    "explanationBn": "খাবার গ্রহণের দুই ঘণ্টা পর রক্তে শর্করার মাত্রা নির্দেশ করে। এর মান অস্বাভাবিক হলে রেজিস্টার্ড চিকিৎসকের সঙ্গে যোগাযোগ করুন।"
+  },
+  {
+    "id": "hba1c",
+    "testName": "HbA1c (গ্লাইকেটেড হিমোগ্লোবিন - ৩ মাসের গড় শর্করা)",
+    "category": "Diabetes",
+    "standardRange": "< 5.7 %",
+    "unit": "%",
+    "explanationBn": "বিগত দুই থেকে তিন মাসের রক্তে শর্করার গড় নিয়ন্ত্রণ প্রকাশ করে। ডায়াবেটিস রোগীদের চিকিৎসকের নির্দেশিত লক্ষ্যমাত্রা বজায় রাখা জরুরি।"
+  },
+  {
+    "id": "rbs",
+    "testName": "Random Blood Sugar (র‌্যান্ডম ব্লাড সুগার)",
+    "category": "Diabetes",
+    "standardRange": "< 7.8 mmol/L",
+    "unit": "mmol/L",
+    "explanationBn": "যেকোনো সময়ে রক্তের গ্লুকোজের পরিমাপ। মাত্রা বেশি থাকলে ডায়াবেটিস পরীক্ষার জন্য চিকিৎসকের পরামর্শ নিন।"
+  },
+  {
+    "id": "hemoglobin",
+    "testName": "Hemoglobin (হিমোগ্লোবিন - রক্তকণিকা)",
+    "category": "Hematology",
+    "standardRange": "12.0 - 16.0 g/dL",
+    "unit": "g/dL",
+    "explanationBn": "রক্তের লোহিত কণিকায় অক্সিজেন বহনকারী প্রোটিন। এর পরিমাণ কমে গেলে রক্তস্বল্পতা বা এনিমিয়া হতে পারে। চিকিৎসকের শরণাপন্ন হয়ে সঠিক পরামর্শ গ্রহণ করুন।"
+  },
+  {
+    "id": "platelets",
+    "testName": "Platelet Count (প্লাটিলেট বা অনুচক্রিকা)",
+    "category": "Hematology",
+    "standardRange": "150,000 - 450,000 /cumm",
+    "unit": "/cumm",
+    "explanationBn": "রক্ত জমাট বাঁধতে সাহায্যকারী কোষ। ডেঙ্গু বা অন্যান্য ভাইরাল জ্বরে প্লাটিলেট কমে যেতে পারে। অস্বাভাবিক মাত্রা দেখলে দ্রুত চিকিৎসকের কাছে যান।"
+  },
+  {
+    "id": "wbc_total",
+    "testName": "Total WBC Count (শ্বেত রক্তকণিকা)",
+    "category": "Hematology",
+    "standardRange": "4,000 - 11,000 /cumm",
+    "unit": "/cumm",
+    "explanationBn": "শরীরের রোগ প্রতিরোধ ক্ষমতার গুরুত্বপূর্ণ কোষ। ইনফেকশন বা প্রদাহ হলে এর সংখ্যা বাড়তে পারে। চিকিৎসকের নির্দেশ অনুযায়ী প্রয়োজনীয় ওষুধ সেবন করুন।"
+  },
+  {
+    "id": "esr",
+    "testName": "ESR (ইএসআর - রক্ত থিতানোর হার)",
+    "category": "Hematology",
+    "standardRange": "0 - 20 mm/1st hr",
+    "unit": "mm/1st hr",
+    "explanationBn": "শরীরে কোনো দীর্ঘমেয়াদি সংক্রমণ বা প্রদাহ আছে কি না তা নির্ধারণে সাহায্য করে। ফলাফল পর্যালোচনার জন্য চিকিৎসকের পরামর্শ নিন।"
+  },
+  {
+    "id": "rbc",
+    "testName": "RBC Count (লোহিত রক্তকণিকা)",
+    "category": "Hematology",
+    "standardRange": "4.0 - 5.5 million/uL",
+    "unit": "million/uL",
+    "explanationBn": "শরীরের প্রতিটি কোষে অক্সিজেন পৌঁছে দিতে কাজ করে। অস্বাভাবিক ফলাফলের ক্ষেত্রে রেজিস্টার্ড চিকিৎসকের মতামত নিন।"
+  },
+  {
+    "id": "serum_creatinine",
+    "testName": "Serum Creatinine (সিরাম ক্রিয়েটিনিন - কিডনি কার্যক্ষমতা)",
+    "category": "Renal Function",
+    "standardRange": "0.6 - 1.2 mg/dL",
+    "unit": "mg/dL",
+    "explanationBn": "কিডনি রক্ত ঠিকমতো ছাঁকছে কি না তা বোঝার প্রধান নির্দেশক। মান বেশি হলে কিডনির কার্যকারিতায় সমস্যা নির্দেশ করতে পারে। অবিলম্বে নেফ্রোলজিস্ট বা চিকিৎসকের পরামর্শ নিন।"
+  },
+  {
+    "id": "blood_urea",
+    "testName": "Blood Urea / BUN (ইউরিয়া বা ব্লাড ইউরিয়া নাইট্রোজেন)",
+    "category": "Renal Function",
+    "standardRange": "15 - 45 mg/dL",
+    "unit": "mg/dL",
+    "explanationBn": "প্রোটিন বিপাকের ফলে তৈরি বর্জ্য পদার্থ যা কিডনি দিয়ে বের হয়। কিডনির সমস্যা বা পানিশূন্যতায় মাত্রা বাড়তে পারে। চিকিৎসকের পরামর্শ অনুযায়ী ব্যবস্থা নিন।"
+  },
+  {
+    "id": "egfr",
+    "testName": "eGFR (আনুমানিক গ্লোমেরুলার ফিল্ট্রেশন রেট)",
+    "category": "Renal Function",
+    "standardRange": "> 90 mL/min/1.73m2",
+    "unit": "mL/min/1.73m2",
+    "explanationBn": "কিডনি প্রতি মিনিটে কতটুকু রক্ত পরিশোধিত করছে তার হার। মান ৬০ এর নিচে নামলে চিকিৎসকের নিবিড় তত্ত্বাবধান প্রয়োজন।"
+  },
+  {
+    "id": "serum_uric_acid",
+    "testName": "Serum Uric Acid (সিরাম ইউরিক এসিড)",
+    "category": "Renal Function",
+    "standardRange": "3.5 - 7.2 mg/dL",
+    "unit": "mg/dL",
+    "explanationBn": "রক্তে ইউরিক এসিডের অতিরিক্ত মাত্রা বাতের ব্যথা (গাউট) বা কিডনিতে পাথর তৈরির ঝুঁকি বাড়ায়। খাদ্যতালিকা পরিবর্তন ও ওষুধের জন্য চিকিৎসকের পরামর্শ নিন।"
+  },
+  {
+    "id": "sgpt_alt",
+    "testName": "SGPT / ALT (লিভার এনজাইম)",
+    "category": "Liver Function",
+    "standardRange": "10 - 45 U/L",
+    "unit": "U/L",
+    "explanationBn": "যকৃৎ বা লিভারের কোষের ক্ষতি বা প্রদাহের অন্যতম নির্দেশক। ফ্যাটি লিভার বা হেপাটাইটিসে মাত্রা বেড়ে যেতে পারে। চিকিৎসকের পরামর্শ নিয়ে স্বাস্থ্যকর জীবনযাপন মেনে চলুন।"
+  },
+  {
+    "id": "sgot_ast",
+    "testName": "SGOT / AST (এসজিওটি এনজাইম)",
+    "category": "Liver Function",
+    "standardRange": "10 - 40 U/L",
+    "unit": "U/L",
+    "explanationBn": "লিভার ও হৃৎপিণ্ডের কোষে থাকা এনজাইম। রক্তে এর আধিক্য অঙ্গের প্রদাহ নির্দেশ করে। সঠিক মূল্যায়নে চিকিৎসকের কাছে যান।"
+  },
+  {
+    "id": "serum_bilirubin",
+    "testName": "Serum Bilirubin (বিলিরুবিন - জন্ডিস নির্দেশক)",
+    "category": "Liver Function",
+    "standardRange": "0.2 - 1.2 mg/dL",
+    "unit": "mg/dL",
+    "explanationBn": "রক্তে বিলিরুবিন বাড়লে চোখ বা ত্বক হলুদ হয়ে জন্ডিস দেখা দেয়। স্বাভাবিক মাত্রার চেয়ে বেশি থাকলে দ্রুত চিকিৎসকের সাথে পরামর্শ করুন।"
+  },
+  {
+    "id": "alkaline_phosphatase",
+    "testName": "Alkaline Phosphatase - ALP (অ্যালকালাইন ফসফেটেজ)",
+    "category": "Liver Function",
+    "standardRange": "40 - 130 U/L",
+    "unit": "U/L",
+    "explanationBn": "লিভার ও হাড়ের সুস্থতার সূচক। পিত্তনালিতে প্রতিবন্ধকতা বা হাড়ের সমস্যায় বাড়তে পারে। চিকিৎসকের শরণাপন্ন হওয়া বাঞ্ছনীয়।"
+  },
+  {
+    "id": "total_cholesterol",
+    "testName": "Total Cholesterol (মোট কোলেস্টেরল)",
+    "category": "Lipid Profile",
+    "standardRange": "< 200 mg/dL",
+    "unit": "mg/dL",
+    "explanationBn": "রক্তের চর্বির সামগ্রিক পরিমাপ। মাত্রা বেশি থাকলে হৃদরোগ ও স্ট্রোকের ঝুঁকি বাড়ে। চর্বিযুক্ত খাবার এড়িয়ে চিকিৎসকের নির্দেশিত ওষুধ গ্রহণ করুন।"
+  },
+  {
+    "id": "triglycerides",
+    "testName": "Serum Triglycerides (ট্রাইগ্লিসারাইড - চর্বি)",
+    "category": "Lipid Profile",
+    "standardRange": "< 150 mg/dL",
+    "unit": "mg/dL",
+    "explanationBn": "রক্তে জমা হওয়া অতিরিক্ত ক্যালরিজাত চর্বি। অতিরিক্ত মাত্রায় প্যানক্রিয়াটাইটিস ও রক্তনালির ক্ষতির ঝুঁকি তৈরি হয়। চিকিৎসকের পরামর্শ নিন।"
+  },
+  {
+    "id": "hdl_cholesterol",
+    "testName": "HDL Cholesterol (ভালো কোলেস্টেরল)",
+    "category": "Lipid Profile",
+    "standardRange": "> 40 mg/dL",
+    "unit": "mg/dL",
+    "explanationBn": "এটি উপকারী চর্বি যা হৃদযন্ত্রকে সুরক্ষা দেয়। এর মাত্রা বেশি থাকা হৃদস্বাস্থ্যের জন্য ইতিবাচক। শরীরচর্চা ও খাদ্যাভ্যাস সম্পর্কে চিকিৎসকের পরামর্শ নিন।"
+  },
+  {
+    "id": "ldl_cholesterol",
+    "testName": "LDL Cholesterol (ক্ষতিকর কোলেস্টেরল)",
+    "category": "Lipid Profile",
+    "standardRange": "< 100 mg/dL",
+    "unit": "mg/dL",
+    "explanationBn": "এটি রক্তনালিতে চর্বির আস্তরণ জমিয়ে রক্তপ্রবাহে বাধা তৈরি করতে পারে। মাত্রা নিয়ন্ত্রণে রাখতে চিকিৎসকের ব্যবস্থাপত্র অনুসরণ করুন।"
+  },
+  {
+    "id": "tsh",
+    "testName": "TSH (থাইরয়েড স্টিমুলেটিং হরমোন)",
+    "category": "Thyroid",
+    "standardRange": "0.4 - 4.5 uIU/mL",
+    "unit": "uIU/mL",
+    "explanationBn": "থাইরয়েড গ্রন্থির কার্যক্ষমতা নিয়ন্ত্রণকারী হরমোন। মান বেশি হলে হাইপোথাইরয়েডিজম (অলস থাইরয়েড) নির্দেশ করে। চিকিৎসকের পরামর্শে ওষুধ সমন্বয় করুন।"
+  },
+  {
+    "id": "ft4",
+    "testName": "Free T4 (ফ্রি থাইরক্সিন)",
+    "category": "Thyroid",
+    "standardRange": "0.8 - 1.8 ng/dL",
+    "unit": "ng/dL",
+    "explanationBn": "রক্তে সক্রিয় থাইরয়েড হরমোনের পরিমাণ। বিপাকীয় কার্যক্রম সঠিকভাবে চলার জন্য এটি পরিমাপ করা হয়। চিকিৎসকের পরামর্শ নিন।"
+  },
+  {
+    "id": "ft3",
+    "testName": "Free T3 (ফ্রি ট্রাই-আয়োডোথাইরোনিন)",
+    "category": "Thyroid",
+    "standardRange": "2.3 - 4.2 pg/mL",
+    "unit": "pg/mL",
+    "explanationBn": "থাইরয়েডের অতি-সক্রিয়তা বা হাইপারথাইরয়েডিজম নির্ণয়ে ব্যবহৃত হয়। ফলাফলের বিস্তারিত জানতে চিকিৎসকের শরণাপন্ন হন।"
+  },
+  {
+    "id": "serum_sodium",
+    "testName": "Serum Sodium (সোডিয়াম - ইলেক্ট্রোলাইট)",
+    "category": "Electrolytes",
+    "standardRange": "135 - 145 mmol/L",
+    "unit": "mmol/L",
+    "explanationBn": "শরীরের পানির ভারসাম্য ও স্নায়ু-পেশির কার্যকারিতা বজায় রাখে। মাত্রা কমলে দুর্বলতা বা বিভ্রান্তি তৈরি হতে পারে। জরুরি প্রয়োজনে চিকিৎসকের কাছে যান।"
+  },
+  {
+    "id": "serum_potassium",
+    "testName": "Serum Potassium (পটাশিয়াম - ইলেক্ট্রোলাইট)",
+    "category": "Electrolytes",
+    "standardRange": "3.5 - 5.0 mmol/L",
+    "unit": "mmol/L",
+    "explanationBn": "হৃৎপিণ্ডের স্পন্দন স্বাভাবিক রাখার জন্য অত্যন্ত সংবেদনশীল উপাদান। কম বা বেশি উভয় অবস্থাই বিপজ্জনক হতে পারে। যেকোনো বিচ্যুতির জন্য দ্রুত চিকিৎসকের পরামর্শ নিন।"
+  },
+  {
+    "id": "serum_chloride",
+    "testName": "Serum Chloride (ক্লোরাইড)",
+    "category": "Electrolytes",
+    "standardRange": "98 - 107 mmol/L",
+    "unit": "mmol/L",
+    "explanationBn": "শরীরের অম্ল ও ক্ষারের ভারসাম্য ঠিক রাখতে সাহায্য করে। ইলেক্ট্রোলাইট ভারসাম্যহীনতায় চিকিৎসকের পরামর্শ অনুযায়ী রিহাইড্রেশন নিন।"
+  },
+  {
+    "id": "serum_calcium",
+    "testName": "Serum Calcium (ক্যালসিয়াম)",
+    "category": "Bone & Minerals",
+    "standardRange": "8.5 - 10.5 mg/dL",
+    "unit": "mg/dL",
+    "explanationBn": "হাড়ের গঠন, রক্ত জমাট বাঁধা এবং পেশি সংকোচনের জন্য প্রয়োজনীয়। অস্বাভাবিক মাত্রায় হাড় ও কিডনির সমস্যা হতে পারে। চিকিৎসকের শরণাপন্ন হন।"
+  },
+  {
+    "id": "vitamin_d",
+    "testName": "Vitamin D 25-OH (ভিটামিন ডি)",
+    "category": "Bone & Minerals",
+    "standardRange": "30 - 100 ng/mL",
+    "unit": "ng/mL",
+    "explanationBn": "ক্যালসিয়াম শোষণ ও হাড়ের মজবুতির জন্য অপরিহার্য। বাংলাদেশে ভিটামিন ডি এর ঘাটতি সাধারণ বিষয়। চিকিৎসকের পরামর্শে সাপ্লিমেন্ট গ্রহণ করতে পারেন।"
+  },
+  {
+    "id": "crp",
+    "testName": "C-Reactive Protein - CRP (সিআরপি)",
+    "category": "Inflammation",
+    "standardRange": "< 5.0 mg/L",
+    "unit": "mg/L",
+    "explanationBn": "শরীরে তীব্র সংক্রমণ বা টিস্যু প্রদাহ হলে সিআরপি দ্রুত বাড়ে। সংক্রমণের কারণ শনাক্ত করতে চিকিৎসকের পরামর্শ নিন।"
+  },
+  {
+    "id": "serum_ferritin",
+    "testName": "Serum Ferritin (ফেরিটিন - আয়রন মজুদ)",
+    "category": "Hematology",
+    "standardRange": "20 - 250 ng/mL",
+    "unit": "ng/mL",
+    "explanationBn": "শরীরে আয়রনের সঞ্চিত পরিমাণ নির্দেশ করে। রক্তস্বল্পতা ডায়াগনোসিসে এটি অতি গুরুত্বপূর্ণ। চিকিৎসকের পরামর্শ ছাড়া নিজে আয়রন বড়ি খাবেন না।"
+  },
+  {
+    "id": "dengue_ns1",
+    "testName": "Dengue NS1 Antigen (ডেঙ্গু এনএস১ অ্যান্টিজেন)",
+    "category": "Infectious Disease",
+    "standardRange": "Negative",
+    "unit": "qualitative",
+    "explanationBn": "জ্বরের প্রথম দিনগুলোতেই ডেঙ্গু ভাইরাস উপস্থিতি শনাক্ত করে। পজিটিভ আসলে অবহেলা না করে পর্যাপ্ত তরল পান করুন এবং চিকিৎসকের তত্ত্বাবধানে থাকুন।"
+  },
+  {
+    "id": "dengue_antibody",
+    "testName": "Dengue Antibody IgM/IgG (ডেঙ্গু অ্যান্টিবডি)",
+    "category": "Infectious Disease",
+    "standardRange": "Negative",
+    "unit": "qualitative",
+    "explanationBn": "জ্বরের ৫-৬ দিন পর ডেঙ্গু সংক্রমণের অ্যান্টিবডি নির্দেশ করে। ফলাফল পর্যালোচনা করে দ্রুত চিকিৎসকের পরামর্শ গ্রহণ করুন।"
+  },
+  {
+    "id": "widal_test",
+    "testName": "Widal Test (টাইফয়েড টেস্ট)",
+    "category": "Infectious Disease",
+    "standardRange": "< 1:80",
+    "unit": "titer",
+    "explanationBn": "টাইফয়েড বা এন্টেরিক ফিভার শনাক্তকরণের টেস্ট। অ্যান্টিবায়োটিক শুরুর পূর্বে অবশ্যই রেজিস্টার্ড চিকিৎসকের প্রেসক্রিপশন প্রয়োজন।"
+  },
+  {
+    "id": "urine_protein_albumin",
+    "testName": "Urine Albumin / Protein (প্রস্রাবে প্রোটিন)",
+    "category": "Urinalysis",
+    "standardRange": "Nil / Negative",
+    "unit": "qualitative",
+    "explanationBn": "কিডনি ফিল্টারের কোনো ক্ষতি হলে প্রস্রাবে প্রোটিন বা অ্যালবুমিন নির্গত হতে পারে। পজিটিভ ফলাফল পেলে অবশ্যই চিকিৎসকের পরামর্শ নিন।"
+  },
+  {
+    "id": "urine_pus_cells",
+    "testName": "Urine Pus Cells (প্রস্রাবে পুঁজ কোষ)",
+    "category": "Urinalysis",
+    "standardRange": "0 - 5 /HPF",
+    "unit": "/HPF",
+    "explanationBn": "প্রস্রাবের রাস্তায় ব্যাকটেরিয়া সংক্রমণ (ইউটিআই) থাকলে পুঁজ কোষ বৃদ্ধি পায়। প্রস্রাবে জ্বালাপোড়া থাকলে চিকিৎসকের পরামর্শ অনুযায়ী অ্যান্টিবায়োটিক নিন।"
+  },
+  {
+    "id": "urine_rbc",
+    "testName": "Urine RBC (প্রস্রাবে লোহিত কণিকা)",
+    "category": "Urinalysis",
+    "standardRange": "0 - 2 /HPF",
+    "unit": "/HPF",
+    "explanationBn": "প্রস্রাবে রক্তের কণা থাকা মূত্রনালির ইনফেকশন বা কিডনিতে পাথরের লক্ষণ হতে পারে। দ্রুত ইউরোলজিস্ট বা চিকিৎসকের কাছে যান।"
+  },
+  {
+    "id": "prothrombin_time_inr",
+    "testName": "Prothrombin Time / INR (পিটি / আইএনআর)",
+    "category": "Coagulation",
+    "standardRange": "0.9 - 1.2",
+    "unit": "ratio",
+    "explanationBn": "রক্ত জমাট বাঁধার সময়কাল এবং রক্ত পাতলা রাখার ওষুধ (যেমন ওয়ারফারিন) পর্যবেক্ষণে ব্যবহৃত হয়। যেকোনো পরিবর্তনের জন্য নিয়মিত চিকিৎসকের পরামর্শ নিন।"
+  },
+  {
+    "id": "serum_albumin",
+    "testName": "Serum Albumin (সিরাম অ্যালবুমিন)",
+    "category": "Liver Function",
+    "standardRange": "3.5 - 5.0 g/dL",
+    "unit": "g/dL",
+    "explanationBn": "রক্তের প্রধান প্রোটিন যা যকৃতে তৈরি হয় এবং রক্তনালিতে তরলের ভারসাম্য ধরে রাখে। পুষ্টিহীনতা বা লিভারের রোগে কমতে পারে। চিকিৎসকের শরণাপন্ন হন।"
+  },
+  {
+    "id": "total_psa",
+    "testName": "Total PSA (প্রস্টেট স্পেসিফিক অ্যান্টিজেন)",
+    "category": "Tumor Marker",
+    "standardRange": "< 4.0 ng/mL",
+    "unit": "ng/mL",
+    "explanationBn": "পুরুষদের প্রস্টেট গ্রন্থির বৃদ্ধি বা প্রদাহ মূল্যায়নে ব্যবহৃত টেস্ট। উচ্চ মাত্রার ক্ষেত্রে ইউরোলজিস্ট বা রেজিস্টার্ড চিকিৎসকের শরণাপন্ন হওয়া জরুরি।"
+  }
+]

@@ -1,0 +1,69 @@
+{
+  "id": "rx-synth-025",
+  "style": "handwritten",
+  "title": "Severe Chronic Constipation & Dyschezia",
+  "patient": {
+    "name": "Fatema Khatun",
+    "age": 61,
+    "gender": "Female",
+    "diagnosis": "Chronic Idiopathic Constipation"
+  },
+  "doctor": {
+    "name": "Dr. Anup Kumar Saha",
+    "degrees": "MBBS, MD (Gastro)",
+    "bmdcReg": "A-33100",
+    "workplace": "Sir Salimullah Medical College"
+  },
+  "date": "2026-11-10",
+  "rawText": "SSMC & Mitford Hospital\nDr. Anup Kumar Saha, MBBS, MD\nBMDC: A-33100    Date: 10/11/2026\nPt: Fatema Khatun, 61F, Bowel once in 4-5 days, painful hard stool\n\nRx:\n- Syp. Osmolax (Lactulose)\n  3 tsf (15ml) at night before bed (0+0+1 HS) -- 14 days\n- Cap. Seclo 20mg\n  1+0+0 AC (morning before breakfast) -- 14 days\n- Tab. Alatrol 10mg\n  0+0+1 PC (if itching) -- 7 days\n\nAdv: Drink 3 litres water daily. Eat green vegetables and isabgol husk.",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Osmolax Syrup",
+      "genericName": "Lactulose",
+      "strength": "3.35g/5ml",
+      "form": "Syrup",
+      "pattern": "0+0+1",
+      "mealRelation": "NONE",
+      "durationDays": 14,
+      "confidence": 0.88,
+      "isCritical": false,
+      "pillCount": 1
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Seclo",
+      "genericName": "Omeprazole",
+      "strength": "20mg",
+      "form": "Capsule",
+      "pattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "confidence": 0.91,
+      "isCritical": false,
+      "pillCount": 14
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Osmolax Syrup",
+      "dosageStrength": "3.35g/5ml",
+      "form": "Syrup",
+      "parsedPattern": "0+0+1",
+      "mealRelation": "NONE",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 1
+    },
+    {
+      "brandName": "Seclo",
+      "dosageStrength": "20mg",
+      "form": "Capsule",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 14
+    }
+  ]
+}

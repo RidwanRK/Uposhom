@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-015",
+  "style": "printed",
+  "title": "Allergic Rhinitis & Atopic Dermatitis",
+  "patient": {
+    "name": "Nazia Mehzabin",
+    "age": 22,
+    "gender": "Female",
+    "diagnosis": "Allergic Rhinitis"
+  },
+  "doctor": {
+    "name": "Dr. Lubna Khondker",
+    "degrees": "MBBS, DDV, FCPS (Dermatology)",
+    "bmdcReg": "A-27845",
+    "workplace": "BSMMU, Dhaka"
+  },
+  "date": "2026-11-01",
+  "rawText": "BANGABANDHU SHEIKH MUJIB MEDICAL UNIVERSITY\nDepartment of Dermatology & Venereology\nDr. Lubna Khondker, MBBS, DDV, FCPS\nBMDC: A-27845    Date: 01/11/2026\nPatient: Nazia Mehzabin, 22Y/F, Sneezing, itchy eyes & skin rash\n\nRx:\n1. Tab. Rino 120mg (Fexofenadine)\n   ০+০+১ (রাতে খাবার পর) -- ১৪ দিন\n2. Tab. Monas 10mg (Montelukast)\n   ০+০+১ (রাতে খাবার পর) -- ১৪ দিন\n3. Cap. Seclo 20mg\n   ১+০+০ (সকালে খালি পেটে) -- ১৪ দিন\n\nপরামর্শ: ঠান্ডা জল, আইসক্রিম ও ধুলাবালি থেকে দূরে থাকুন।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Rino",
+      "genericName": "Fexofenadine Hydrochloride",
+      "strength": "120mg",
+      "form": "Tablet",
+      "pattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 14,
+      "confidence": 0.95,
+      "isCritical": false,
+      "pillCount": 14
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Monas",
+      "genericName": "Montelukast Sodium",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 14,
+      "confidence": 0.94,
+      "isCritical": false,
+      "pillCount": 14
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Seclo",
+      "genericName": "Omeprazole",
+      "strength": "20mg",
+      "form": "Capsule",
+      "pattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "confidence": 0.96,
+      "isCritical": false,
+      "pillCount": 14
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Rino",
+      "dosageStrength": "120mg",
+      "form": "Tablet",
+      "parsedPattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 14
+    },
+    {
+      "brandName": "Monas",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 14
+    },
+    {
+      "brandName": "Seclo",
+      "dosageStrength": "20mg",
+      "form": "Capsule",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 14
+    }
+  ]
+}

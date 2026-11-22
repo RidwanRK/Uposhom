@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-017",
+  "style": "handwritten",
+  "title": "Severe Chronic Bronchial Spasm & Wheeze (QID Pattern)",
+  "patient": {
+    "name": "Mofizur Rahman",
+    "age": 52,
+    "gender": "Male",
+    "diagnosis": "COPD Acute Exacerbation"
+  },
+  "doctor": {
+    "name": "Dr. A. T. M. Rezaul Karim",
+    "degrees": "MBBS, DTCD, FCCP",
+    "bmdcReg": "A-19850",
+    "workplace": "Chittagong Medical College Hospital"
+  },
+  "date": "2026-11-19",
+  "rawText": "CMCH Chest OPD\nDr. A. T. M. Rezaul Karim, MBBS, DTCD\nBMDC: A-19850    Date: 19/11/2026\nPt: Mofizur Rahman, 52M, Severe wheezing & breathless\n\nRx:\n- Respihaler 100mcg (Salbutamol)\n  2 puffs QID (1+1+1+1) -- 14 days (CRITICAL)\n- Tab. Doxomax 400mg\n  1+0+1 BDPC (after meals) -- 14 days\n- Tab. Monas 10mg\n  0+0+1 HS (at bedtime) -- 30 days\n\nAdv: Avoid smoke, dust, cold exposure.",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Respihaler",
+      "genericName": "Salbutamol",
+      "strength": "100mcg/puff",
+      "form": "Inhaler",
+      "pattern": "1+1+1+1",
+      "mealRelation": "NONE",
+      "durationDays": 14,
+      "confidence": 0.88,
+      "isCritical": true,
+      "pillCount": 1
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Doxomax",
+      "genericName": "Doxophylline",
+      "strength": "400mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 14,
+      "confidence": 0.86,
+      "isCritical": false,
+      "pillCount": 28
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Monas",
+      "genericName": "Montelukast Sodium",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.89,
+      "isCritical": false,
+      "pillCount": 30
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Respihaler",
+      "dosageStrength": "100mcg/puff",
+      "form": "Inhaler",
+      "parsedPattern": "1+1+1+1",
+      "mealRelation": "NONE",
+      "durationDays": 14,
+      "isCritical": true,
+      "pillCount": 1
+    },
+    {
+      "brandName": "Doxomax",
+      "dosageStrength": "400mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 28
+    },
+    {
+      "brandName": "Monas",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "0+0+1",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": false,
+      "pillCount": 30
+    }
+  ]
+}

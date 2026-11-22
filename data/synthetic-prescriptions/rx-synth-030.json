@@ -1,0 +1,115 @@
+{
+  "id": "rx-synth-030",
+  "style": "printed",
+  "title": "Severe Chronic Type 2 Diabetes with Glycemic Variability (Triple Oral Agent)",
+  "patient": {
+    "name": "Fazlul Haque",
+    "age": 57,
+    "gender": "Male",
+    "diagnosis": "Uncontrolled T2DM on Dual Therapy"
+  },
+  "doctor": {
+    "name": "Prof. Dr. Zafar Ahmed Latif",
+    "degrees": "MBBS, FCPS, MRCP",
+    "bmdcReg": "A-13910",
+    "workplace": "BIRDEM-2 & BSMMU"
+  },
+  "date": "2026-11-01",
+  "rawText": "BIRDEM-2 HOSPITAL, SEGUBAKICHA, DHAKA\nEndocrine Outpatient Clinic\nProf. Dr. Zafar Ahmed Latif, MBBS, FCPS, MRCP\nBMDC: A-13910    Date: 01/11/2026\nPatient: Fazlul Haque, 57Y/M, HbA1c: 9.1%\n\nRx:\n1. Tab. Empaglif 10mg (Empagliflozin)\n   ১+০+০ (সকালে নাস্তার পূর্বে AC) -- ৩০ দিন (CRITICAL)\n2. Tab. Comet 850mg (Metformin)\n   ১+০+১ (ভরা পেটে PC) -- ৩০ দিন (CRITICAL)\n3. Tab. Treglu 5mg (Linagliptin)\n   ১+০+০ (সকালে খাবার পর PC) -- ৩০ দিন (CRITICAL)\n4. Tab. Camlod 5mg (Amlodipine)\n   ১+০+০ (সকালে নাস্তার পর PC) -- ৩০ দিন (CRITICAL)\n\nপরামর্শ: প্রতি সপ্তাহে অন্তত ৩ দিন রক্তের গ্লুকোজ মাপুন এবং ডায়াবেটিস ডায়েরিতে লিখুন।",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Empaglif",
+      "genericName": "Empagliflozin",
+      "strength": "10mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 30,
+      "confidence": 0.96,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Comet",
+      "genericName": "Metformin Hydrochloride",
+      "strength": "850mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.95,
+      "isCritical": true,
+      "pillCount": 60
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Treglu",
+      "genericName": "Linagliptin",
+      "strength": "5mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.94,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "tempId": "item-4",
+      "brandName": "Camlod",
+      "genericName": "Amlodipine",
+      "strength": "5mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.95,
+      "isCritical": true,
+      "pillCount": 30
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Empaglif",
+      "dosageStrength": "10mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "AC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "brandName": "Comet",
+      "dosageStrength": "850mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 60
+    },
+    {
+      "brandName": "Treglu",
+      "dosageStrength": "5mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "brandName": "Camlod",
+      "dosageStrength": "5mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    }
+  ]
+}

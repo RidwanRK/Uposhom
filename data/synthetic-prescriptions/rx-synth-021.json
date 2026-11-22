@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-021",
+  "style": "handwritten",
+  "title": "Severe Rheumatoid Arthritis & Polyarthralgia (Weekly + Daily)",
+  "patient": {
+    "name": "Laila Arjumand",
+    "age": 44,
+    "gender": "Female",
+    "diagnosis": "Rheumatoid Arthritis Active"
+  },
+  "doctor": {
+    "name": "Prof. Dr. Syed Atiqul Haq",
+    "degrees": "MBBS, FCPS, FRCP",
+    "bmdcReg": "A-11020",
+    "workplace": "Center for Rheumatology & BSMMU"
+  },
+  "date": "2026-11-15",
+  "rawText": "Center for Rheumatology, Green Road, Dhaka\nProf. Dr. Syed Atiqul Haq, MBBS, FCPS, FRCP\nBMDC: A-11020    Date: 15/11/2026\nPt: Laila Arjumand, 44F, Morning stiffness > 1 hr, multiple swollen joints\n\nRx:\n- Tab. Flexi 100mg (Aceclofenac)\n  1+0+1 BDPC (after meals with water) -- 14 days\n- Cap. Sergel 20mg\n  1+0+1 AC (30m before meals) -- 30 days\n- Tab. Coralcal-D\n  0+1+0 PC (lunch) -- 60 days\n- Tab. Folifer\n  1+0+0 PC (morning) -- 30 days\n\nAdv: Physiotherapy and gentle joint movement daily.",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Flexi",
+      "genericName": "Aceclofenac",
+      "strength": "100mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 14,
+      "confidence": 0.88,
+      "isCritical": false,
+      "pillCount": 28
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Sergel",
+      "genericName": "Esomeprazole",
+      "strength": "20mg",
+      "form": "Tablet",
+      "pattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 30,
+      "confidence": 0.89,
+      "isCritical": false,
+      "pillCount": 60
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Coralcal-D",
+      "genericName": "Calcium Carbonate + Vitamin D3",
+      "strength": "500mg+200IU",
+      "form": "Tablet",
+      "pattern": "0+1+0",
+      "mealRelation": "PC",
+      "durationDays": 60,
+      "confidence": 0.87,
+      "isCritical": false,
+      "pillCount": 60
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Flexi",
+      "dosageStrength": "100mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "PC",
+      "durationDays": 14,
+      "isCritical": false,
+      "pillCount": 28
+    },
+    {
+      "brandName": "Sergel",
+      "dosageStrength": "20mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+1",
+      "mealRelation": "AC",
+      "durationDays": 30,
+      "isCritical": false,
+      "pillCount": 60
+    },
+    {
+      "brandName": "Coralcal-D",
+      "dosageStrength": "500mg+200IU",
+      "form": "Tablet",
+      "parsedPattern": "0+1+0",
+      "mealRelation": "PC",
+      "durationDays": 60,
+      "isCritical": false,
+      "pillCount": 60
+    }
+  ]
+}

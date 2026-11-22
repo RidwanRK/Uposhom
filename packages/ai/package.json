@@ -8,5 +8,11 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@openai/agents": "^0.22.0",
+    "@uposhom/shared": "workspace:*",
+    "openai": "^7.62.0",
+    "zod": "^4.6.7"
   }
 }
