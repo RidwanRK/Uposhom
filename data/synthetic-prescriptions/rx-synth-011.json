@@ -24,7 +24,7 @@
       "strength": "50mcg",
       "form": "Tablet",
       "pattern": "1+0+0",
-      "mealRelation": "EMPTY_STOMACH",
+      "mealRelation": "AC",
       "durationDays": 60,
       "confidence": 0.96,
       "isCritical": true,
@@ -37,7 +37,7 @@
       "dosageStrength": "50mcg",
       "form": "Tablet",
       "parsedPattern": "1+0+0",
-      "mealRelation": "EMPTY_STOMACH",
+      "mealRelation": "AC",
       "durationDays": 60,
       "isCritical": true,
       "pillCount": 60
