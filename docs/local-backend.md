@@ -56,7 +56,14 @@ hook next to `doseReply` in `ports.ts`, so the answer goes out through the same 
 
 ## For workstream D (mobile)
 
-The app can talk to the real backend now instead of its own mock: set `EXPO_PUBLIC_API_URL` to
-`http://<your-computer's-LAN-address>:3000/api/v1` while `pnpm dev:local` is running. The deployed VM
-returns `SERVICE_TROUBLE` for sign-up until Applink issues credentials, so use the local stack for
-anything that needs a signed-in user.
+The app can talk to the real backend now instead of its own mock. While `pnpm dev:local` is running,
+start the app with:
+
+```bash
+EXPO_PUBLIC_API_URL=http://<your-computer's-LAN-address>:3000 EXPO_PUBLIC_USE_MOCK=0 npx expo start
+```
+
+The app adds `/api/v1` itself, so do **not** put it in the URL. On the Android emulator the computer
+is `http://10.0.2.2:3000`; on a real phone use the computer's address on your Wi-Fi (the phone and the
+computer must be on the same network). The deployed VM returns `SERVICE_TROUBLE` for sign-up until
+Applink issues credentials, so use the local stack for anything that needs a signed-in user.
