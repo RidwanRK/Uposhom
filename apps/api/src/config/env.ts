@@ -28,6 +28,9 @@ const envSchema = z
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
     DATABASE_URL: optionalString,
 
+    // HMAC secret for access tokens (at least 32 characters). Mandatory in production.
+    JWT_SECRET: optionalString,
+
     // Applink credentials (set when approval lands)
     APPLINK_APP_ID: optionalString,
     APPLINK_PASSWORD: optionalString,
@@ -52,6 +55,15 @@ const envSchema = z
         code: z.ZodIssueCode.custom,
         path: ['APPLINK_CALLBACK_PATH_KEY'],
         message: 'must be set in production (unguessable callback path segment)',
+      });
+    }
+
+    if (env.NODE_ENV === 'production' && (env.JWT_SECRET ?? '').length < 32) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['JWT_SECRET'],
+        message:
+          'must be set in production (at least 32 characters, for example openssl rand -hex 32)',
       });
     }
 

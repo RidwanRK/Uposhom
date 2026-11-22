@@ -6,3 +6,6 @@ apps/mobile/android
 Master_Plan.md
 design.md
 README.md
+catalog
+tools/catalog.mjs
+scripts/mock-applink.mjs

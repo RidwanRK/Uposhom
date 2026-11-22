@@ -16,9 +16,19 @@ describe('loadConfig', () => {
     );
   });
 
-  it('boots in production when the callback path key is set', () => {
-    const cfg = loadConfig({ NODE_ENV: 'production', APPLINK_CALLBACK_PATH_KEY: 'k3y' });
+  it('boots in production when the callback path key and JWT secret are set', () => {
+    const cfg = loadConfig({
+      NODE_ENV: 'production',
+      APPLINK_CALLBACK_PATH_KEY: 'k3y',
+      JWT_SECRET: 'x'.repeat(32),
+    });
     expect(cfg.APPLINK_CALLBACK_PATH_KEY).toBe('k3y');
+  });
+
+  it('refuses to boot in production without a long enough JWT_SECRET', () => {
+    const base = { NODE_ENV: 'production', APPLINK_CALLBACK_PATH_KEY: 'k3y' };
+    expect(() => loadConfig(base)).toThrow(/JWT_SECRET/);
+    expect(() => loadConfig({ ...base, JWT_SECRET: 'short' })).toThrow(/JWT_SECRET/);
   });
 
   it('allows an empty callback path key in test and development', () => {

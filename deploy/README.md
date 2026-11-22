@@ -88,6 +88,7 @@ nothing breaks inside `DATABASE_URL`.
 ```bash
 PG_PASS=$(openssl rand -hex 24)
 CB_KEY=$(openssl rand -hex 24)
+JWT=$(openssl rand -hex 32)
 
 cat > /opt/uposhom/.env <<EOF
 NODE_ENV=production
@@ -101,13 +102,15 @@ POSTGRES_PASSWORD=${PG_PASS}
 POSTGRES_DB=uposhom
 DATABASE_URL=postgres://uposhom:${PG_PASS}@postgres:5432/uposhom
 
+JWT_SECRET=${JWT}
+
 APPLINK_APP_ID=
 APPLINK_PASSWORD=
 APPLINK_CALLBACK_PATH_KEY=${CB_KEY}
 EOF
 
 chmod 600 /opt/uposhom/.env
-unset PG_PASS CB_KEY
+unset PG_PASS CB_KEY JWT
 ```
 
 Notes:
@@ -118,6 +121,7 @@ Notes:
   is part of the five URLs registered with Applink and must stay stable.
 - `APPLINK_APP_ID` and `APPLINK_PASSWORD` arrive by email after Applink approves the application. Add
   them with `nano /opt/uposhom/.env`, then `cd /opt/uposhom && docker compose -f deploy/docker-compose.yml up -d`.
+- `JWT_SECRET` signs access tokens and is mandatory in production (the API refuses to boot without 32+ characters). Changing it logs everyone's access tokens out (refresh tokens survive). On an existing VM add it by hand: `echo "JWT_SECRET=$(openssl rand -hex 32)" >> /opt/uposhom/.env`.
 - Add the other variables from `.env.example` (endpoint URLs, JWT, R2, OpenRouter) when the code needs them.
 
 ## 5. Let GitHub Actions deploy

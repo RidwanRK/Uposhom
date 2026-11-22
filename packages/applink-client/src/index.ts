@@ -1,2 +1,4 @@
-// @uposhom/applink-client: placeholder, real code lands per the Master Plan.
-export {};
+export * from './address.js';
+export * from './client.js';
+export * from './errors.js';
+export * from './types.js';
