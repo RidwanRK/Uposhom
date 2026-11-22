@@ -3,6 +3,7 @@ import { ConfigError, loadConfig } from './config/env.js';
 import { billingFromEnv } from './billing/config.js';
 import { createPool } from './db/pool.js';
 import { runMigrations } from './db/migrate.js';
+import { runDomainMigrations } from '@uposhom/db';
 import { createPgBossQueue } from './queue/pgboss.js';
 import { createPhoneCrypto } from './security/phone-crypto.js';
 import { createPostgresStores } from './stores/postgres.js';
@@ -55,7 +56,8 @@ async function main(): Promise<void> {
       ? createPool(config.DATABASE_URL)
       : undefined;
   if (pool && config.PHONE_ENC_KEY) {
-    const applied = await runMigrations(pool);
+    // A's Applink tables first: the domain tables (B) reference users and charges.
+    const applied = [...(await runMigrations(pool)), ...(await runDomainMigrations(pool))];
     console.log(JSON.stringify({ level: 'info', msg: 'migrations checked', applied }));
   }
   const stores =

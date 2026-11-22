@@ -20,6 +20,7 @@ RUN pnpm install --frozen-lockfile
 # Workspace packages ship TypeScript source; the API build bundles them into dist/
 COPY packages/applink-client packages/applink-client
 COPY packages/shared packages/shared
+COPY packages/db packages/db
 COPY apps/api apps/api
 RUN pnpm --filter @uposhom/api build \
  && pnpm --filter @uposhom/api --prod deploy /out
