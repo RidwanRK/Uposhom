@@ -126,7 +126,7 @@ ranges.
 
 ## Backups
 
-See `deploy/README.md` section 8. Nightly at 02:00 Dhaka, encrypted, to Cloudflare R2. A backup is
+See `deploy/README.md` section 8. Nightly at 02:00 Dhaka, encrypted, copied off the VM (rclone destination or R2). A backup is
 only real once restored: run `bash deploy/restore.sh <file>` before the demo and again after any
 change to the schema.
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Nightly Postgres backup: pg_dump, encrypt (AES-256), upload to Cloudflare R2, prune old copies.
+# Nightly Postgres backup: pg_dump, encrypt (AES-256), copy off the VM (any rclone destination,
+# for example Google Drive, Backblaze B2, SFTP, or Cloudflare R2), prune old copies.
 # Runs on the VM from cron (see deploy/README.md). The only copy of the data is otherwise the VM
 # disk, so this is what stands between a dead VM and losing every account, charge and consent.
 #
@@ -7,7 +8,8 @@
 #   - /opt/uposhom/backup.pass   the encryption passphrase, chmod 600, NOT in the repo. Keep a
 #                                copy in the password manager: a backup nobody can decrypt is
 #                                worth nothing.
-#   - /opt/uposhom/backup.env    chmod 600, holds the R2 credentials (see backup.env.example)
+#   - /opt/uposhom/backup.env    chmod 600, says where the copy goes (see backup.env.example):
+#                                any rclone destination (BACKUP_REMOTE) or Cloudflare R2
 #   - rclone                     sudo apt install rclone
 #
 # Usage:
@@ -66,30 +68,38 @@ if [ "$LOCAL_ONLY" = "1" ]; then
   exit 0
 fi
 
-[ -f "$ENV_FILE" ] || die "missing $ENV_FILE (R2 credentials)"
+[ -f "$ENV_FILE" ] || die "missing $ENV_FILE (where the backups go: see backup.env.example)"
 # shellcheck disable=SC1090
 . "$ENV_FILE"
-for v in R2_ACCOUNT_ID R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_BUCKET; do
-  [ -n "${!v:-}" ] || die "$v is not set in $ENV_FILE"
-done
 command -v rclone >/dev/null || die "rclone is not installed (sudo apt install rclone)"
 
-# An rclone remote defined entirely from the environment: no config file holding the secret.
-export RCLONE_CONFIG_R2_TYPE=s3
-export RCLONE_CONFIG_R2_PROVIDER=Cloudflare
-export RCLONE_CONFIG_R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
-export RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
-export RCLONE_CONFIG_R2_ENDPOINT="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
-export RCLONE_CONFIG_R2_NO_CHECK_BUCKET=true
+# Where the copy goes. Either any rclone destination you have set up (Google Drive, Backblaze B2,
+# another server over SFTP, ...) as BACKUP_REMOTE, or Cloudflare R2 from the four R2_* values.
+if [ -n "${BACKUP_REMOTE:-}" ]; then
+  DEST="${BACKUP_REMOTE%/}"
+else
+  for v in R2_ACCOUNT_ID R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_BUCKET; do
+    [ -n "${!v:-}" ] || die "set BACKUP_REMOTE, or R2_* ($v is missing) in $ENV_FILE"
+  done
+  # An rclone remote defined entirely from the environment: no config file holding the secret.
+  export RCLONE_CONFIG_R2_TYPE=s3
+  export RCLONE_CONFIG_R2_PROVIDER=Cloudflare
+  export RCLONE_CONFIG_R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+  export RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+  export RCLONE_CONFIG_R2_ENDPOINT="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
+  export RCLONE_CONFIG_R2_NO_CHECK_BUCKET=true
+  DEST="r2:$R2_BUCKET/backups"
+fi
+NAME="$(basename "$OUT")"
 
-log "uploading to r2:$R2_BUCKET/backups/"
-rclone copyto "$OUT" "r2:$R2_BUCKET/backups/$(basename "$OUT")"
+log "uploading to $DEST/"
+rclone copyto "$OUT" "$DEST/$NAME"
 # Confirm it is really there with the same size before deleting anything.
-remote="$(rclone size --json "r2:$R2_BUCKET/backups/$(basename "$OUT")" | sed -n 's/.*"bytes":\([0-9]*\).*/\1/p')"
+remote="$(rclone size --json "$DEST/$NAME" | sed -n 's/.*"bytes":\([0-9]*\).*/\1/p')"
 [ "$remote" = "$size" ] || die "uploaded size ($remote) does not match local size ($size)"
 log "upload verified"
 
 # Local copies: keep a few days on the VM disk. Remote: keep KEEP_DAYS.
 find "$BACKUP_DIR" -name 'uposhom-*.dump.enc' -mtime +3 -delete
-rclone delete "r2:$R2_BUCKET/backups" --min-age "${KEEP_DAYS}d" --include 'uposhom-*.dump.enc'
+rclone delete "$DEST" --min-age "${KEEP_DAYS}d" --include 'uposhom-*.dump.enc'
 log "done"
