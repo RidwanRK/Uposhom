@@ -181,7 +181,13 @@ export async function runTriageRouter(
             { role: 'user', content: inputMessage },
           ],
         });
-        reply = response.choices[0]?.message?.content || 'আপনার স্বাস্থ্য সহায়তায় উপশম সর্বদা প্রস্তুত। কীভাবে সাহায্য করতে পারি?';
+        const choiceMsg = response.choices[0]?.message;
+        const rawContent =
+          choiceMsg?.content ||
+          (choiceMsg as unknown as { reasoning?: string })?.reasoning;
+        reply =
+          rawContent ||
+          'আপনার স্বাস্থ্য সহায়তায় উপশম সর্বদা প্রস্তুত। কীভাবে সাহায্য করতে পারি?';
       } catch {
         reply = 'উপশম স্বাস্থ্য সহায়তায় আপনাকে স্বাগতম। আপনি ওষুধের শিডিউল, বিকল্প ওষুধ বা শারীরিক লক্ষণ লিপিবদ্ধ করতে প্রশ্ন করতে পারেন।';
       }
