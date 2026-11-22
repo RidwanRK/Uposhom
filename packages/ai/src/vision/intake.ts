@@ -16,8 +16,7 @@ import {
 import { extractPrescriptionVision, type OcrExtractionOptions } from './ocr-extract.js';
 import { extractNumbers, normalizeDigits } from '../guards/numeric-guard.js';
 import { type DgdaDrugRecord } from '../agents/generic-agent.js';
-import fs from 'node:fs';
-import path from 'node:path';
+import { matchBrand } from '../matching/brand-matcher.js';
 
 export interface IntakeItemValidation extends ExtractedItem {
   isBrandVerifiedInDgda: boolean;
@@ -38,60 +37,20 @@ export interface PrescriptionIntakeResult {
   requiresReviewCount: number;
 }
 
-let cachedDgdaList: DgdaDrugRecord[] | null = null;
-
-function getDgdaCatalog(): DgdaDrugRecord[] {
-  if (cachedDgdaList) return cachedDgdaList;
-  try {
-    const candidatePaths = [
-      path.resolve(process.cwd(), 'data/dgda-drugs.json'),
-      path.resolve(process.cwd(), '../../data/dgda-drugs.json'),
-    ];
-    for (const p of candidatePaths) {
-      if (fs.existsSync(p)) {
-        cachedDgdaList = JSON.parse(fs.readFileSync(p, 'utf-8'));
-        return cachedDgdaList!;
-      }
-    }
-  } catch {
-    // fallback
-  }
-  return [];
-}
-
 /**
- * Validates a brand name against DGDA catalog using exact and fuzzy matching.
+ * Validates a brand name against DGDA catalog using exact, alias and trigram matching.
  */
 export function matchBrandInDgda(brandName: string): {
   matched: boolean;
   drug?: DgdaDrugRecord;
+  score?: number;
 } {
-  const catalog = getDgdaCatalog();
-  const normalizedQuery = brandName.trim().toLowerCase();
-
-  for (const drug of catalog) {
-    if (drug.nameEn.toLowerCase() === normalizedQuery) {
-      return { matched: true, drug };
-    }
-    if (drug.nameBn === brandName.trim()) {
-      return { matched: true, drug };
-    }
-    if (drug.bnAliases && drug.bnAliases.some((a) => a.toLowerCase() === normalizedQuery || a === brandName.trim())) {
-      return { matched: true, drug };
-    }
-  }
-
-  // Partial prefix match
-  for (const drug of catalog) {
-    if (
-      drug.nameEn.toLowerCase().startsWith(normalizedQuery) ||
-      normalizedQuery.startsWith(drug.nameEn.toLowerCase())
-    ) {
-      return { matched: true, drug };
-    }
-  }
-
-  return { matched: false };
+  const result = matchBrand(brandName);
+  return {
+    matched: result.matched,
+    drug: result.bestMatch?.drug,
+    score: result.bestMatch?.score,
+  };
 }
 
 /**

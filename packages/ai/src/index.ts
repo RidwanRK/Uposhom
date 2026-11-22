@@ -29,6 +29,9 @@ export * from './vision/ocr-extract.js';
 export * from './vision/intake.js';
 export * from './vision/report-vault.js';
 
+// Bilingual Brand Matching & Trigram Search
+export * from './matching/brand-matcher.js';
+
 // Prescription Lay-Bangla Explainer
 export * from './explainer/index.js';
 
