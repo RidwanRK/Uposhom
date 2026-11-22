@@ -12,10 +12,10 @@ describe('Medical Data Integrity & Synthetic Fixture Validation', () => {
   const dataDir = path.resolve(process.cwd(), '../../data');
   const rxDir = path.join(dataDir, 'synthetic-prescriptions');
 
-  describe('15 Synthetic Prescriptions (Day 0 Requirement)', () => {
-    it('has exactly 15 prescription files plus index.json', () => {
+  describe('30 Synthetic Prescriptions (Complete Suite)', () => {
+    it('has exactly 30 prescription files plus index.json', () => {
       const files = fs.readdirSync(rxDir).filter((f) => f.startsWith('rx-synth-') && f.endsWith('.json'));
-      expect(files.length).toBe(15);
+      expect(files.length).toBe(30);
     });
 
     it('contains both printed and handwritten styles', () => {

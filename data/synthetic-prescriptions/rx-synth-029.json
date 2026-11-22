@@ -1,0 +1,92 @@
+{
+  "id": "rx-synth-029",
+  "style": "handwritten",
+  "title": "Severe Chronic Angina Pectoris & Stable CAD",
+  "patient": {
+    "name": "Khurshid Alam",
+    "age": 63,
+    "gender": "Male",
+    "diagnosis": "Chronic Stable Angina"
+  },
+  "doctor": {
+    "name": "Prof. Dr. Afzalur Rahman",
+    "degrees": "MBBS, MD, PhD, FACC",
+    "bmdcReg": "A-15890",
+    "workplace": "NICVD, Dhaka"
+  },
+  "date": "2026-11-02",
+  "rawText": "National Institute of Cardiovascular Diseases\nProf. Dr. Afzalur Rahman, MBBS, PhD\nBMDC: A-15890    Date: 02/11/2026\nPt: Khurshid Alam, 63M, Exertional chest tightness relieved by rest\n\nRx:\n- Nitrovas Spray 0.4mg\n  বুকে চাপ লাগলে জিহ্বার নিচে ১-২ চাপ (SOS/PRN) (CRITICAL)\n- Tab. Cardibis 2.5mg (Bisoprolol)\n  1+0+0 BDPC (সকালে নাস্তার পর) -- 30 days (CRITICAL)\n- Tab. Plagrin 75mg\n  0+1+0 PC (দুপুরে) -- 30 days (CRITICAL)\n- Tab. Atova 10mg\n  0+0+1 PC (রাতে) -- 30 days (CRITICAL)\n\nAdv: Keep sublingual spray with you at all times. Do not lift heavy objects.",
+  "extractedItems": [
+    {
+      "tempId": "item-1",
+      "brandName": "Nitrovas Spray",
+      "genericName": "Nitroglycerin",
+      "strength": "0.4mg/metered spray",
+      "form": "Sublingual Spray",
+      "pattern": "SOS",
+      "mealRelation": "NONE",
+      "durationDays": 30,
+      "confidence": 0.89,
+      "isCritical": true,
+      "pillCount": 1
+    },
+    {
+      "tempId": "item-2",
+      "brandName": "Cardibis",
+      "genericName": "Bisoprolol Fumarate",
+      "strength": "2.5mg",
+      "form": "Tablet",
+      "pattern": "1+0+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.87,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "tempId": "item-3",
+      "brandName": "Plagrin",
+      "genericName": "Clopidogrel Bisulfate",
+      "strength": "75mg",
+      "form": "Tablet",
+      "pattern": "0+1+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "confidence": 0.88,
+      "isCritical": true,
+      "pillCount": 30
+    }
+  ],
+  "confirmedItems": [
+    {
+      "brandName": "Nitrovas Spray",
+      "dosageStrength": "0.4mg/metered spray",
+      "form": "Sublingual Spray",
+      "parsedPattern": "SOS",
+      "mealRelation": "NONE",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 1
+    },
+    {
+      "brandName": "Cardibis",
+      "dosageStrength": "2.5mg",
+      "form": "Tablet",
+      "parsedPattern": "1+0+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    },
+    {
+      "brandName": "Plagrin",
+      "dosageStrength": "75mg",
+      "form": "Tablet",
+      "parsedPattern": "0+1+0",
+      "mealRelation": "PC",
+      "durationDays": 30,
+      "isCritical": true,
+      "pillCount": 30
+    }
+  ]
+}
