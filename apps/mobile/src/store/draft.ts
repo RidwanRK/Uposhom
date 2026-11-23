@@ -25,7 +25,7 @@ interface DraftState {
   transcript: string;
   items: DraftItem[];
   start: (d: {
-    draftId: string;
+    draftId: string | null;
     imageUri: string;
     transcript: string;
     items: ExtractedItem[];

@@ -16,3 +16,4 @@ export * from './voice.js';
 export * from './account.js';
 export * from './alerts.js';
 export * from './admin.js';
+export * from './appointments.js';

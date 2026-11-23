@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint app src index.ts",
     "test": "vitest run --passWithNoTests",
+    "smoke:live": "tsx scripts/live-smoke.mts",
     "export:check": "expo export --platform android --output-dir dist-check"
   },
   "dependencies": {
@@ -67,6 +68,7 @@
     "react-dom": "19.3.0",
     "react-native-web": "~0.21.4",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vitest": "^5.1.1"
   }

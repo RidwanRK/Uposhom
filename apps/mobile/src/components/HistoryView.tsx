@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { View } from 'react-native';
 import type { PatternCard, TimelineEntry } from '@uposhom/shared';
 import { api } from '../api/endpoints';
-import { qk } from '../hooks/queries';
+import { qk, useEntitlements } from '../hooks/queries';
 import { useT } from '../i18n';
 import { colors } from '../theme/colors';
 import { toBn } from '../utils/bangla';
@@ -22,6 +22,7 @@ import { Text } from './Text';
  */
 export function HistoryView({ profileId }: { profileId: string | undefined }) {
   const t = useT();
+  const entitlements = useEntitlements();
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: qk.insights(profileId),
     enabled: !!profileId,
@@ -41,7 +42,7 @@ export function HistoryView({ profileId }: { profileId: string | undefined }) {
     <View style={{ gap: 18 }}>
       <View style={{ gap: 12 }}>
         <SectionTitle>{t('insights.patterns')}</SectionTitle>
-        {data.patternsLocked ? (
+        {data.patternsLocked || entitlements.data?.tier === 'FREE' ? (
           <Card tone="mint" style={{ gap: 12 }}>
             <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
               <Icon name="lock-outline" size={26} color="primary" />

@@ -136,7 +136,7 @@ export async function handleReminderAction(
   const n = getNotifee();
   await n?.default.cancelNotification(doseId);
   try {
-    await api.doses.act(doseId, body);
+    await api.doses.act(doseId, body, 'notification');
   } catch {
     await cache.enqueueAction(doseId, body);
   }

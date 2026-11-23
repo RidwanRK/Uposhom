@@ -2,6 +2,8 @@ import { z } from 'zod';
 import {
   accountSettings,
   alertsResponse,
+  appointment,
+  appointmentsResponse,
   caasInitiateResponse,
   caasVerifyResponse,
   circleResponse,
@@ -29,6 +31,7 @@ import {
   uploadAndParseResponse,
   voiceQueryResponse,
   type AccountType,
+  type AppointmentBody,
   type CaasPurpose,
   type ConfirmItem,
   type DoseActionBody,
@@ -58,7 +61,15 @@ export const api = {
         schema: otpVerifyResponse,
         anon: true,
       }),
-    logout: () => request({ method: 'POST', path: '/auth/logout', schema: okResponse }),
+    /** The server revokes the session by its refresh token. */
+    logout: (refreshToken?: string | null) =>
+      request({
+        method: 'POST',
+        path: '/auth/logout',
+        body: { refreshToken: refreshToken ?? '' },
+        anon: true,
+        schema: okResponse,
+      }),
     requestStepUp: () =>
       request({ method: 'POST', path: '/auth/step-up/request', schema: okResponse }),
     verifyStepUp: (otp: string) =>
@@ -145,15 +156,28 @@ export const api = {
   doses: {
     today: (profileId?: string, days?: number) =>
       request({ path: '/doses/today', query: { profileId, days }, schema: todayDosesResponse }),
-    act: (doseId: string, body: DoseActionBody) =>
+    act: (doseId: string, body: DoseActionBody, source?: 'notification') =>
       request({
         method: 'POST',
         path: `/doses/${doseId}/action`,
         body,
+        headers: source ? { 'X-Action-Source': source } : undefined,
         schema: doseActionResponse,
       }),
     acknowledge: (doseId: string) =>
       request({ method: 'POST', path: `/doses/${doseId}/acknowledge`, schema: okResponse }),
+  },
+
+  appointments: {
+    list: (profileId: string) =>
+      request({ path: `/profiles/${profileId}/appointments`, schema: appointmentsResponse }),
+    add: (profileId: string, b: AppointmentBody) =>
+      request({
+        method: 'POST',
+        path: `/profiles/${profileId}/appointments`,
+        body: b,
+        schema: appointment,
+      }),
   },
 
   alerts: {

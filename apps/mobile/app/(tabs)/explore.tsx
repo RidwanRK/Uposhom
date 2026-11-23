@@ -133,7 +133,7 @@ function DrugCard({ drug, saving }: { drug: DrugBrand; saving?: number | null })
   return (
     <Card style={{ gap: 6 }} borderColor={saving ? colors.taken : undefined}>
       <Text variant="titleMedium">
-        {drug.nameEn} {drug.strength} ({drug.manufacturer})
+        {drug.nameEn} ({drug.manufacturer})
       </Text>
       <Text variant="bodyMedium">
         {drug.nameBn} · {formAndStrengthBn(drug.form, drug.strength)}

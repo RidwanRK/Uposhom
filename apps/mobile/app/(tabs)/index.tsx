@@ -17,6 +17,7 @@ import {
   useTodayDoses,
 } from '../../src/hooks/queries';
 import { useT } from '../../src/i18n';
+import { errorMessage } from '../../src/utils/errors';
 import { getReminderHealth } from '../../src/notifications/reminders';
 import { colors } from '../../src/theme/colors';
 import { BUCKET_WORD, type Bucket } from '../../src/utils/bangla';
@@ -88,6 +89,9 @@ export default function Home() {
         <AdherenceRing percent={data?.adherenceRate} label={t('home.adherence')} />
       </View>
 
+      {act.isError ? (
+        <Banner icon="alert-circle-outline" text={errorMessage(act.error, t)} />
+      ) : null}
       {data?.fromCache ? (
         <Banner icon="wifi-off" text={t('home.offlineBanner')} tone="mint" />
       ) : null}

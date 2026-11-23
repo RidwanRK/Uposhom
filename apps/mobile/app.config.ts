@@ -17,7 +17,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   userInterfaceStyle: 'light', // single light, high-contrast theme (design.md section 8)
   icon: './assets/icon.png',
   backgroundColor: '#F6FAF8',
-  platforms: ['android'],
+  // Android only. EXPO_WEB_PREVIEW=1 adds a web target purely so the UI can be looked at in a browser.
+  platforms: process.env.EXPO_WEB_PREVIEW ? ['android', 'web'] : ['android'],
+  web: { bundler: 'metro' },
   android: {
     package: 'bd.uposhom.app',
     versionCode: 1,
@@ -93,5 +95,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Our own backend only. Mock mode serves seeded synthetic data until the live endpoints land.
     apiUrl: process.env.EXPO_PUBLIC_API_URL ?? '',
     useMock: process.env.EXPO_PUBLIC_USE_MOCK ?? '',
+    mockMissing: process.env.EXPO_PUBLIC_MOCK_MISSING ?? '',
   },
 });

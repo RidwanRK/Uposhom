@@ -1,19 +1,28 @@
 import type { z } from 'zod';
 import { apiErrorBody, refreshResponse } from '@uposhom/shared';
 import { useSession } from '../store/session';
-import { API_URL, USE_MOCK } from './config';
+import { API_URL, USE_MOCK, isMockedPath } from './config';
 import { mockRequest } from './mock/server';
 
 export class ApiError extends Error {
   status: number;
   code: string;
   retryAfterSeconds?: number;
-  constructor(status: number, code: string, message?: string, retryAfterSeconds?: number) {
+  /** Extra structured detail, e.g. NEEDS_MANUAL_INPUT: [{ index, reasons }]. */
+  details?: unknown;
+  constructor(
+    status: number,
+    code: string,
+    message?: string,
+    retryAfterSeconds?: number,
+    details?: unknown,
+  ) {
     super(message ?? code);
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
     this.retryAfterSeconds = retryAfterSeconds;
+    this.details = details;
   }
   get isNetwork() {
     return this.status === 0;
@@ -60,7 +69,7 @@ interface RawResult {
 async function send(opts: RequestOptions<unknown>, token: string | null): Promise<RawResult> {
   const method = opts.method ?? 'GET';
 
-  if (USE_MOCK) {
+  if (USE_MOCK || isMockedPath(method, opts.path)) {
     return mockRequest({
       method,
       path: opts.path,
@@ -68,6 +77,8 @@ async function send(opts: RequestOptions<unknown>, token: string | null): Promis
       body: opts.body,
       upload: opts.upload,
       token,
+      // Hybrid: a live JWT is not a mock token, so the mock answers from one shared demo world.
+      hybrid: !USE_MOCK,
     });
   }
 
@@ -169,6 +180,7 @@ export async function request<T = unknown>(opts: RequestOptions<T>): Promise<T> 
       err.data.error.code,
       err.data.error.message,
       err.data.error.retryAfterSeconds,
+      err.data.error.details,
     );
   }
   throw new ApiError(res.status, res.status === 401 ? 'UNAUTHORIZED' : 'HTTP_ERROR');

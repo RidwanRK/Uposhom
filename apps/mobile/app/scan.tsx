@@ -13,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApiError } from '../src/api/client';
+import { isMockedPath } from '../src/api/config';
 import { api } from '../src/api/endpoints';
 import { Button } from '../src/components/Button';
 import { Icon, type IconName } from '../src/components/Icon';
@@ -61,7 +62,10 @@ export default function Scan() {
         else throw e;
       }
       startDraft({
-        draftId: res.draftPrescriptionId,
+        // When the live server has no upload route yet the draft id is the mock's, so confirm as 'new'.
+        draftId: isMockedPath('POST', '/prescriptions/upload-and-parse')
+          ? null
+          : res.draftPrescriptionId,
         imageUri: file.uri,
         transcript: res.transcribedText,
         items: res.extractedItems,
