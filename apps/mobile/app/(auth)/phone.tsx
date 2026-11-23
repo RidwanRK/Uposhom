@@ -10,6 +10,7 @@ import { Icon } from '../../src/components/Icon';
 import { Screen } from '../../src/components/Screen';
 import { Text } from '../../src/components/Text';
 import { TextField } from '../../src/components/TextField';
+import { SUPPORT_EMAIL, SUPPORT_PHONE } from '../../src/config/support';
 import { useT, bn } from '../../src/i18n';
 import { colors } from '../../src/theme/colors';
 import { normalizeBdMsisdn } from '../../src/utils/phone';
@@ -82,19 +83,17 @@ export default function Phone() {
             <Text variant="titleMedium">{t('auth.phone.support')}</Text>
             <Text
               variant="bodyLarge"
-              onPress={() => void Linking.openURL(`mailto:${t('legal.supportEmail')}`)}
+              onPress={() => void Linking.openURL(`mailto:${SUPPORT_EMAIL}`)}
               style={{ color: colors.primary }}
             >
-              {t('legal.supportEmail')}
+              {SUPPORT_EMAIL}
             </Text>
             <Text
               variant="bodyLarge"
-              onPress={() =>
-                void Linking.openURL(`tel:${t('legal.supportPhone').replace(/[^\d]/g, '')}`)
-              }
+              onPress={() => void Linking.openURL(`tel:${SUPPORT_PHONE}`)}
               style={{ color: colors.primary }}
             >
-              {t('legal.supportPhone')}
+              {toBn(SUPPORT_PHONE)}
             </Text>
           </Card>
         ) : null}
@@ -112,7 +111,7 @@ export default function Phone() {
         >
           <Icon name="shield-check-outline" size={24} color="primary" />
           <Text variant="bodyLarge" color="onSurface" style={{ flex: 1 }}>
-            {t('auth.phone.disclosure')}
+            {t('auth.phone.disclosure')} {t('auth.phone.noCharge')}
           </Text>
         </View>
 

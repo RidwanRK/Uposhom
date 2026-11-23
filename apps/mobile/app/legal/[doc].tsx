@@ -6,6 +6,8 @@ import { Card } from '../../src/components/Card';
 import { Header } from '../../src/components/Header';
 import { Screen } from '../../src/components/Screen';
 import { Text } from '../../src/components/Text';
+import { SUPPORT_EMAIL, SUPPORT_PHONE } from '../../src/config/support';
+import { toBn } from '../../src/utils/bangla';
 import { trList, useT } from '../../src/i18n';
 
 /**
@@ -35,18 +37,16 @@ export default function LegalDoc() {
           <Card style={{ gap: 12 }}>
             <Text variant="bodyLarge">{t('legal.supportBody')}</Text>
             <Button
-              label={t('legal.supportEmail')}
+              label={SUPPORT_EMAIL}
               icon="email-outline"
               variant="secondary"
-              onPress={() => void Linking.openURL(`mailto:${t('legal.supportEmail')}`)}
+              onPress={() => void Linking.openURL(`mailto:${SUPPORT_EMAIL}`)}
             />
             <Button
-              label={t('legal.supportPhone')}
+              label={toBn(SUPPORT_PHONE)}
               icon="phone"
               variant="secondary"
-              onPress={() =>
-                void Linking.openURL(`tel:${t('legal.supportPhone').replace(/[^\d]/g, '')}`)
-              }
+              onPress={() => void Linking.openURL(`tel:${SUPPORT_PHONE}`)}
             />
           </Card>
         ) : (
