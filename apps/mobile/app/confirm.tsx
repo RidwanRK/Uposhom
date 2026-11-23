@@ -3,7 +3,6 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ApiError } from '../src/api/client';
 import { api } from '../src/api/endpoints';
 import { BottomSheet } from '../src/components/BottomSheet';
 import { Button } from '../src/components/Button';
@@ -20,6 +19,7 @@ import { useDraft } from '../src/store/draft';
 import { colors } from '../src/theme/colors';
 import { elevation } from '../src/theme/spacing';
 import { toBn } from '../src/utils/bangla';
+import { errorMessage, manualInputProblems, reasonText } from '../src/utils/errors';
 import { normalizePattern } from '../src/utils/patterns';
 
 /**
@@ -85,9 +85,19 @@ export default function Confirm() {
       void qc.invalidateQueries({ queryKey: qk.circle });
       setSuccess({ count: res.scheduledEventsCount, summary: res.banglaSummary });
     } catch (e) {
-      setMessage(
-        e instanceof ApiError && e.isNetwork ? t('common.noConnection') : t('common.errorGeneric'),
-      );
+      // The schedule engine never guesses: items it cannot schedule exactly come back with reasons.
+      const problems = manualInputProblems(e);
+      if (problems) {
+        const mapped: Record<string, ItemErrors> = {};
+        for (const p of problems) {
+          const item = items[p.index];
+          if (item) mapped[item.key] = { reasons: p.reasons.map((r) => reasonText(r, t)) };
+        }
+        setErrors(mapped);
+        setMessage(t('confirm.needFix'));
+      } else {
+        setMessage(errorMessage(e, t));
+      }
     } finally {
       setBusy(false);
     }

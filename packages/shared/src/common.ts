@@ -7,6 +7,8 @@ export const apiErrorBody = z.object({
     code: z.string(),
     message: z.string().optional(),
     retryAfterSeconds: z.number().optional(),
+    /** e.g. NEEDS_MANUAL_INPUT: [{ index, reasons }] (docs/domain-api.md). */
+    details: z.unknown().optional(),
   }),
 });
 export type ApiErrorBody = z.infer<typeof apiErrorBody>;

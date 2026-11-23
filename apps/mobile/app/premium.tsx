@@ -1,8 +1,20 @@
-import { ComingSoon } from '../src/components/ComingSoon';
+import { router } from 'expo-router';
+import { Header } from '../src/components/Header';
+import { PremiumView } from '../src/components/PremiumView';
+import { Screen } from '../src/components/Screen';
 import { useT } from '../src/i18n';
 
-// Day 4: Premium upgrade and consent screen.
 export default function Premium() {
   const t = useT();
-  return <ComingSoon title={t('premium.title')} />;
+  return (
+    <>
+      <Header
+        title={t('premium.title')}
+        onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+      />
+      <Screen edges={['bottom']}>
+        <PremiumView />
+      </Screen>
+    </>
+  );
 }

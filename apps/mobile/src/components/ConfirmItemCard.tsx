@@ -37,6 +37,8 @@ export interface ItemErrors {
   brand?: boolean;
   pattern?: boolean;
   duration?: boolean;
+  /** Why the schedule engine would not schedule this item (already in Bangla). */
+  reasons?: string[];
 }
 
 interface Props {
@@ -106,6 +108,19 @@ export function ConfirmItemCard({ item, index, errors, onChange, onRemove }: Pro
           <Icon name="trash-can-outline" size={26} color="emergency" />
         </Pressable>
       </View>
+
+      {errors?.reasons?.length ? (
+        <View
+          style={{ gap: 4, backgroundColor: '#FDECEA', padding: 10, borderRadius: 10 }}
+          accessibilityLiveRegion="polite"
+        >
+          {errors.reasons.map((r) => (
+            <Text key={r} variant="bodyMedium" style={{ color: colors.emergency }}>
+              • {r}
+            </Text>
+          ))}
+        </View>
+      ) : null}
 
       {low ? (
         <View

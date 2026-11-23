@@ -45,6 +45,8 @@ interface MockReq {
   body: unknown;
   upload?: { field: string; file: UploadFile; fields?: Record<string, string> };
   token: string | null;
+  /** Live API in use: answer from one shared demo world (a live JWT is not a mock token). */
+  hybrid?: boolean;
 }
 interface MockRes {
   status: number;
@@ -138,7 +140,11 @@ function makeDose(
     id: nid('dose'),
     profileId,
     dueAt,
-    medicine: drug ? `${drug.nameEn} ${drug.strength}` : medicine,
+    medicine: drug
+      ? /\d/.test(drug.nameEn)
+        ? drug.nameEn
+        : `${drug.nameEn} ${drug.strength}`
+      : medicine,
     medicineBn: drug?.nameBn,
     strength: drug?.strength,
     form: drug?.form ?? 'Tablet',
@@ -374,7 +380,13 @@ function ensureWorld(msisdn: string, accountType?: 'INDIVIDUAL' | 'PHARMACY'): W
   return w;
 }
 
-function worldFor(token: string | null): World | null {
+function worldFor(token: string | null, hybrid?: boolean): World | null {
+  if (hybrid) {
+    const w = ensureWorld('hybrid-demo');
+    // No quota gating in hybrid mode: the live server owns entitlements, the mock only fills screens.
+    w.tier = 'PREMIUM';
+    return w;
+  }
   if (!token?.startsWith('mock.')) return null;
   const msisdn = token.split('.')[1] ?? '';
   return worlds.get(msisdn) ?? null;
@@ -1060,6 +1072,25 @@ route('PUT', '/pharmacies/me/profile', true, (req, _p, w) => {
   return ok({ success: true });
 });
 
+// ---- appointments (docs/domain-api.md): follow-up visits, reminded the day before
+const appointments = new Map<
+  string,
+  { id: string; title: string; dueAt: string; reminderState: string }[]
+>();
+route('GET', '/profiles/:id/appointments', true, (_req, [id]) =>
+  ok({ appointments: appointments.get(id ?? '') ?? [] }),
+);
+route('POST', '/profiles/:id/appointments', true, (req, [id]) => {
+  const b = bodyOf<{ title: string; dueAt: string }>(req);
+  if (!b.title || !(new Date(b.dueAt).getTime() > Date.now())) return fail(400, 'INVALID_INPUT');
+  const a = { id: nid('apt'), title: b.title, dueAt: b.dueAt, reminderState: 'PENDING' };
+  appointments.set(
+    id ?? '',
+    [...(appointments.get(id ?? '') ?? []), a].sort((x, y) => x.dueAt.localeCompare(y.dueAt)),
+  );
+  return ok(a, 201);
+});
+
 // ---- insights
 route('GET', '/insights/:id', true, (_r, _p, w) => {
   const premium = w.tier === 'PREMIUM';
@@ -1106,7 +1137,7 @@ export async function mockRequest(req: MockReq): Promise<MockRes> {
     if (!m) continue;
     let w: World | null = null;
     if (r.auth) {
-      w = worldFor(req.token);
+      w = worldFor(req.token, req.hybrid);
       if (!w) return fail(401, 'UNAUTHORIZED');
     }
     return r.handler(req, m.slice(1), w as World);

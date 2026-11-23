@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import type { LinkRole, MealTimes, ProfileLink } from '@uposhom/shared';
 import { api } from '../../src/api/endpoints';
+import { AppointmentsSection } from '../../src/components/AppointmentsSection';
 import { BottomSheet } from '../../src/components/BottomSheet';
 import { Button } from '../../src/components/Button';
 import { Card } from '../../src/components/Card';
@@ -252,6 +253,8 @@ export default function ProfileDetails() {
             />
           ) : null}
         </View>
+
+        <AppointmentsSection profileId={profile.id} canEdit={profile.myRole !== 'VIEWER'} />
 
         <View style={{ gap: 10 }}>
           <SectionTitle>{t('profile.ownPhone')}</SectionTitle>
