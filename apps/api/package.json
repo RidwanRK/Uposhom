@@ -13,16 +13,20 @@
     "test:applink": "vitest run test/auth.test.ts test/platform-e2e.test.ts test/billing-mock.test.ts test/smoke.test.ts"
   },
   "dependencies": {
+    "@fastify/multipart": "^10.1.9",
+    "@openai/agents": "^0.22.0",
     "cron-parser": "^5.10.6",
     "drizzle-orm": "^0.45.4",
     "fastify": "^5.12.8",
     "jose": "^6.2.18",
+    "openai": "^7.62.0",
     "pg": "^8.23.1",
     "pg-boss": "^12.39.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/pg": "^8.23.1",
+    "@uposhom/ai": "workspace:*",
     "@uposhom/applink-client": "workspace:*",
     "@uposhom/db": "workspace:*",
     "@uposhom/schedule-engine": "workspace:*",

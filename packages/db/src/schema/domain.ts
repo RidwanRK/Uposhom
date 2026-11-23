@@ -374,6 +374,9 @@ export const reports = pgTable(
       .references(() => profiles.id, { onDelete: 'cascade' }),
     title: text('title'),
     reportDate: date('report_date'),
+    /** Lab or diagnostic centre, as printed. */
+    center: text('center'),
+    testType: text('test_type'),
     imagePath: text('image_path'),
     createdBy: text('created_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
@@ -394,6 +397,8 @@ export const reportValues = pgTable(
     /** The range printed on the report, as printed. */
     printedRange: text('printed_range'),
     flag: text('flag', { enum: REPORT_FLAGS }).notNull().default('UNKNOWN'),
+    /** Plain-Bangla explanation from workstream C's glossary-backed explainer. */
+    explanationBn: text('explanation_bn'),
   },
   (t) => [
     index('report_values_report').on(t.reportId),
@@ -449,9 +454,13 @@ export const pharmacies = pgTable(
     name: text('name').notNull(),
     nameBn: text('name_bn'),
     address: text('address'),
-    lat: doublePrecision('lat').notNull(),
-    lng: doublePrecision('lng').notNull(),
+    // Optional: an owner may fill in the store before its location.
+    lat: doublePrecision('lat'),
+    lng: doublePrecision('lng'),
     phoneEnc: text('phone_enc'),
+    /** The shop's public business number, shown to customers. Never a person's own number. */
+    phone: text('phone'),
+    openingHours: text('opening_hours'),
     isPartner: boolean('is_partner').notNull().default(false),
     priorityListing: boolean('priority_listing').notNull().default(false),
     createdAt: createdAt(),
@@ -549,3 +558,15 @@ export const notices = pgTable(
     check('notices_type', inList('type', NOTICE_TYPES)),
   ],
 );
+
+/** Per-account preferences the app shows in Settings. */
+export const accountSettings = pgTable('account_settings', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  /** Reminder SMS without the medicine name. */
+  discreetSms: boolean('discreet_sms').notNull().default(false),
+  /** Reminder SMS on at all (the phone's own alarm still rings). */
+  smsReminders: boolean('sms_reminders').notNull().default(true),
+  updatedAt: updatedAt(),
+});

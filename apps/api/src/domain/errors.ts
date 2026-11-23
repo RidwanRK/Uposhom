@@ -21,7 +21,9 @@ export type DomainErrorCode =
   | 'LAST_ADMIN'
   /** The profile's own person cannot be removed or demoted by others. */
   | 'OWN_PROFILE'
-  | 'LIMIT_REACHED';
+  | 'LIMIT_REACHED'
+  /** The AI service (OpenRouter) failed or is not reachable: try again later. */
+  | 'AI_UNAVAILABLE';
 
 /** Errors from the domain routes. Same body shape as A's ApiError, plus optional details. */
 export class DomainError extends Error {

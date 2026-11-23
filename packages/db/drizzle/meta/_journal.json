@@ -29,6 +29,13 @@
       "when": 1795346669872,
       "tag": "0003_notices",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795451764272,
+      "tag": "0004_app_features",
+      "breakpoints": true
     }
   ]
 }

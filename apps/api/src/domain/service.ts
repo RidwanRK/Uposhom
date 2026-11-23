@@ -1030,6 +1030,7 @@ export function createDomainService(deps: DomainServiceDeps) {
 
   return {
     getCircle,
+    access,
     invite,
     changeRole,
     removeLink,

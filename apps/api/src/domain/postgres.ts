@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, lte, ne, sql } from 'drizzle-orm';
 import {
+  accountSettings,
   agentTraces,
   appointments,
   auditLog,
@@ -11,15 +12,24 @@ import {
   invites,
   links,
   notices,
+  pharmacies,
+  pharmacyStock,
   prescriptionItems,
   prescriptions,
   profiles,
+  reportValues,
+  reports,
+  symptomLogs,
   type Db,
 } from '@uposhom/db';
 import type {
   DomainStore,
   EscalationRecord,
   LinkRecord,
+  PharmacyRecord,
+  PrescriptionItemRecord,
+  ReportRecord,
+  SymptomLogRecord,
   DoseRecord,
   DoseView,
   PrescriptionRecord,
@@ -113,6 +123,57 @@ const toEscalation = (r: typeof escalations.$inferSelect): EscalationRecord => (
   sentAt: r.sentAt,
   acknowledgedAt: r.acknowledgedAt,
   acknowledgedVia: r.acknowledgedVia,
+});
+
+const toItem = (r: typeof prescriptionItems.$inferSelect): PrescriptionItemRecord => ({
+  id: r.id,
+  prescriptionId: r.prescriptionId,
+  position: r.position,
+  brandName: r.brandName,
+  strength: r.strength,
+  form: r.form,
+  parsedPattern: r.parsedPattern,
+  mealRelation: r.mealRelation,
+  durationDays: r.durationDays,
+  pillCount: r.pillCount === null ? null : Number(r.pillCount),
+  asNeeded: r.asNeeded,
+  isCritical: r.isCritical,
+  courseEndsOn: r.courseEndsOn,
+  refillDueOn: r.refillDueOn,
+});
+
+const toReport = (r: typeof reports.$inferSelect): ReportRecord => ({
+  id: r.id,
+  profileId: r.profileId,
+  title: r.title,
+  reportDate: r.reportDate,
+  center: r.center,
+  testType: r.testType,
+  createdBy: r.createdBy,
+  createdAt: r.createdAt,
+});
+
+const toSymptom = (r: typeof symptomLogs.$inferSelect): SymptomLogRecord => ({
+  id: r.id,
+  profileId: r.profileId,
+  source: r.source,
+  data: (r.data ?? {}) as Record<string, unknown>,
+  redFlag: r.redFlag,
+  loggedAt: r.loggedAt,
+});
+
+const toPharmacy = (r: typeof pharmacies.$inferSelect): PharmacyRecord => ({
+  id: r.id,
+  ownerUserId: r.ownerUserId,
+  name: r.name,
+  address: r.address,
+  lat: r.lat,
+  lng: r.lng,
+  phone: r.phone,
+  openingHours: r.openingHours,
+  isPartner: r.isPartner,
+  priorityListing: r.priorityListing,
+  createdAt: r.createdAt,
 });
 
 /** Domain store over the Drizzle schema in packages/db. */
@@ -600,6 +661,21 @@ export function createPostgresDomainStore(db: Db): DomainStore {
       },
     },
     items: {
+      async confirmedForProfile(profileId, since) {
+        const rows = await db
+          .select({ item: prescriptionItems, confirmedAt: prescriptions.confirmedAt })
+          .from(prescriptionItems)
+          .innerJoin(prescriptions, eq(prescriptions.id, prescriptionItems.prescriptionId))
+          .where(
+            and(
+              eq(prescriptions.profileId, profileId),
+              eq(prescriptions.status, 'CONFIRMED'),
+              gte(prescriptions.confirmedAt, since),
+            ),
+          )
+          .orderBy(desc(prescriptions.confirmedAt), asc(prescriptionItems.position));
+        return rows.map((r) => ({ item: toItem(r.item), confirmedAt: r.confirmedAt! }));
+      },
       async refillDueBetween(fromDate, toDate) {
         const rows = await db
           .select({ item: prescriptionItems, profileId: prescriptions.profileId })
@@ -632,6 +708,157 @@ export function createPostgresDomainStore(db: Db): DomainStore {
             refillDueOn: r.item.refillDueOn,
           },
         }));
+      },
+    },
+    reports: {
+      async create(report, values) {
+        await db.transaction(async (tx) => {
+          await tx.insert(reports).values({
+            id: report.id,
+            profileId: report.profileId,
+            title: report.title,
+            reportDate: report.reportDate,
+            center: report.center,
+            testType: report.testType,
+            createdBy: report.createdBy,
+            createdAt: report.createdAt,
+          });
+          if (values.length) {
+            await tx.insert(reportValues).values(
+              values.map((v) => ({
+                reportId: report.id,
+                testName: v.testName,
+                value: v.value,
+                unit: v.unit,
+                printedRange: v.printedRange,
+                flag: v.flag,
+                explanationBn: v.explanationBn,
+              })),
+            );
+          }
+        });
+      },
+      async findById(id) {
+        const [r] = await db.select().from(reports).where(eq(reports.id, id));
+        if (!r) return null;
+        const rows = await db
+          .select()
+          .from(reportValues)
+          .where(eq(reportValues.reportId, id))
+          .orderBy(asc(reportValues.id));
+        return {
+          report: toReport(r),
+          values: rows.map((v) => ({
+            testName: v.testName,
+            value: v.value,
+            unit: v.unit,
+            printedRange: v.printedRange,
+            flag: v.flag,
+            explanationBn: v.explanationBn,
+          })),
+        };
+      },
+      async listForProfiles(profileIds) {
+        if (profileIds.length === 0) return [];
+        const rows = await db
+          .select()
+          .from(reports)
+          .where(inArray(reports.profileId, profileIds))
+          .orderBy(desc(reports.createdAt), desc(reports.id));
+        return rows.map(toReport);
+      },
+    },
+    symptoms: {
+      async record(log) {
+        await db.insert(symptomLogs).values(log);
+      },
+      async findById(id) {
+        const [r] = await db.select().from(symptomLogs).where(eq(symptomLogs.id, id));
+        return r ? toSymptom(r) : null;
+      },
+      async listForProfile(profileId, limit) {
+        const rows = await db
+          .select()
+          .from(symptomLogs)
+          .where(eq(symptomLogs.profileId, profileId))
+          .orderBy(desc(symptomLogs.loggedAt), desc(symptomLogs.id))
+          .limit(limit);
+        return rows.map(toSymptom);
+      },
+    },
+    pharmacies: {
+      async findByOwner(userId) {
+        const [r] = await db.select().from(pharmacies).where(eq(pharmacies.ownerUserId, userId));
+        return r ? toPharmacy(r) : null;
+      },
+      async save(p) {
+        const set = {
+          ownerUserId: p.ownerUserId,
+          name: p.name,
+          address: p.address,
+          lat: p.lat,
+          lng: p.lng,
+          phone: p.phone,
+          openingHours: p.openingHours,
+          isPartner: p.isPartner,
+          priorityListing: p.priorityListing,
+        };
+        await db
+          .insert(pharmacies)
+          .values({ id: p.id, createdAt: p.createdAt, ...set })
+          .onConflictDoUpdate({ target: pharmacies.id, set });
+      },
+      async list() {
+        const rows = await db
+          .select()
+          .from(pharmacies)
+          .orderBy(asc(pharmacies.createdAt), asc(pharmacies.id));
+        return rows.map(toPharmacy);
+      },
+      async setStock(row) {
+        await db
+          .insert(pharmacyStock)
+          .values(row)
+          .onConflictDoUpdate({
+            target: [pharmacyStock.pharmacyId, pharmacyStock.drugBrandId],
+            set: { inStock: row.inStock, updatedAt: row.updatedAt },
+          });
+      },
+      async stockOf(pharmacyId) {
+        return db
+          .select()
+          .from(pharmacyStock)
+          .where(eq(pharmacyStock.pharmacyId, pharmacyId))
+          .orderBy(asc(pharmacyStock.drugBrandId));
+      },
+      async stockForDrug(drugBrandId) {
+        return db
+          .select()
+          .from(pharmacyStock)
+          .where(eq(pharmacyStock.drugBrandId, drugBrandId))
+          .orderBy(asc(pharmacyStock.pharmacyId));
+      },
+    },
+    settings: {
+      async get(userId) {
+        const [r] = await db
+          .select()
+          .from(accountSettings)
+          .where(eq(accountSettings.userId, userId));
+        return r ?? null;
+      },
+      async put(row) {
+        await db
+          .insert(accountSettings)
+          .values(row)
+          .onConflictDoUpdate({
+            target: accountSettings.userId,
+            set: {
+              discreetSms: row.discreetSms,
+              smsReminders: row.smsReminders,
+              updatedAt: row.updatedAt,
+            },
+          });
       },
     },
     async eraseUser(userId) {

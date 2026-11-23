@@ -667,5 +667,159 @@ export function domainContract(label: string, make: () => Promise<DomainUnderTes
         expect(await t.store.doses.profilesWithDoses(at(0), at(61))).toEqual([self.id]);
         expect(await t.store.doses.profilesWithDoses(at(61), at(100))).toEqual([]);
       }));
+
+    it('stores reports with their values and lists them newest first', () =>
+      withStore(async (t) => {
+        const { self } = await owner(t);
+        const report = {
+          id: uid('rep'),
+          profileId: self.id,
+          title: 'Diabetic Profile',
+          reportDate: '2026-11-20',
+          center: 'Popular Diagnostic',
+          testType: 'Diabetic Profile',
+          createdBy: null,
+          createdAt: at(1),
+        };
+        const values = [
+          {
+            testName: 'FBS',
+            value: '9.2',
+            unit: 'mmol/L',
+            printedRange: '3.9 - 6.1',
+            flag: 'HIGH' as const,
+            explanationBn: 'রক্তে শর্করা বেশি',
+          },
+          {
+            testName: 'HbA1c',
+            value: '8.4',
+            unit: null,
+            printedRange: null,
+            flag: 'UNKNOWN' as const,
+            explanationBn: null,
+          },
+        ];
+        await t.store.reports.create(report, values);
+        await t.store.reports.create({ ...report, id: uid('rep'), createdAt: at(5) }, []);
+        expect(await t.store.reports.findById(report.id)).toEqual({ report, values });
+        expect(await t.store.reports.findById('rep_none')).toBeNull();
+        const listed = await t.store.reports.listForProfiles([self.id]);
+        expect(listed.map((r) => r.createdAt)).toEqual([at(5), at(1)]);
+        expect(await t.store.reports.listForProfiles([])).toEqual([]);
+      }));
+
+    it('stores symptom logs and lists them newest first', () =>
+      withStore(async (t) => {
+        const { self } = await owner(t);
+        const log = {
+          id: uid('sym'),
+          profileId: self.id,
+          source: 'TEXT' as const,
+          data: { kind: 'SUMMARY', summary: { symptoms: 'জ্বর' } },
+          redFlag: false,
+          loggedAt: at(1),
+        };
+        await t.store.symptoms.record(log);
+        await t.store.symptoms.record({ ...log, id: uid('sym'), redFlag: true, loggedAt: at(3) });
+        expect(await t.store.symptoms.findById(log.id)).toEqual(log);
+        expect(await t.store.symptoms.findById('sym_none')).toBeNull();
+        expect((await t.store.symptoms.listForProfile(self.id, 10)).map((l) => l.redFlag)).toEqual([
+          true,
+          false,
+        ]);
+        expect(await t.store.symptoms.listForProfile(self.id, 1)).toHaveLength(1);
+      }));
+
+    it('saves a pharmacy, updates it in place, and keeps stock per drug', () =>
+      withStore(async (t) => {
+        const ownerId = uid('usr');
+        await t.addUser(ownerId);
+        const p = {
+          id: uid('phm'),
+          ownerUserId: ownerId,
+          name: '',
+          address: null,
+          lat: null,
+          lng: null,
+          phone: null,
+          openingHours: null,
+          isPartner: false,
+          priorityListing: false,
+          createdAt: at(0),
+        };
+        await t.store.pharmacies.save(p);
+        const filled = {
+          ...p,
+          name: 'Shanti',
+          address: 'Mirpur',
+          lat: 23.8,
+          lng: 90.36,
+          phone: '017',
+          openingHours: '9-11',
+        };
+        await t.store.pharmacies.save(filled);
+        expect(await t.store.pharmacies.findByOwner(ownerId)).toEqual(filled);
+        expect(await t.store.pharmacies.findByOwner('usr_none')).toBeNull();
+        expect(await t.store.pharmacies.list()).toEqual([filled]);
+
+        await t.store.pharmacies.setStock({
+          pharmacyId: p.id,
+          drugBrandId: 'dgda-a',
+          inStock: true,
+          updatedAt: at(1),
+        });
+        await t.store.pharmacies.setStock({
+          pharmacyId: p.id,
+          drugBrandId: 'dgda-a',
+          inStock: false,
+          updatedAt: at(2),
+        });
+        await t.store.pharmacies.setStock({
+          pharmacyId: p.id,
+          drugBrandId: 'dgda-b',
+          inStock: true,
+          updatedAt: at(2),
+        });
+        expect(await t.store.pharmacies.stockOf(p.id)).toEqual([
+          { pharmacyId: p.id, drugBrandId: 'dgda-a', inStock: false, updatedAt: at(2) },
+          { pharmacyId: p.id, drugBrandId: 'dgda-b', inStock: true, updatedAt: at(2) },
+        ]);
+        expect((await t.store.pharmacies.stockForDrug('dgda-b')).map((s) => s.pharmacyId)).toEqual([
+          p.id,
+        ]);
+      }));
+
+    it('keeps account settings per user', () =>
+      withStore(async (t) => {
+        const { userId } = await owner(t);
+        expect(await t.store.settings.get(userId)).toBeNull();
+        await t.store.settings.put({
+          userId,
+          discreetSms: true,
+          smsReminders: true,
+          updatedAt: at(1),
+        });
+        await t.store.settings.put({
+          userId,
+          discreetSms: true,
+          smsReminders: false,
+          updatedAt: at(2),
+        });
+        expect(await t.store.settings.get(userId)).toEqual({
+          userId,
+          discreetSms: true,
+          smsReminders: false,
+          updatedAt: at(2),
+        });
+      }));
+
+    it('lists the items of confirmed prescriptions since a date, newest first', () =>
+      withStore(async (t) => {
+        const { self } = await owner(t);
+        const { item } = await prescribe(t, self.id, [0]);
+        const rows = await t.store.items.confirmedForProfile(self.id, at(-60));
+        expect(rows).toEqual([{ item, confirmedAt: T0 }]);
+        expect(await t.store.items.confirmedForProfile(self.id, at(1))).toEqual([]);
+      }));
   });
 }

@@ -8,6 +8,12 @@ import type {
   AuditRecord,
   DeviceRecord,
   NoticeRecord,
+  PharmacyRecord,
+  ReportRecord,
+  ReportValueRecord,
+  SettingsRecord,
+  StockRecord,
+  SymptomLogRecord,
   TraceRecord,
   EscalationRecord,
   InviteRecord,
@@ -34,6 +40,11 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
   const traces: TraceRecord[] = [];
   const audit: AuditRecord[] = [];
   const appointments = new Map<string, AppointmentRecord>();
+  const reports = new Map<string, { report: ReportRecord; values: ReportValueRecord[] }>();
+  const symptoms = new Map<string, SymptomLogRecord>();
+  const pharmacies = new Map<string, PharmacyRecord>();
+  const stock = new Map<string, StockRecord>(); // pharmacyId|drugBrandId
+  const settings = new Map<string, SettingsRecord>();
 
   const copy = <T>(v: T): T => structuredClone(v);
 
@@ -47,6 +58,8 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
     for (const [id, i] of invites) if (i.profileId === profileId) invites.delete(id);
     for (const [k, n] of notices) if (n.profileId === profileId) notices.delete(k);
     for (const [id, a] of appointments) if (a.profileId === profileId) appointments.delete(id);
+    for (const [id, r] of reports) if (r.report.profileId === profileId) reports.delete(id);
+    for (const [id, l] of symptoms) if (l.profileId === profileId) symptoms.delete(id);
     for (const [id, p] of prescriptions) {
       if (p.profileId !== profileId) continue;
       prescriptions.delete(id);
@@ -367,6 +380,19 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
       },
     },
     items: {
+      async confirmedForProfile(profileId, since) {
+        const out: Array<{ item: PrescriptionItemRecord; confirmedAt: Date }> = [];
+        for (const it of items.values()) {
+          const pre = prescriptions.get(it.prescriptionId);
+          if (!pre || pre.profileId !== profileId || pre.status !== 'CONFIRMED') continue;
+          if (!pre.confirmedAt || pre.confirmedAt < since) continue;
+          out.push({ item: copy(it), confirmedAt: pre.confirmedAt });
+        }
+        return out.sort(
+          (a, b) =>
+            b.confirmedAt.getTime() - a.confirmedAt.getTime() || a.item.position - b.item.position,
+        );
+      },
       async refillDueBetween(fromDate, toDate) {
         const out: Array<{ item: PrescriptionItemRecord; profileId: string }> = [];
         for (const it of items.values()) {
@@ -378,6 +404,89 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
         return out.sort((a, b) => a.item.id.localeCompare(b.item.id));
       },
     },
+    reports: {
+      async create(report, values) {
+        if (!profiles.has(report.profileId)) throw new Error('no such profile');
+        reports.set(report.id, { report: copy(report), values: copy(values) });
+      },
+      async findById(id) {
+        const r = reports.get(id);
+        return r ? copy(r) : null;
+      },
+      async listForProfiles(profileIds) {
+        const ids = new Set(profileIds);
+        return [...reports.values()]
+          .map((r) => r.report)
+          .filter((r) => ids.has(r.profileId))
+          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime() || b.id.localeCompare(a.id))
+          .map(copy);
+      },
+    },
+    symptoms: {
+      async record(log) {
+        if (!profiles.has(log.profileId)) throw new Error('no such profile');
+        symptoms.set(log.id, copy(log));
+      },
+      async findById(id) {
+        const s = symptoms.get(id);
+        return s ? copy(s) : null;
+      },
+      async listForProfile(profileId, limit) {
+        return [...symptoms.values()]
+          .filter((s) => s.profileId === profileId)
+          .sort((a, b) => b.loggedAt.getTime() - a.loggedAt.getTime() || b.id.localeCompare(a.id))
+          .slice(0, limit)
+          .map(copy);
+      },
+    },
+    pharmacies: {
+      async findByOwner(userId) {
+        for (const p of pharmacies.values()) if (p.ownerUserId === userId) return copy(p);
+        return null;
+      },
+      async save(pharmacy) {
+        for (const p of pharmacies.values()) {
+          if (
+            p.id !== pharmacy.id &&
+            pharmacy.ownerUserId &&
+            p.ownerUserId === pharmacy.ownerUserId
+          ) {
+            throw new Error('owner has a pharmacy');
+          }
+        }
+        pharmacies.set(pharmacy.id, copy(pharmacy));
+      },
+      async list() {
+        return [...pharmacies.values()]
+          .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id))
+          .map(copy);
+      },
+      async setStock(row) {
+        if (!pharmacies.has(row.pharmacyId)) throw new Error('no such pharmacy');
+        stock.set(`${row.pharmacyId}|${row.drugBrandId}`, copy(row));
+      },
+      async stockOf(pharmacyId) {
+        return [...stock.values()]
+          .filter((s) => s.pharmacyId === pharmacyId)
+          .sort((a, b) => a.drugBrandId.localeCompare(b.drugBrandId))
+          .map(copy);
+      },
+      async stockForDrug(drugBrandId) {
+        return [...stock.values()]
+          .filter((s) => s.drugBrandId === drugBrandId)
+          .sort((a, b) => a.pharmacyId.localeCompare(b.pharmacyId))
+          .map(copy);
+      },
+    },
+    settings: {
+      async get(userId) {
+        const s = settings.get(userId);
+        return s ? copy(s) : null;
+      },
+      async put(row) {
+        settings.set(row.userId, copy(row));
+      },
+    },
     async eraseUser(userId) {
       for (const [id, c] of circles) {
         if (c.ownerUserId !== userId) continue;
@@ -387,6 +496,8 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
       for (const [id, l] of links) if (l.userId === userId) links.delete(id);
       for (const [token, d] of devices) if (d.userId === userId) devices.delete(token);
       for (const [k, n] of notices) if (n.userId === userId) notices.delete(k);
+      settings.delete(userId);
+      for (const p of pharmacies.values()) if (p.ownerUserId === userId) p.ownerUserId = null;
       for (const e of escalations.values())
         if (e.notifiedUserId === userId) e.notifiedUserId = null;
       for (const p of profiles.values()) if (p.userId === userId) p.userId = null;

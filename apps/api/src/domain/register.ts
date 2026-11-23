@@ -19,6 +19,8 @@ import { createPhoneCrypto } from '../security/phone-crypto.js';
 import type { Services } from '../services/index.js';
 import type { Stores } from '../stores/types.js';
 import { domainRoutes } from '../routes/domain.js';
+import { featureRoutes } from '../routes/features.js';
+import { createFeatureService, type FeatureService } from './features.js';
 import { CARE_JOBS, createCareJobs, type CareJobs } from './care-jobs.js';
 import { LADDER_JOB, createLadderRunner, type LadderRunner } from './escalation.js';
 import { createMemoryDomainStore } from './memory.js';
@@ -43,6 +45,8 @@ declare module 'fastify' {
     ladder: LadderRunner;
     /** Refill, follow-up and digest jobs (tests call them directly). */
     careJobs: CareJobs;
+    /** Scans, reports, journal, voice, insights, drugs, pharmacies, settings. */
+    features: FeatureService;
   }
 }
 
@@ -187,6 +191,20 @@ export function createDomainHooks() {
     app.decorate('ladder', ladder);
     app.decorate('careJobs', care);
     void app.register(domainRoutes(domain), { prefix: '/api/v1' });
+
+    // The app's remaining endpoints: scans, reports, journal, voice, insights, drugs, pharmacies,
+    // settings. C's AI does the thinking; B's store keeps the results; A's entitlements gate them.
+    const features = createFeatureService({
+      store,
+      domain,
+      now,
+      useScan: (userId) => services.entitlements.useScan(userId),
+      useFeature: (userId, feature) => services.entitlements.useFeature(userId, feature),
+      isPremium,
+      accountType: async (userId) => (await stores.users.findById(userId))?.accountType ?? null,
+    });
+    app.decorate('features', features);
+    void app.register(featureRoutes(features), { prefix: '/api/v1' });
   }
 
   return { ports, attach };

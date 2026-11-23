@@ -60,3 +60,24 @@ Errors: `ALREADY_LINKED`, `LAST_ADMIN`, `OWN_PROFILE`, `LIMIT_REACHED` (10 peopl
 `INVALID_INPUT` with message `MSISDN`, `SELF`, `NOT_A_CAREGIVER` or `PUSH_TOKEN`.
 
 Not built yet: Family Link (OTP to a dependent's own phone).
+
+## Scans, reports, journal, voice, insights, drugs, pharmacies, settings
+
+These call workstream C's `packages/ai` (OpenRouter). Without `OPENROUTER_API_KEY` they answer
+with C's built-in samples, so they work locally; on the server the key in `.env` makes them real.
+
+| Endpoint                                                                               | Notes                                                                                                                                           |
+| -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /prescriptions/upload-and-parse` (multipart `file`)                              | Image only. Saves a DRAFT; confirm it with `POST /prescriptions/:draftId/confirm`. Uses the scan quota: `402 PAYMENT_REQUIRED`, message `SCAN`. |
+| `POST /reports/upload-and-parse` (multipart `file`)                                    | Image only. Saved in the report vault.                                                                                                          |
+| `GET /reports?profileId=`, `GET /reports/:id`                                          | A caregiver opening a report is written to `audit_log`.                                                                                         |
+| `POST /symptoms/journal`                                                               | C's journal with the red-flag guard first. A finished journal is kept; its summary id is used by the doctor summary.                            |
+| `POST /summaries/doctor`                                                               | Premium, or a paid credit: otherwise `402 PAYMENT_REQUIRED`, message `DOCTOR_SUMMARY`.                                                          |
+| `POST /voice/transcribe` (multipart `audio`), `POST /voice/query`                      | The query answers from that profile's real doses and is traced for the admin screen.                                                            |
+| `GET /insights/:profileId`                                                             | Patterns are locked on Free.                                                                                                                    |
+| `GET /drugs/search?q=`, `GET /drugs/generics?brand=`                                   | DGDA catalogue, Latin or Bangla.                                                                                                                |
+| `GET /pharmacies?lat=&lng=&area=&drugId=&radiusKm=`                                    | Pharmacy accounts' stores plus C's partner list; stock only as owners set it.                                                                   |
+| `GET /pharmacies/me`, `PUT /pharmacies/me/profile`, `PUT /pharmacies/me/stock/:drugId` | Pharmacy accounts only (`403` otherwise).                                                                                                       |
+| `GET` / `PUT /account/settings`                                                        | `smsReminders: false` stops reminder SMS (the phone's alarm still rings); `discreetSms` leaves medicine names out of SMS.                       |
+
+Uploads are limited to 8 MB. Photos are not stored yet (no object storage).

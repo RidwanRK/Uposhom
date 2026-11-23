@@ -128,6 +128,67 @@ export interface EscalationRecord {
   acknowledgedVia: ActionChannel | null;
 }
 
+export type ReportFlag = 'HIGH' | 'LOW' | 'NORMAL' | 'UNKNOWN';
+
+export interface ReportRecord {
+  id: string;
+  profileId: string;
+  title: string | null;
+  /** YYYY-MM-DD when the printed date could be read. */
+  reportDate: string | null;
+  center: string | null;
+  testType: string | null;
+  createdBy: string | null;
+  createdAt: Date;
+}
+
+export interface ReportValueRecord {
+  testName: string;
+  value: string;
+  unit: string | null;
+  printedRange: string | null;
+  flag: ReportFlag;
+  explanationBn: string | null;
+}
+
+export interface SymptomLogRecord {
+  id: string;
+  profileId: string;
+  source: 'TEXT' | 'VOICE' | 'SMS';
+  /** The journal's collected answers and, when finished, its summary. */
+  data: Record<string, unknown>;
+  redFlag: boolean;
+  loggedAt: Date;
+}
+
+export interface PharmacyRecord {
+  id: string;
+  ownerUserId: string | null;
+  name: string;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  phone: string | null;
+  openingHours: string | null;
+  isPartner: boolean;
+  priorityListing: boolean;
+  createdAt: Date;
+}
+
+export interface StockRecord {
+  pharmacyId: string;
+  drugBrandId: string;
+  inStock: boolean;
+  updatedAt: Date;
+}
+
+export interface SettingsRecord {
+  userId: string;
+  discreetSms: boolean;
+  smsReminders: boolean;
+  updatedAt: Date;
+}
+
 export type NoticeType = 'REFILL_DUE' | 'FOLLOW_UP' | 'WEEKLY_DIGEST';
 
 export interface NoticeRecord {
@@ -344,11 +405,41 @@ export interface DomainStore {
     markReminded(id: string): Promise<boolean>;
   };
   items: {
+    /** Items of the profile's CONFIRMED prescriptions confirmed since then, newest first. */
+    confirmedForProfile(
+      profileId: string,
+      since: Date,
+    ): Promise<Array<{ item: PrescriptionItemRecord; confirmedAt: Date }>>;
     /** Items of CONFIRMED prescriptions whose refill date falls in [fromDate, toDate] (YYYY-MM-DD). */
     refillDueBetween(
       fromDate: string,
       toDate: string,
     ): Promise<Array<{ item: PrescriptionItemRecord; profileId: string }>>;
+  };
+  reports: {
+    create(report: ReportRecord, values: ReportValueRecord[]): Promise<void>;
+    findById(id: string): Promise<{ report: ReportRecord; values: ReportValueRecord[] } | null>;
+    /** Newest first. */
+    listForProfiles(profileIds: string[]): Promise<ReportRecord[]>;
+  };
+  symptoms: {
+    record(log: SymptomLogRecord): Promise<void>;
+    findById(id: string): Promise<SymptomLogRecord | null>;
+    /** Newest first, at most `limit`. */
+    listForProfile(profileId: string, limit: number): Promise<SymptomLogRecord[]>;
+  };
+  pharmacies: {
+    findByOwner(userId: string): Promise<PharmacyRecord | null>;
+    /** Insert, or replace the row with the same id. */
+    save(pharmacy: PharmacyRecord): Promise<void>;
+    list(): Promise<PharmacyRecord[]>;
+    setStock(row: StockRecord): Promise<void>;
+    stockOf(pharmacyId: string): Promise<StockRecord[]>;
+    stockForDrug(drugBrandId: string): Promise<StockRecord[]>;
+  };
+  settings: {
+    get(userId: string): Promise<SettingsRecord | null>;
+    put(row: SettingsRecord): Promise<void>;
   };
   /** Removes every circle the user owns (and so their profiles and doses) and their links. */
   eraseUser(userId: string): Promise<void>;

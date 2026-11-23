@@ -103,13 +103,25 @@ export function createCareJobs(deps: CareJobDeps) {
     return created;
   }
 
-  /** The patient's own phone, by SMS, within the circle owner's monthly allowance. */
-  async function smsPatient(profile: ProfileRecord, message: string, key: string, purpose: string) {
+  /**
+   * The patient's own phone, by SMS, within the circle owner's monthly allowance and settings:
+   * nothing when they turned reminder SMS off, the `discreet` text when they chose discreet SMS.
+   */
+  async function smsPatient(
+    profile: ProfileRecord,
+    text: { full: string; discreet: string },
+    key: string,
+    purpose: string,
+  ) {
+    const circle = await store.circles.findById(profile.circleId);
+    if (!circle) return;
+    const settings = await store.settings.get(circle.ownerUserId);
+    if (settings?.smsReminders === false) return;
     const sub =
       profile.subscriberId ?? (profile.userId ? await deps.subscriberOf(profile.userId) : null);
-    const circle = await store.circles.findById(profile.circleId);
-    if (!sub || !circle) return;
+    if (!sub) return;
     if (!(await deps.useSms(circle.ownerUserId)).allowed) return;
+    const message = settings?.discreetSms ? text.discreet : text.full;
     await deps.sendSms({ subscriberId: sub, message, purpose, idempotencyKey: key });
   }
 
@@ -126,7 +138,12 @@ export function createCareJobs(deps: CareJobDeps) {
       const ref = `refill:${item.id}:${item.refillDueOn}`;
       const people = (await carers(profile.id, true, profile.userId)).map((l) => l.userId);
       await notify(profile, people, { type: 'REFILL_DUE', title: 'ওষুধ শেষ হয়ে আসছে', body, ref });
-      await smsPatient(profile, `উপশম: ${body}`, ref, 'REFILL');
+      await smsPatient(
+        profile,
+        { full: `উপশম: ${body}`, discreet: 'উপশম: একটি ওষুধ শীঘ্রই শেষ হবে। অ্যাপে দেখুন।' },
+        ref,
+        'REFILL',
+      );
     }
     if (due.length) deps.log.info({ items: due.length }, 'refill reminders');
     return { items: due.length };
@@ -149,7 +166,12 @@ export function createCareJobs(deps: CareJobDeps) {
       const ref = `followup:${a.id}`;
       const people = (await carers(profile.id, true, profile.userId)).map((l) => l.userId);
       await notify(profile, people, { type: 'FOLLOW_UP', title: 'ফলো-আপ অ্যাপয়েন্টমেন্ট', body, ref });
-      await smsPatient(profile, `উপশম: ফলো-আপ ${body}`, ref, 'FOLLOW_UP');
+      await smsPatient(
+        profile,
+        { full: `উপশম: ফলো-আপ ${body}`, discreet: `উপশম: ফলো-আপ ${when}। অ্যাপে দেখুন।` },
+        ref,
+        'FOLLOW_UP',
+      );
       reminded++;
     }
     return { reminded };
