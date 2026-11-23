@@ -87,7 +87,24 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       { locationWhenInUsePermission: 'কাছের ফার্মেসি দেখাতে আনুমানিক অবস্থান দরকার।' },
     ],
     ['expo-audio', { microphonePermission: 'বাংলায় কথা বলে জানাতে মাইক্রোফোন দরকার।' }],
-    ['expo-build-properties', { android: { minSdkVersion: 26 } }],
+    [
+      'expo-build-properties',
+      {
+        android: {
+          minSdkVersion: 26,
+          // R8 shrinking stripped a class WorkManager (pulled in by Notifee) needs at start-up, so the
+          // release APK crashed on launch (androidx.work.impl.WorkDatabase). Keep the release build
+          // unshrunk, and also keep WorkManager and Room explicitly in case shrinking is turned back on.
+          enableMinifyInReleaseBuilds: false,
+          enableShrinkResourcesInReleaseBuilds: false,
+          extraProguardRules: [
+            '-keep class androidx.work.** { *; }',
+            '-keep class * extends androidx.room.RoomDatabase',
+            '-keep class androidx.startup.** { *; }',
+          ].join('\n'),
+        },
+      },
+    ],
     'expo-notifications',
     'expo-dev-client',
   ],
