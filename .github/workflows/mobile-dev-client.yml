@@ -1,0 +1,80 @@
+name: Mobile Dev Client APK
+
+# Builds the Expo development client: a debug APK that holds the native modules but loads the app's
+# JavaScript from Metro on a developer's PC. Install it once on a phone, then run
+# `pnpm --filter @uposhom/mobile start` and every JS change reloads in seconds, no rebuild.
+#
+# Run it by hand (Actions tab > Mobile Dev Client APK > Run workflow). Rebuild only when a native module
+# is added or changed. The API URL is NOT baked in here: set EXPO_PUBLIC_API_URL when starting Metro.
+on:
+  workflow_dispatch:
+    inputs:
+      architectures:
+        description: 'CPU types to build. arm64-v8a covers nearly every phone and builds fastest.'
+        required: false
+        default: 'arm64-v8a'
+
+permissions:
+  contents: write # needed to create or update the GitHub Release
+
+jobs:
+  build-dev-client:
+    name: Build Dev Client APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Monorepo
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Generate Native Android Project
+        working-directory: apps/mobile
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Assemble Debug APK
+        working-directory: apps/mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug -PreactNativeArchitectures=${{ inputs.architectures }} --stacktrace
+
+      - name: Rename APK
+        run: |
+          mkdir -p build-artifacts
+          cp apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk build-artifacts/uposhom-dev-client.apk
+
+      - name: Upload APK Artifact (needs GitHub login)
+        uses: actions/upload-artifact@v4
+        with:
+          name: uposhom-dev-client
+          path: build-artifacts/uposhom-dev-client.apk
+          retention-days: 14
+
+      - name: Publish APK to a rolling GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dev-client
+          name: Dev client (debug build)
+          prerelease: true
+          body: |
+            Development client for Uposhom. Install once, then run `pnpm --filter @uposhom/mobile start`
+            on your PC and open this app on the phone. Not for end users: it needs Metro to load the app.
+          files: build-artifacts/uposhom-dev-client.apk
