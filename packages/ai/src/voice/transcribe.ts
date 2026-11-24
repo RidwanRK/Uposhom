@@ -80,7 +80,9 @@ export async function transcribeBanglaAudio(
                 data: base64Audio,
                 format: 'm4a',
               },
-            } as any,
+              // The SDK type lists only wav and mp3; the phone records m4a, which the free
+              // multimodal models accept. Same object as before, typed without `any`.
+            } as unknown as { type: 'input_audio'; input_audio: { data: string; format: 'mp3' } },
           ],
         },
       ],
