@@ -135,7 +135,10 @@ describe.skipIf(!url)('OTP sign-up on the Postgres stores', () => {
     await vi.waitFor(async () =>
       expect((await stores.charges.get(chargeId))?.status).toBe('SETTLED'),
     );
-    expect(await stores.entitlements.available(user.id, 'DOCTOR_SUMMARY')).toBe(1);
+    // The grant is written just after the charge is marked SETTLED, by the same queued job.
+    await vi.waitFor(async () =>
+      expect(await stores.entitlements.available(user.id, 'DOCTOR_SUMMARY')).toBe(1),
+    );
 
     // A replay cannot grant a second credit (UNIQUE on granted_by_charge).
     await app.services.caas.handleNotification(note({}));

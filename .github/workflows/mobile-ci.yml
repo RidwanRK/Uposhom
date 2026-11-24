@@ -95,7 +95,7 @@ jobs:
         working-directory: apps/mobile
         # Baked into the app at prebuild: the APK talks to the deployed API instead of the in-app mock.
         env:
-          EXPO_PUBLIC_API_URL: https://uposhom.duckdns.org
+          EXPO_PUBLIC_API_URL: ${{ vars.API_URL || 'https://uposhom.duckdns.org' }}
           EXPO_PUBLIC_USE_MOCK: '0'
         run: npx expo prebuild --platform android --no-install
 
@@ -103,7 +103,7 @@ jobs:
         if: steps.expo.outputs.present == 'true'
         working-directory: apps/mobile/android
         env:
-          EXPO_PUBLIC_API_URL: https://uposhom.duckdns.org
+          EXPO_PUBLIC_API_URL: ${{ vars.API_URL || 'https://uposhom.duckdns.org' }}
           EXPO_PUBLIC_USE_MOCK: '0'
         run: |
           chmod +x gradlew

@@ -145,6 +145,8 @@ export function privacyHtml(cfg: LegalConfig): string {
   <li>Message delivery records: ${days(RETENTION.smsLogMs)} days.</li>
   <li>One-time-code records: removed ${days(RETENTION.otpAfterExpiryMs)} day after they expire.</li>
   <li>Sign-in sessions: removed ${days(RETENTION.sessionAfterExpiryMs)} days after they end.</li>
+  <li>Assistant activity logs (no message text kept beyond a short preview): ${days(RETENTION.agentTracesMs)} days.</li>
+  <li>Record-access audit log: ${days(RETENTION.auditLogMs)} days.</li>
   <li>Records of what you agreed to are kept for as long as your account exists, as evidence, and deleted with it.</li>
 </ul>
 

@@ -225,6 +225,36 @@ export function domainContract(label: string, make: () => Promise<DomainUnderTes
         expect(await t.store.profiles.findBySubscriberId('tel:none')).toEqual([]);
       }));
 
+    it('binds and clears a dependent’s own phone (Family Link), one profile per number', () =>
+      withStore(async (t) => {
+        const { userId, circle } = await owner(t);
+        const link = (profileId: string) => ({
+          id: uid('lnk'),
+          userId,
+          profileId,
+          role: 'ADMIN' as const,
+          isSecondaryCaregiver: false,
+          createdAt: T0,
+        });
+        const a = profileOf(circle.id, { name: 'Abba' });
+        const b = profileOf(circle.id, { name: 'Amma' });
+        await t.store.profiles.create(a, link(a.id));
+        await t.store.profiles.create(b, link(b.id));
+        const sub = uid('tel:880');
+
+        expect(
+          await t.store.profiles.setOwnPhone(a.id, { subscriberId: sub, phoneEnc: 'enc' }),
+        ).toBe(true);
+        expect((await t.store.profiles.findById(a.id))?.subscriberId).toBe(sub);
+        await expect(
+          t.store.profiles.setOwnPhone(b.id, { subscriberId: sub, phoneEnc: 'enc' }),
+        ).rejects.toThrow();
+        expect(await t.store.profiles.setOwnPhone('prf_none', null)).toBe(false);
+
+        expect(await t.store.profiles.setOwnPhone(a.id, null)).toBe(true);
+        expect(await t.store.profiles.findBySubscriberId(sub)).toEqual([]);
+      }));
+
     it('saves a confirmed prescription with doses, and never duplicates a dose key', () =>
       withStore(async (t) => {
         const { self } = await owner(t);
@@ -614,6 +644,19 @@ export function domainContract(label: string, make: () => Promise<DomainUnderTes
         };
         await t.store.audit.record(row);
         expect(await t.store.audit.listForActor(userId)).toEqual([row]);
+        const onProfile = { ...row, profileId: self.id, at: at(4) };
+        await t.store.audit.record(onProfile);
+        expect(await t.store.audit.listForProfile(self.id)).toEqual([onProfile]);
+
+        // Retention: strictly older than the cutoff goes, the rest stays.
+        expect(
+          await t.store.traces.purgeBefore(new Date(at(1).getTime() + 30_000)),
+        ).toBeGreaterThanOrEqual(1);
+        expect((await t.store.traces.list(10)).map((x) => x.createdAt)).toEqual([at(2)]);
+        expect(
+          await t.store.audit.purgeBefore(new Date(at(3).getTime() + 30_000)),
+        ).toBeGreaterThanOrEqual(1);
+        expect(await t.store.audit.listForActor(userId)).toEqual([onProfile]);
       }));
 
     it('lists appointments and moves a pending one to reminded exactly once', () =>

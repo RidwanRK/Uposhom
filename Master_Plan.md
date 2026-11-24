@@ -108,44 +108,41 @@ uposhom/
 │   │
 │   ├── api/                         # Fastify Core REST Gateway (Node.js 22 / TypeScript)
 │   │   ├── src/
-│   │   │   ├── config/              # Env validation, Applink credentials, static IP check
-│   │   │   ├── middleware/          # JWT auth, circle-scoped RBAC, rate-limiter, CORS
-│   │   │   ├── plugins/             # Fastify Swagger, Multipart, rate-limit (scoped to /api/v1 only, never the callbacks), Postgres (Drizzle) connector
-│   │   │   ├── plugins/applink-callbacks.ts  # Encapsulated plugin for the four callback routes: lenient JSON parser, small bodyLimit, error handler that always returns 200 S1000, no rate limiter or JWT/CSRF hooks
-│   │   │   ├── routes/
-│   │   │   │   ├── auth.ts          # /api/v1/auth (OTP request, verify, JWT issuance, refresh, logout)
-│   │   │   │   ├── circles.ts       # /api/v1/circles, /profiles, /links (family circle, profiles, roles, invites, secondary caregiver)
-│   │   │   │   ├── devices.ts       # /api/v1/devices (Expo push token registration)
-│   │   │   │   ├── account.ts       # /api/v1/account (settings, discreet mode, SMS opt-out, delete-my-data)
-│   │   │   │   ├── admin.ts         # /api/v1/admin/traces (admin flag only)
-│   │   │   │   ├── prescriptions.ts # /api/v1/prescriptions (upload, OCR parse, confirm)
-│   │   │   │   ├── doses.ts         # /api/v1/doses (today's schedule, taken/snooze/skip action)
-│   │   │   │   ├── billing.ts       # /api/v1/billing (CaaS micro-charge, Subscription)
-│   │   │   │   ├── reports.ts       # /api/v1/reports (lab report upload & flag analysis)
-│   │   │   │   ├── symptoms.ts      # /api/v1/symptoms (symptom journal, 999 red flag)
-│   │   │   │   ├── generics.ts      # /api/v1/drugs/generics (same-ingredient, strength and form alternatives)
-│   │   │   │   ├── pharmacies.ts    # /api/v1/pharmacies (geolocation & stock lookup, owner stock toggle and store profile)
-│   │   │   │   └── callbacks/       # Applink Inbound Webhook Handlers
-│   │   │   │       ├── sms-receive.ts             # Inbound MO reply processor
-│   │   │   │       ├── sms-delivery.ts            # DLR delivery receipts
-│   │   │   │       ├── subscriber-notify.ts       # Subscription lifecycle events (password stripped)
-│   │   │   │       └── charging-notify.ts         # CaaS transaction settlement
-│   │   │   ├── services/            # Business logic services bridging routes & DB
-│   │   │   └── index.ts             # Fastify server bootstrap & graceful shutdown
+│   │   │   ├── app.ts               # buildApp(): wires stores, queue, services, routes; tests build the same app
+│   │   │   ├── index.ts             # Server bootstrap, Postgres/pg-boss selection, graceful shutdown
+│   │   │   ├── config/env.ts        # Single zod-validated config module; refuses to boot on bad config
+│   │   │   ├── auth/                # OTP service (sign-up, step-up, Family Link), JWT + rotating refresh tokens, guard
+│   │   │   ├── billing/             # Subscription plans, CaaS two-step charging, entitlements and quotas
+│   │   │   ├── callbacks/           # Callback event sink (acknowledge first, queue, process out of band)
+│   │   │   ├── sms/                 # Throttled send job, MO parser (reply codes, STOP, free-text Q&A), delivery reports
+│   │   │   ├── subscription/        # Opt-out and the retried Applink Unregister
+│   │   │   ├── jobs/                # Platform crons: charge reconciliation, subscription sweep, Base Size, retention, dead letters
+│   │   │   ├── queue/               # pg-boss and in-memory queues behind one interface
+│   │   │   ├── stores/              # Platform tables (users, otp_sessions, consents, sms_log ...), memory and Postgres
+│   │   │   ├── db/                  # Workstream A's ordered SQL migrations for the platform tables
+│   │   │   ├── domain/              # Workstream B: circles, Family Link, confirm, doses, ladder, care jobs, push, features
+│   │   │   ├── ports.ts             # The seams platform code calls into the domain through
+│   │   │   ├── ops/                 # Alerts, retention periods, HTTP safety, smoke checks
+│   │   │   ├── privacy/             # Delete-my-data
+│   │   │   ├── security/            # AES-GCM phone encryption and keyed lookup hash
+│   │   │   └── routes/
+│   │   │       ├── auth.ts          # /api/v1/auth (OTP request, verify, step-up, refresh, logout)
+│   │   │       ├── domain.ts        # /api/v1 circles, profiles, Family Link, links, confirm, doses, devices, appointments, alerts, admin traces
+│   │   │       ├── features.ts      # /api/v1 scans, reports, symptom journal, doctor summary, voice, insights, drugs, pharmacies, settings
+│   │   │       ├── billing.ts       # /api/v1/billing (Subscription)
+│   │   │       ├── caas.ts          # /api/v1/billing/caas (pay-per-use)
+│   │   │       ├── optout.ts        # /api/v1/account (SMS opt-out, delete-my-data)
+│   │   │       ├── legal.ts         # /legal/terms, /legal/privacy, /support
+│   │   │       └── applink-callbacks.ts # The four callback routes: lenient parser, small bodyLimit, always 200 S1000, no JWT
+│   │   ├── test/                    # Vitest suites; Postgres contract suites run when TEST_DATABASE_URL is set
 │   │   ├── package.json
 │   │   └── tsconfig.json
 │   │
-│   ├── worker/                      # Asynchronous Background Processor (pg-boss)
-│   │   ├── src/
-│   │   │   ├── queues/              # Queue names and job payload schemas
-│   │   │   ├── jobs/
-│   │   │   │   ├── reminder-job.ts         # Dispatches due medication SMS alerts and push
-│   │   │   │   ├── sms-send-job.ts         # Throttled outbound SMS queue (E1318 per-second, E1319 per-day limits)
-│   │   │   │   ├── refill-appointment-job.ts # Refill-date and follow-up appointment reminders
-│   │   │   │   ├── escalation-job.ts       # 15m/30m/50m Caregiver escalation state machine
-│   │   │   │   ├── reconciliation-cron.ts  # Daily CaaS P1003 & Subscription reconciliation
-│   │   │   │   └── digest-job.ts           # Weekly caregiver adherence summaries
-│   │   │   └── index.ts             # pg-boss worker supervisor
+│   ├── worker/                      # Placeholder container (heartbeat only)
+│   │   ├── src/index.ts             # All pg-boss consumers (reminder ladder, SMS send, refills and follow-ups,
+│   │   │                            # digest, reconciliation, retention) currently run inside the API process
+│   │   │                            # (apps/api/src/jobs and src/domain). Moving them here is optional; the
+│   │   │                            # queue is in Postgres either way, so nothing is lost on restart.
 │   │   ├── package.json
 │   │   └── tsconfig.json
 │   │
@@ -162,14 +159,9 @@ uposhom/
 │   │
 │   ├── applink-client/              # Type-Safe Applink CPaaS Platform Client
 │   │   ├── src/
-│   │   │   ├── client.ts            # Unified post() with fixed IP egress & credential injection
-│   │   │   ├── normalizer.ts        # Single tel: normalizer & masking handler
-│   │   │   ├── services/
-│   │   │   │   ├── sms.ts           # POST /sms/send wrapper
-│   │   │   │   ├── subscription.ts  # POST /subscription/send (register/unregister), query-base, getSubscriberChargingInfo
-│   │   │   │   ├── otp.ts           # POST /otp/request & /otp/verify
-│   │   │   │   └── caas.ts          # POST /caas/direct/debit & /caas/otp/verify (BDT decimal)
-│   │   │   ├── status-codes.ts      # Published status code enumerations & error mappers
+│   │   │   ├── client.ts            # Every Applink call (SMS, Subscription, OTP, CaaS): 10 s timeout, transient-only retries
+│   │   │   ├── address.ts           # The single tel: normaliser, subscriber id variants and masking
+│   │   │   ├── errors.ts            # ApplinkError with the published status codes, retryable or not
 │   │   │   └── types.ts             # Request & Response TypeScript interfaces
 │   │   ├── package.json
 │   │   └── tsconfig.json
@@ -200,10 +192,12 @@ uposhom/
 │   │   └── tsconfig.json
 │   │
 │   └── db/                          # Drizzle schema, migrations & queries
-│       ├── migrations/              # drizzle-kit generated SQL migrations
+│       ├── drizzle/                 # drizzle-kit generated SQL migrations for the domain tables (run on boot)
+│       ├── migrations/              # 0002_drug_tables.sql (workstream C; not in the boot migration chain yet)
 │       ├── src/
-│       │   ├── schema/              # Drizzle table definitions (users, prescriptions, doses, charges...)
-│       │   ├── queries/             # Scoped database query helpers
+│       │   ├── schema/              # Drizzle table definitions (domain.ts, drugs.ts, platform.ts)
+│       │   ├── migrate.ts           # Applies the embedded migrations (migrations.generated.ts)
+│       │   ├── seed.ts              # Builds typed catalogue rows from data/*.json
 │       │   └── client.ts            # pg pool + Drizzle client
 │       ├── package.json
 │       └── tsconfig.json
@@ -218,8 +212,8 @@ uposhom/
 │
 ├── scripts/                         # DevOps, Testing & Mock Utilities
 │   ├── mock-applink.mjs             # Zero-dependency local Applink CPaaS simulation server (copied from the Applink skill's scripts/)
-│   ├── test-callbacks.sh            # Posts valid, malformed, wrong-app, partial-payment and duplicate callback payloads at our handlers (copied from the Applink skill's scripts/)
-│   └── seed-db.ts                   # Populates PostgreSQL with synthetic seed data
+│   ├── replay-callbacks.sh          # Posts valid, malformed, wrong-app, partial-payment and duplicate callback payloads at our handlers
+│   └── dev-local.mjs                # Starts the mock Applink and the API together for local development
 │
 ├── deploy/                          # Deployment & Container Configuration
 │   ├── docker-compose.yml           # Postgres 16, Fastify API (port bound to 127.0.0.1:3000 for the deploy smoke test; Caddy reaches it on the Docker network), Worker (no Redis: pg-boss runs on Postgres)
@@ -1199,11 +1193,11 @@ Agents and engineers must verify each item prior to declaring a milestone comple
 - [ ] **SMS Handling**: `destinationAddresses` is an array; each `destinationResponses` entry's `statusCode` is read; `requestId` is saved in `sms_log`; delivery states are DELIVERED, EXPIRED, DELETED, UNDELIVERABLE, ACCEPTED, UNKNOWN and REJECTED (there is no FAILED); the MO keyword is trimmed and compared case-insensitively; STOP, UNSUB and OFF call Subscription Unregister.
 
 ### C. Safety & Domain Core Integrity
-- [ ] **Deterministic Scheduling**: 100% of reminder timestamps are produced by `packages/schedule-engine` with zero LLM guesswork.
-- [ ] **Asia/Dhaka Anchor Calculations**: Morning, Noon, Night meal anchors calculate in UTC+6 timezone without drift.
-- [ ] **Human-in-the-Loop Confirmation**: Prescription drafts require explicit human visual confirmation via the app UI before dose generation.
+- [x] **Deterministic Scheduling**: 100% of reminder timestamps are produced by `packages/schedule-engine` with zero LLM guesswork.
+- [x] **Asia/Dhaka Anchor Calculations**: Morning, Noon, Night meal anchors calculate in UTC+6 timezone without drift.
+- [x] **Human-in-the-Loop Confirmation**: Prescription drafts require explicit human visual confirmation via the app UI before dose generation.
 - [x] **Numeric Guard**: AI Bangla explanations are rejected if any dosage number differs from the confirmed prescription item (100% verified in `packages/ai/test/numeric-guard.test.ts`).
-- [ ] **Escalation Timers**: Dose misses trigger the 15-min repeat and 30-min Caregiver escalation without duplicate dispatch.
+- [x] **Escalation Timers**: Dose misses trigger the 15-min repeat and 30-min Caregiver escalation without duplicate dispatch.
 - [x] **Red-Flag Emergency Interruption**: Symptom inputs with chest pain, severe breathing difficulty, severe bleeding, or stroke signs immediately route to the 999 alert, decided by the deterministic keyword guard before any model call (100% verified in `packages/ai/test/redflag-guard.test.ts`).
 
 ### D. React Native App Quality & Packaging

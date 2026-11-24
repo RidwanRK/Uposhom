@@ -17,6 +17,10 @@ export const RETENTION = {
   rateLimitHitsMs: 24 * HOUR_MS,
   /** sessions: expired or revoked refresh tokens go this long after. */
   sessionAfterExpiryMs: 30 * DAY_MS,
+  /** agent_traces: the admin trace screen only needs recent runs. Purged by the domain job. */
+  agentTracesMs: 30 * DAY_MS,
+  /** audit_log: who read or changed a medical record. Purged by the domain job. */
+  auditLogMs: 365 * DAY_MS,
 } as const;
 
 export interface PurgeCounts {

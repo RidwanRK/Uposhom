@@ -45,6 +45,7 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
   const pharmacies = new Map<string, PharmacyRecord>();
   const stock = new Map<string, StockRecord>(); // pharmacyId|drugBrandId
   const settings = new Map<string, SettingsRecord>();
+  const phoneEncs = new Map<string, string>(); // profile id -> the dependent's encrypted number
 
   const copy = <T>(v: T): T => structuredClone(v);
 
@@ -72,6 +73,7 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
       for (const [k, e] of escalations) if (e.doseEventId === id) escalations.delete(k);
     }
     profiles.delete(profileId);
+    phoneEncs.delete(profileId);
   };
 
   return {
@@ -127,6 +129,21 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
       },
       async findBySubscriberId(subscriberId) {
         return [...profiles.values()].filter((p) => p.subscriberId === subscriberId).map(copy);
+      },
+      async setOwnPhone(id, phone) {
+        const p = profiles.get(id);
+        if (!p) return false;
+        // Same rule as the partial unique index in Postgres: one number, one profile.
+        if (
+          phone &&
+          [...profiles.values()].some((o) => o.id !== id && o.subscriberId === phone.subscriberId)
+        ) {
+          throw new Error('subscriber id already on another profile');
+        }
+        p.subscriberId = phone?.subscriberId ?? null;
+        if (phone) phoneEncs.set(id, phone.phoneEnc);
+        else phoneEncs.delete(id);
+        return true;
       },
       async addLink(link) {
         for (const l of links.values()) {
@@ -343,6 +360,12 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
           .slice(0, limit)
           .map(copy);
       },
+      async purgeBefore(cutoff) {
+        const before = traces.length;
+        const kept = traces.filter((t) => t.createdAt >= cutoff);
+        traces.splice(0, traces.length, ...kept);
+        return before - kept.length;
+      },
     },
     audit: {
       async record(row) {
@@ -353,6 +376,18 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
           .filter((a) => a.actorUserId === actorUserId)
           .sort((a, b) => b.at.getTime() - a.at.getTime())
           .map(copy);
+      },
+      async listForProfile(profileId) {
+        return audit
+          .filter((a) => a.profileId === profileId)
+          .sort((a, b) => b.at.getTime() - a.at.getTime())
+          .map(copy);
+      },
+      async purgeBefore(cutoff) {
+        const before = audit.length;
+        const kept = audit.filter((a) => a.at >= cutoff);
+        audit.splice(0, audit.length, ...kept);
+        return before - kept.length;
       },
     },
     appointments: {

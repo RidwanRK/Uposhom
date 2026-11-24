@@ -28,11 +28,11 @@ export const MOCK_MISSING = !USE_MOCK && extra.mockMissing !== '0';
 /**
  * Endpoints docs/domain-api.md and apps/api do not serve yet. Delete a line here as soon as the server
  * implements it. Scans, reports, drugs, pharmacies, insights, the doctor summary, the symptom journal,
- * voice and account settings are served now (apps/api/src/routes/features.ts).
+ * voice and account settings are served now (apps/api/src/routes/features.ts), and Family Link by
+ * apps/api/src/routes/domain.ts.
  */
 const MISSING_ON_SERVER: [method: string, path: RegExp][] = [
-  // Family Link (OTP to a dependent's own phone): waiting on the Applink provisioning question.
-  ['POST', /^\/profiles\/[^/]+\/link\/(request|verify)$/],
+  // Empty: Family Link (POST /profiles/:id/link/request and /verify) is served by the API now.
 ];
 
 /** True when this call must be answered by the in-app mock even though a live API is configured. */

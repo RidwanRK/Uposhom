@@ -298,6 +298,15 @@ export interface DomainStore {
     roleOf(userId: string, profileId: string): Promise<LinkRole | null>;
     /** Profiles whose own phone has this subscriber id (Family Link). */
     findBySubscriberId(subscriberId: string): Promise<ProfileRecord[]>;
+    /**
+     * Family Link: binds the dependent's own phone to the profile (the subscriber id exactly as
+     * Applink returned it, and the number encrypted), or clears it with null. False when no such
+     * profile exists.
+     */
+    setOwnPhone(
+      id: string,
+      phone: { subscriberId: string; phoneEnc: string } | null,
+    ): Promise<boolean>;
     /** Links another user to a profile (an accepted invite, or a caregiver added by the admin). */
     addLink(link: LinkRecord): Promise<void>;
     /** Everyone linked to the profile, oldest link first. */
@@ -389,11 +398,17 @@ export interface DomainStore {
     record(row: TraceRecord): Promise<void>;
     /** Newest first. */
     list(limit: number): Promise<TraceRecord[]>;
+    /** Retention: deletes traces created before the cutoff. Returns how many went. */
+    purgeBefore(cutoff: Date): Promise<number>;
   };
   audit: {
     record(row: AuditRecord): Promise<void>;
     /** Newest first; for tests and support. */
     listForActor(actorUserId: string): Promise<AuditRecord[]>;
+    /** Newest first; for tests and support. */
+    listForProfile(profileId: string): Promise<AuditRecord[]>;
+    /** Retention: deletes entries recorded before the cutoff. Returns how many went. */
+    purgeBefore(cutoff: Date): Promise<number>;
   };
   appointments: {
     create(row: AppointmentRecord): Promise<void>;

@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { ApplinkError, type ApplinkClient } from '@uposhom/applink-client';
-import { buildApp } from '../src/app.js';
+import { buildApp, type AppConfig } from '../src/app.js';
 import { createTokenService } from '../src/auth/tokens.js';
 import type { Alerter } from '../src/ops/alerts.js';
 import type { AccountType, UserRecord } from '../src/stores/types.js';
@@ -76,6 +76,8 @@ export async function harness(
     logStream?: { write(chunk: string): void };
     /** The secret callback path segment, as in production. Empty by default, as in tests and CI. */
     callbackKey?: string;
+    /** Extra configuration, for example SUPPORT_EMAIL or ADMIN_MSISDNS. */
+    config?: Partial<AppConfig>;
   } = {},
 ): Promise<Harness> {
   const queue: Harness['queue'] = opts.queue ?? createMemoryQueue({ retryDelayScale: 0 });
@@ -89,6 +91,7 @@ export async function harness(
       JWT_SECRET: 'x'.repeat(40),
       SMS_KEYWORD: 'UPOSHOM',
       ...(opts.callbackKey ? { APPLINK_CALLBACK_PATH_KEY: opts.callbackKey } : {}),
+      ...opts.config,
     },
     {
       stores,

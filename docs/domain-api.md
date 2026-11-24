@@ -59,7 +59,34 @@ Jobs, all safe to re-run: refill reminders daily at 09:00 (SMS to the patient an
 Errors: `ALREADY_LINKED`, `LAST_ADMIN`, `OWN_PROFILE`, `LIMIT_REACHED` (10 people per profile), and
 `INVALID_INPUT` with message `MSISDN`, `SELF`, `NOT_A_CAREGIVER` or `PUSH_TOKEN`.
 
-Not built yet: Family Link (OTP to a dependent's own phone).
+### Family Link (a dependent's own phone)
+
+| Endpoint                                         | Notes                                                                                                                          |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `POST /profiles/:id/link/request { msisdn }`     | Admins of that profile only. Records the dependent's consent against the profile, then sends an Applink OTP to their phone.    |
+| `POST /profiles/:id/link/verify { msisdn, otp }` | The code only works for the profile it was asked for. Stores the subscriber id Applink returns on the profile (`phoneLinked`). |
+
+After that, reminders for the profile go to the dependent's own number, and an SMS from that number
+(reply codes, free-text questions, STOP) resolves to the profile. A STOP is also written to
+`audit_log` against the profile.
+
+Errors: `OWN_PROFILE` (the admin's own profile: their number is linked by sign-up), `ALREADY_LINKED`
+with message `HAS_ACCOUNT` (that number has an account: invite them instead) or `NUMBER_IN_USE`
+(bound to another profile), and A's OTP codes (`OTP_WRONG`, `OTP_EXPIRED`, `RATE_LIMITED`,
+`NOT_ON_TEST_LIST`, `SERVICE_TROUBLE`).
+
+## SMS questions
+
+A free-text SMS from an account holder or a linked dependent (`UPOSHOM next medicine kokhon?`) is
+answered by C's triage router over that person's own doses, read-only, and traced with channel
+`SMS`. Reply codes never reach the router. Each answer uses one SMS from the circle owner's
+allowance, and a number gets at most 10 answers a day; past either limit nothing is sent. If the
+router fails, the usage line (with the support contact) goes back instead.
+
+## Retention
+
+Nightly at 03:45 Asia/Dhaka: `agent_traces` older than 30 days and `audit_log` older than a year are
+deleted (A's job handles the platform tables at 03:30).
 
 ## Scans, reports, journal, voice, insights, drugs, pharmacies, settings
 

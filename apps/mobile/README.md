@@ -29,9 +29,9 @@ app adds `/api/v1` itself. See `docs/local-backend.md`.
 
 ### Hybrid mode
 
-Every endpoint the app calls is served by the API now, except Family Link (`profiles/:id/link/*`),
-which is still answered by the in-app mock while a live API is configured (`MISSING_ON_SERVER` in
-`src/api/config.ts`). Delete that line once the server serves it, or set `EXPO_PUBLIC_MOCK_MISSING=0`.
+Every endpoint the app calls is served by the API now, including Family Link (`profiles/:id/link/*`,
+a real Applink OTP to the dependent's phone). `MISSING_ON_SERVER` in `src/api/config.ts` is empty; add
+a line there only if a new screen ships before its endpoint does.
 
 The AI endpoints (scans, reports, journal, voice, insights) answer with workstream C's built-in samples
 when the server has no `OPENROUTER_API_KEY`, so they work against `pnpm dev:local` too. If `voice/query`

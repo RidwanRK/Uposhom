@@ -37,6 +37,17 @@ import type {
 } from './types.js';
 
 type ProfileRow = typeof profiles.$inferSelect;
+type AuditRow = typeof auditLog.$inferSelect;
+
+const toAudit = (r: AuditRow) => ({
+  actorUserId: r.actorUserId,
+  action: r.action,
+  subjectType: r.subjectType,
+  subjectId: r.subjectId,
+  profileId: r.profileId,
+  detail: (r.detail ?? null) as Record<string, unknown> | null,
+  at: r.at,
+});
 type DoseRow = typeof doseEvents.$inferSelect;
 
 const toProfile = (r: ProfileRow): ProfileRecord => ({
@@ -283,6 +294,14 @@ export function createPostgresDomainStore(db: Db): DomainStore {
           .from(profiles)
           .where(eq(profiles.subscriberId, subscriberId));
         return rows.map(toProfile);
+      },
+      async setOwnPhone(id, phone) {
+        const rows = await db
+          .update(profiles)
+          .set({ subscriberId: phone?.subscriberId ?? null, phoneEnc: phone?.phoneEnc ?? null })
+          .where(eq(profiles.id, id))
+          .returning({ id: profiles.id });
+        return rows.length > 0;
       },
       async addLink(link) {
         await db.insert(links).values(link);
@@ -605,6 +624,13 @@ export function createPostgresDomainStore(db: Db): DomainStore {
           };
         });
       },
+      async purgeBefore(cutoff) {
+        const rows = await db
+          .delete(agentTraces)
+          .where(lt(agentTraces.createdAt, cutoff))
+          .returning({ id: agentTraces.id });
+        return rows.length;
+      },
     },
     audit: {
       async record(row) {
@@ -616,15 +642,22 @@ export function createPostgresDomainStore(db: Db): DomainStore {
           .from(auditLog)
           .where(eq(auditLog.actorUserId, actorUserId))
           .orderBy(desc(auditLog.at), desc(auditLog.id));
-        return rows.map((r) => ({
-          actorUserId: r.actorUserId,
-          action: r.action,
-          subjectType: r.subjectType,
-          subjectId: r.subjectId,
-          profileId: r.profileId,
-          detail: (r.detail ?? null) as Record<string, unknown> | null,
-          at: r.at,
-        }));
+        return rows.map(toAudit);
+      },
+      async listForProfile(profileId) {
+        const rows = await db
+          .select()
+          .from(auditLog)
+          .where(eq(auditLog.profileId, profileId))
+          .orderBy(desc(auditLog.at), desc(auditLog.id));
+        return rows.map(toAudit);
+      },
+      async purgeBefore(cutoff) {
+        const rows = await db
+          .delete(auditLog)
+          .where(lt(auditLog.at, cutoff))
+          .returning({ id: auditLog.id });
+        return rows.length;
       },
     },
     appointments: {

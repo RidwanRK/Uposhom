@@ -1,13 +1,20 @@
 /**
- * pg-boss worker supervisor.
+ * Placeholder container.
  *
- * Day 0 placeholder: no queues yet. B and A add the consumers (reminders, escalation, SMS send,
- * reconciliation, digests) as the pg-boss jobs land. The heartbeat keeps the container alive and
- * lets the compose healthcheck and logs show the worker is up.
+ * Every pg-boss consumer (reminder ladder, SMS send, refill and follow-up reminders, the weekly
+ * digest, charge reconciliation, the subscription sweep and retention) runs inside the API process
+ * today: see apps/api/src/jobs and apps/api/src/domain/register.ts. The queue lives in Postgres, so
+ * nothing is lost on a restart. Moving the consumers here is optional and would need the API to stop
+ * registering them. The heartbeat keeps the container alive for the compose healthcheck.
  */
 const HEARTBEAT_MS = 60_000;
 
-console.log(JSON.stringify({ level: 'info', msg: 'worker started (no queues yet)' }));
+console.log(
+  JSON.stringify({
+    level: 'info',
+    msg: 'worker started (placeholder: jobs run in the API process)',
+  }),
+);
 
 const timer = setInterval(() => {
   console.log(JSON.stringify({ level: 'debug', msg: 'worker heartbeat' }));

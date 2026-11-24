@@ -36,7 +36,14 @@ function buildNotification(
     id,
     title: tr('notif.title'),
     body: `${formatTimeBn(dose.dueAt)} · ${dose.medicineBn ?? dose.medicine}${profileName ? ` (${profileName})` : ''}`,
-    data: { doseId: dose.id, profileId: dose.profileId ?? '' },
+    // Carry the medicine names so a snoozed alarm, rebuilt from this data alone, still says what to take.
+    data: {
+      doseId: dose.id,
+      profileId: dose.profileId ?? '',
+      medicine: dose.medicine,
+      medicineBn: dose.medicineBn ?? '',
+      profileName: profileName ?? '',
+    },
     android: {
       channelId: CHANNEL_ID,
       importance: n.AndroidImportance.HIGH,
@@ -148,11 +155,16 @@ export async function handleReminderAction(
     await scheduleDoseAlarm(
       {
         id: doseId,
-        medicine: String(data?.medicine ?? ''),
+        medicine: typeof data?.medicine === 'string' ? data.medicine : '',
+        ...(typeof data?.medicineBn === 'string' && data.medicineBn !== ''
+          ? { medicineBn: data.medicineBn }
+          : {}),
         dueAt: new Date(Date.now() + SNOOZE_MINUTES * 60 * 1000).toISOString(),
         profileId: typeof data?.profileId === 'string' ? data.profileId : undefined,
       },
-      undefined,
+      typeof data?.profileName === 'string' && data.profileName !== ''
+        ? data.profileName
+        : undefined,
       Date.now() + SNOOZE_MINUTES * 60 * 1000,
       ':snooze',
     );

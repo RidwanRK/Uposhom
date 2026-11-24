@@ -38,6 +38,7 @@ export type AppConfig = Pick<Config, 'NODE_ENV'> &
       | 'SUPPORT_EMAIL'
       | 'SUPPORT_PHONE'
       | 'JWT_SECRET'
+      | 'ADMIN_MSISDNS'
       | 'APPLINK_OTP_REQUEST_URL'
       | 'APPLINK_OTP_VERIFY_URL'
       | 'APPLINK_SMS_SEND_URL'
@@ -161,8 +162,23 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
     smsMinIntervalMs: config.SMS_MAX_PER_SECOND
       ? Math.ceil(1000 / config.SMS_MAX_PER_SECOND)
       : undefined,
+    support: {
+      ...(config.SUPPORT_EMAIL ? { email: config.SUPPORT_EMAIL } : {}),
+      ...(config.SUPPORT_PHONE ? { phone: config.SUPPORT_PHONE } : {}),
+    },
   });
   app.decorate('services', services);
+  // Without a configured secret (development and tests only) tokens last as long as the process.
+  const tokens = createTokenService(config.JWT_SECRET ?? randomBytes(32).toString('hex'), deps.now);
+  registerAuthGuard(app, tokens);
+  const otp = createOtpService({
+    stores,
+    applink,
+    tokens,
+    log: { warn: (obj, msg) => app.log.warn(obj, msg) },
+    ...(config.ADMIN_MSISDNS ? { adminMsisdns: new Set(config.ADMIN_MSISDNS) } : {}),
+    ...(deps.now ? { now: deps.now } : {}),
+  });
   domainHooks.attach(app, {
     stores,
     services,
@@ -171,6 +187,7 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
     nodeEnv: config.NODE_ENV,
     smsKeyword: config.SMS_KEYWORD ?? 'UPOSHOM',
     options: deps.domain,
+    familyLink: { request: otp.requestFamilyLink, verify: otp.verifyFamilyLink },
   });
   app.addHook('onReady', () => queue.start());
   app.addHook('onClose', () => queue.stop());
@@ -186,19 +203,6 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
     { prefix: key ? `/api/applink/${key}` : '/api/applink' },
   );
 
-  // Without a configured secret (development and tests only) tokens last as long as the process.
-  const tokens = createTokenService(
-    config.JWT_SECRET ?? randomBytes(32).toString('hex'),
-    deps.now,
-  );
-  registerAuthGuard(app, tokens);
-  const otp = createOtpService({
-    stores,
-    applink,
-    tokens,
-    log: { warn: (obj, msg) => app.log.warn(obj, msg) },
-    ...(deps.now ? { now: deps.now } : {}),
-  });
   void app.register(authRoutes(otp), { prefix: '/api/v1/auth' });
   void app.register(
     billingRoutes({

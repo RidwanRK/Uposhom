@@ -1,5 +1,5 @@
 import type { ApplinkClient } from '@uposhom/applink-client';
-import { buildApp } from '../src/app.js';
+import { buildApp, type AppConfig } from '../src/app.js';
 import { createTokenService } from '../src/auth/tokens.js';
 import type { PushSender } from '../src/domain/push.js';
 import type { DomainStore } from '../src/domain/types.js';
@@ -15,13 +15,22 @@ const SECRET = 'x'.repeat(40);
  * (A's own harness in platform.ts swaps them for no-ops, which is right for A's tests). Same
  * clock and fakes as A's harness.
  */
-export async function domainHarness(opts: { store?: DomainStore; push?: PushSender } = {}) {
+export async function domainHarness(
+  opts: {
+    store?: DomainStore;
+    push?: PushSender;
+    /** Extra Applink fakes, for example requestOtp and verifyOtp for Family Link. */
+    applink?: Record<string, unknown>;
+    /** Extra configuration, for example SUPPORT_EMAIL. */
+    config?: Partial<AppConfig>;
+  } = {},
+) {
   const queue = createMemoryQueue({ retryDelayScale: 0 });
   const stores = createMemoryStores();
-  const applink = fakeApplink();
+  const applink = fakeApplink(opts.applink);
   const clock = { now: new Date('2026-11-22T10:00:00Z') };
   const app = buildApp(
-    { NODE_ENV: 'test', JWT_SECRET: SECRET, SMS_KEYWORD: 'UPOSHOM' },
+    { NODE_ENV: 'test', JWT_SECRET: SECRET, SMS_KEYWORD: 'UPOSHOM', ...opts.config },
     {
       stores,
       queue,

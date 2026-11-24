@@ -58,6 +58,7 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
     expiresAt: r['expires_at'] as Date,
     consumedAt: date(r['consumed_at']),
     createdAt: r['created_at'] as Date,
+    context: (r['context'] as string | null) ?? null,
   });
 
   const sms = (r: Row): SmsLogRecord => ({
@@ -186,6 +187,9 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
         );
         return user(rows[0] as Row);
       },
+      async setAdmin(userId, isAdmin) {
+        await pool.query('UPDATE users SET is_admin = $2 WHERE id = $1', [userId, isAdmin]);
+      },
     },
 
     otpSessions: {
@@ -197,8 +201,8 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
             [hash],
           );
           const { rows } = await c.query(
-            `INSERT INTO otp_sessions (id, msisdn_hash, phone_enc, purpose, reference_no, expires_at)
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            `INSERT INTO otp_sessions (id, msisdn_hash, phone_enc, purpose, reference_no, expires_at, context)
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
             [
               randomUUID(),
               hash,
@@ -206,6 +210,7 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
               input.purpose,
               input.referenceNo,
               input.expiresAt,
+              input.context ?? null,
             ],
           );
           return otp(rows[0] as Row);
@@ -236,8 +241,8 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
       async record(input, now) {
         const { rows } = await pool.query(
           `INSERT INTO consents
-             (id, user_id, msisdn_hash, kind, channel, ip, wording, amount, currency, frequency, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+             (id, user_id, msisdn_hash, kind, channel, ip, wording, amount, currency, frequency, created_at, profile_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
           [
             randomUUID(),
             input.userId ?? null,
@@ -250,6 +255,7 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
             input.currency ?? null,
             input.frequency ?? null,
             now,
+            input.profileId ?? null,
           ],
         );
         const r = rows[0] as Row;
@@ -257,6 +263,7 @@ export function createPostgresStores(pool: Pool, phone: PhoneCrypto): Stores {
           id: r['id'] as string,
           userId: (r['user_id'] as string | null) ?? null,
           msisdn: input.msisdn ?? null,
+          profileId: (r['profile_id'] as string | null) ?? null,
           kind: r['kind'] as string,
           channel: r['channel'] as ConsentRecord['channel'],
           ip: (r['ip'] as string | null) ?? null,

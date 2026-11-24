@@ -68,7 +68,14 @@ export interface FeatureDeps {
   useFeature: (userId: string, feature: 'DOCTOR_SUMMARY') => Promise<{ allowed: boolean }>;
   isPremium: (userId: string) => Promise<boolean>;
   accountType: (userId: string) => Promise<'INDIVIDUAL' | 'PHARMACY' | null>;
+  /** From A's user store: the account whose number has this opaque subscriber id. */
+  findUserIdBySubscriber: (subscriberId: string) => Promise<string | null>;
+  /** From A's entitlements: spends one SMS from the monthly allowance. */
+  useSms: (userId: string) => Promise<{ allowed: boolean }>;
 }
+
+/** An SMS answer stays within about three Bangla (UCS-2) segments. */
+export const SMS_ANSWER_MAX_CHARS = 200;
 
 // ---------------------------------------------------------------- data files
 
@@ -427,11 +434,56 @@ export function createFeatureService(deps: FeatureDeps) {
     userId: string,
     body: { profileId: string; text: string },
   ): Promise<{ answerText: string }> {
-    const profileId = body.profileId;
-    await domain.access(userId, profileId, false);
+    await domain.access(userId, body.profileId, false);
     const text = body.text.trim().slice(0, 500);
     if (!text) throw new DomainError('INVALID_INPUT', 400);
+    return { answerText: await askRouter(userId, body.profileId, text, 'VOICE') };
+  }
 
+  /**
+   * SMS Q&A (Master Plan section 7, "Router with SMS free-text Q&A"): a free-text SMS from an
+   * account holder, or from a dependent's own phone (Family Link), goes to the same read-only
+   * router as a voice query, over that person's own profile. The answer costs an SMS, so it is
+   * taken from the circle owner's allowance; when that is used up nothing is sent.
+   */
+  async function smsQuestion(input: {
+    subscriberId: string;
+    text: string;
+  }): Promise<{ replyText: string | null; silent?: boolean }> {
+    const text = input.text.trim().slice(0, 300);
+    if (!text) return { replyText: null };
+
+    let profileId: string;
+    let payer: string | null;
+    const dependent = (await store.profiles.findBySubscriberId(input.subscriberId))[0];
+    if (dependent) {
+      profileId = dependent.id;
+      payer = (await store.circles.findById(dependent.circleId))?.ownerUserId ?? null;
+    } else {
+      const userId = await deps.findUserIdBySubscriber(input.subscriberId);
+      if (!userId) return { replyText: null, silent: true };
+      payer = userId;
+      profileId = await defaultProfileId(userId);
+    }
+    if (!payer || !(await deps.useSms(payer)).allowed) return { replyText: null, silent: true };
+
+    const answer = (await askRouter(payer, profileId, text, 'SMS')).trim();
+    if (!answer) return { replyText: null };
+    return {
+      replyText:
+        answer.length > SMS_ANSWER_MAX_CHARS
+          ? `${answer.slice(0, SMS_ANSWER_MAX_CHARS - 1)}…`
+          : answer,
+    };
+  }
+
+  /** The triage router over one profile's own doses, read-only, traced. */
+  async function askRouter(
+    userId: string | null,
+    profileId: string,
+    text: string,
+    channel: 'VOICE' | 'SMS',
+  ): Promise<string> {
     const toInfo = (
       d: Awaited<ReturnType<DomainStore['doses']['listForProfile']>>[number],
     ): DoseEventInfo => ({
@@ -469,13 +521,13 @@ export function createFeatureService(deps: FeatureDeps) {
     const result = await callAi(() =>
       runTriageRouter(text, {
         profileId,
-        channel: 'VOICE',
+        channel,
         doseFetcher,
         onTrace: async (t) => {
           await domain.recordTrace({
             userId,
             profileId,
-            channel: 'VOICE',
+            channel,
             rootAgent: t.agent,
             inputPreview: t.inputPreview ?? null,
             handoffs: t.handoffs,
@@ -485,7 +537,7 @@ export function createFeatureService(deps: FeatureDeps) {
         },
       }),
     );
-    return { answerText: result.reply };
+    return result.reply;
   }
 
   // ---------------------------------------------------------------- insights
@@ -762,6 +814,7 @@ export function createFeatureService(deps: FeatureDeps) {
   }
 
   return {
+    smsQuestion,
     scanPrescription,
     scanReport,
     listReports,

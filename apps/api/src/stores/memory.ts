@@ -97,6 +97,10 @@ export function createMemoryStores(): Stores {
         users.set(user.id, user);
         return user;
       },
+      async setAdmin(userId, isAdmin) {
+        const user = users.get(userId);
+        if (user) user.isAdmin = isAdmin;
+      },
     },
 
     otpSessions: {
@@ -106,7 +110,11 @@ export function createMemoryStores(): Stores {
         }
         const session: OtpSessionRecord = {
           id: randomUUID(),
-          ...input,
+          msisdn: input.msisdn,
+          purpose: input.purpose,
+          referenceNo: input.referenceNo,
+          expiresAt: input.expiresAt,
+          context: input.context ?? null,
           attempts: 0,
           consumedAt: null,
           createdAt: new Date(),
@@ -138,6 +146,7 @@ export function createMemoryStores(): Stores {
           id: randomUUID(),
           userId: input.userId ?? null,
           msisdn: input.msisdn ?? null,
+          profileId: input.profileId ?? null,
           kind: input.kind,
           channel: input.channel,
           ip: input.ip,

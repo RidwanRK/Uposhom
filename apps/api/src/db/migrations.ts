@@ -186,4 +186,14 @@ ALTER TABLE charges ADD CONSTRAINT charges_user_id_fkey
   FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL;
 `,
   },
+  {
+    id: '0004_family_link',
+    sql: `
+-- Family Link: a code sent to a dependent's own phone is bound to the profile it was asked for,
+-- so it cannot be spent on another one, and the consent it records names that profile.
+ALTER TABLE otp_sessions ADD COLUMN context text;
+ALTER TABLE consents ADD COLUMN profile_id text;
+CREATE INDEX consents_profile ON consents (profile_id) WHERE profile_id IS NOT NULL;
+`,
+  },
 ];

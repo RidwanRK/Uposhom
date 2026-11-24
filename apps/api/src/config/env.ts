@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeBdMsisdn } from '@uposhom/applink-client';
 
 /**
  * Single config module. Every environment variable the API reads is validated here at
@@ -73,6 +74,34 @@ const envSchema = z
     FREE_SMS_PER_MONTH: optionalCount,
     PREMIUM_SCANS_PER_MONTH: optionalCount,
     PREMIUM_SMS_PER_MONTH: optionalCount,
+
+    // Numbers that get the admin flag (agent-trace screen, GET /api/v1/admin/traces) when they sign
+    // in with OTP, comma-separated, any Bangladeshi format (01XXXXXXXXX, 8801XXXXXXXXX). When set,
+    // the list is authoritative: a number taken off it loses the flag at its next OTP sign-in.
+    ADMIN_MSISDNS: z.preprocess(
+      (v) => (typeof v === 'string' && v.trim() !== '' ? v : undefined),
+      z
+        .string()
+        .transform((v, ctx) => {
+          const out: string[] = [];
+          for (const raw of v
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)) {
+            const n = normalizeBdMsisdn(raw);
+            if (!n) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `not a Bangladeshi number: ${raw.slice(0, 4)}...`,
+              });
+              return z.NEVER;
+            }
+            out.push(n);
+          }
+          return out;
+        })
+        .optional(),
+    ),
 
     // HMAC secret for access tokens (at least 32 characters). Mandatory in production.
     JWT_SECRET: optionalString,

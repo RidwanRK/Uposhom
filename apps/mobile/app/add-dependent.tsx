@@ -16,6 +16,7 @@ import { TimeStepper } from '../src/components/TimeStepper';
 import { qk } from '../src/hooks/queries';
 import { bn, useT } from '../src/i18n';
 import { toLatinDigits } from '../src/utils/bangla';
+import { errorMessage } from '../src/utils/errors';
 import { normalizeBdMsisdn } from '../src/utils/phone';
 
 const RELS = ['FATHER', 'MOTHER', 'SON', 'DAUGHTER', 'SPOUSE', 'OTHER'] as const;
@@ -90,7 +91,7 @@ export default function AddDependent() {
       setError(
         code in bn.auth.errors
           ? t(`auth.errors.${code as keyof typeof bn.auth.errors}`)
-          : t('common.noConnection'),
+          : errorMessage(e, t),
       );
     } finally {
       setBusy(false);
@@ -106,11 +107,7 @@ export default function AddDependent() {
       void qc.invalidateQueries({ queryKey: qk.circle });
       router.back();
     } catch (e) {
-      setError(
-        e instanceof ApiError && e.code === 'OTP_WRONG'
-          ? t('auth.otp.wrong')
-          : t('common.noConnection'),
-      );
+      setError(errorMessage(e, t));
     } finally {
       setBusy(false);
     }
