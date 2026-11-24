@@ -229,6 +229,19 @@ export interface AuditRecord {
   at: Date;
 }
 
+/** A doctor summary someone has paid for (or opened on Premium): reopening it costs nothing. */
+export interface DoctorSummaryRecord {
+  /** The summary's id: the journal entry it was built from, or one per profile per day. */
+  id: string;
+  profileId: string;
+  periodStart: string; // YYYY-MM-DD
+  periodEnd: string;
+  /** Where the PDF is stored. Empty until object storage (R2) exists: the phone renders it. */
+  objectPath: string;
+  chargeId: string | null;
+  generatedAt: Date;
+}
+
 export type AppointmentState = 'PENDING' | 'REMINDED' | 'DONE' | 'CANCELLED';
 
 export interface AppointmentRecord {
@@ -455,6 +468,11 @@ export interface DomainStore {
   settings: {
     get(userId: string): Promise<SettingsRecord | null>;
     put(row: SettingsRecord): Promise<void>;
+  };
+  summaries: {
+    findById(id: string): Promise<DoctorSummaryRecord | null>;
+    /** False when a row with that id exists already (nothing is changed). */
+    record(row: DoctorSummaryRecord): Promise<boolean>;
   };
   /** Removes every circle the user owns (and so their profiles and doses) and their links. */
   eraseUser(userId: string): Promise<void>;

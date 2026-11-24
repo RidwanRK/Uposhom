@@ -5,6 +5,7 @@ import {
   appointments,
   auditLog,
   deviceTokens,
+  doctorSummaries,
   doseEvents,
   doseLogs,
   escalations,
@@ -870,6 +871,30 @@ export function createPostgresDomainStore(db: Db): DomainStore {
           .from(pharmacyStock)
           .where(eq(pharmacyStock.drugBrandId, drugBrandId))
           .orderBy(asc(pharmacyStock.pharmacyId));
+      },
+    },
+    summaries: {
+      async findById(id) {
+        const [r] = await db.select().from(doctorSummaries).where(eq(doctorSummaries.id, id));
+        return r
+          ? {
+              id: r.id,
+              profileId: r.profileId,
+              periodStart: r.periodStart,
+              periodEnd: r.periodEnd,
+              objectPath: r.objectPath,
+              chargeId: r.chargeId,
+              generatedAt: r.generatedAt,
+            }
+          : null;
+      },
+      async record(row) {
+        const out = await db
+          .insert(doctorSummaries)
+          .values(row)
+          .onConflictDoNothing()
+          .returning({ id: doctorSummaries.id });
+        return out.length > 0;
       },
     },
     settings: {

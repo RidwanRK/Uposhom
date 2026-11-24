@@ -291,6 +291,39 @@ describe('symptom journal and doctor summary', () => {
     await t.h.app.close();
   });
 
+  it('one payment per summary: reopening it is free, a new journal needs a new one', async () => {
+    const t = await setup();
+    const journal = await finishJournal(t);
+    const open = (summaryId?: string) =>
+      t.h.api(t.user, 'POST', '/summaries/doctor', {
+        profileId: t.self.id,
+        ...(summaryId ? { summaryId } : {}),
+      });
+
+    expect((await open()).statusCode).toBe(402);
+    // A settled ৳5 charge grants one credit (real entitlement service, no mocks).
+    await t.h.stores.entitlements.grant(
+      { userId: t.user.id, feature: 'DOCTOR_SUMMARY', quantity: 1, chargeId: 'chg-test-1' },
+      t.h.clock.now,
+    );
+    const paid = await open();
+    expect(paid.statusCode).toBe(200);
+    expect(paid.json().summary.id).toBe(journal.summary!.id);
+    expect(await t.h.stores.entitlements.available(t.user.id, 'DOCTOR_SUMMARY')).toBe(0);
+
+    // The screen reloads, or the person comes back to share the PDF: no second payment.
+    for (const again of [await open(), await open(journal.summary!.id)]) {
+      expect(again.statusCode).toBe(200);
+      expect(again.json().summary.id).toBe(journal.summary!.id);
+    }
+
+    // A new journal entry is a new summary: that one is paid for again.
+    const next = await finishJournal(t);
+    expect(next.summary!.id).not.toBe(journal.summary!.id);
+    expect((await open(next.summary!.id)).statusCode).toBe(402);
+    await t.h.app.close();
+  });
+
   it('with no journal yet the summary says so instead of failing', async () => {
     const t = await setup();
     vi.spyOn(t.h.app.services.entitlements, 'useFeature').mockResolvedValue({

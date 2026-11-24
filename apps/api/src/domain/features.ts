@@ -398,12 +398,31 @@ export function createFeatureService(deps: FeatureDeps) {
         ) ?? null;
     }
     const { current, recent } = await medicineHistory(body.profileId);
-    if (!(await deps.useFeature(userId, 'DOCTOR_SUMMARY')).allowed) {
-      throw new DomainError('PAYMENT_REQUIRED', 402, { message: 'DOCTOR_SUMMARY' });
+
+    // One payment (or Premium) per summary: the summary of a journal entry, or, with no entry,
+    // one per profile per day. Opening the same summary again, or the screen reloading it, must
+    // never spend a second credit or ask for a second payment.
+    const today = toDhakaDate(deps.now().getTime());
+    const summaryId = source?.id ?? `dsm_${body.profileId}_${today}`;
+    const unlocked = await store.summaries.findById(summaryId);
+    if (!unlocked || unlocked.profileId !== body.profileId) {
+      if (!(await deps.useFeature(userId, 'DOCTOR_SUMMARY')).allowed) {
+        throw new DomainError('PAYMENT_REQUIRED', 402, { message: 'DOCTOR_SUMMARY' });
+      }
+      await store.summaries.record({
+        id: summaryId,
+        profileId: body.profileId,
+        periodStart: today,
+        periodEnd: today,
+        objectPath: '', // the phone renders the PDF; nothing is stored until object storage exists
+        chargeId: null,
+        generatedAt: deps.now(),
+      });
     }
+
     const from = (source?.data['summary'] ?? {}) as Partial<DoctorSummary>;
     const summary = createDoctorSummary({
-      id: source?.id ?? newId('dsm'),
+      id: summaryId,
       symptoms: from.symptoms || 'কোনো সাম্প্রতিক লক্ষণ নেই',
       ...(from.onset ? { onset: from.onset } : {}),
       ...(from.duration ? { duration: from.duration } : {}),

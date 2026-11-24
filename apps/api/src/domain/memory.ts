@@ -12,6 +12,7 @@ import type {
   ReportRecord,
   ReportValueRecord,
   SettingsRecord,
+  DoctorSummaryRecord,
   StockRecord,
   SymptomLogRecord,
   TraceRecord,
@@ -46,6 +47,7 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
   const stock = new Map<string, StockRecord>(); // pharmacyId|drugBrandId
   const settings = new Map<string, SettingsRecord>();
   const phoneEncs = new Map<string, string>(); // profile id -> the dependent's encrypted number
+  const summaries = new Map<string, DoctorSummaryRecord>();
 
   const copy = <T>(v: T): T => structuredClone(v);
 
@@ -74,6 +76,7 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
     }
     profiles.delete(profileId);
     phoneEncs.delete(profileId);
+    for (const [id, s] of summaries) if (s.profileId === profileId) summaries.delete(id);
   };
 
   return {
@@ -511,6 +514,17 @@ export function createMemoryDomainStore(): DomainStore & { logs: DoseLogRecord[]
           .filter((s) => s.drugBrandId === drugBrandId)
           .sort((a, b) => a.pharmacyId.localeCompare(b.pharmacyId))
           .map(copy);
+      },
+    },
+    summaries: {
+      async findById(id) {
+        const row = summaries.get(id);
+        return row ? copy(row) : null;
+      },
+      async record(row) {
+        if (summaries.has(row.id)) return false;
+        summaries.set(row.id, copy(row));
+        return true;
       },
     },
     settings: {

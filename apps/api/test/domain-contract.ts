@@ -832,6 +832,24 @@ export function domainContract(label: string, make: () => Promise<DomainUnderTes
         ]);
       }));
 
+    it('remembers paid doctor summaries once, and forgets them with the profile', () =>
+      withStore(async (t) => {
+        const { self } = await owner(t);
+        const row = {
+          id: uid('dsm'),
+          profileId: self.id,
+          periodStart: '2026-11-22',
+          periodEnd: '2026-11-22',
+          objectPath: '',
+          chargeId: null,
+          generatedAt: T0,
+        };
+        expect(await t.store.summaries.findById(row.id)).toBeNull();
+        expect(await t.store.summaries.record(row)).toBe(true);
+        expect(await t.store.summaries.record({ ...row, objectPath: 'x' })).toBe(false);
+        expect(await t.store.summaries.findById(row.id)).toEqual(row);
+      }));
+
     it('keeps account settings per user', () =>
       withStore(async (t) => {
         const { userId } = await owner(t);
