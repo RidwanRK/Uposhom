@@ -10,8 +10,10 @@ import { TextField } from '../../src/components/TextField';
 import { useT } from '../../src/i18n';
 import { useSession } from '../../src/store/session';
 import { toBn, toLatinDigits, pad2 } from '../../src/utils/bangla';
+import { errorMessage } from '../../src/utils/errors';
+import { OTP_MAX_DIGITS, cleanOtp, isOtpComplete } from '../../src/utils/otp';
 
-/** Sign-up step 3: 6-digit code, visible 5-minute countdown, resend only after the countdown. */
+/** Sign-up step 3: the SMS code (4 to 8 digits), a 5-minute countdown, resend after it. */
 export default function Otp() {
   const t = useT();
   const { msisdn, masked, expiresAt } = useLocalSearchParams<{
@@ -53,7 +55,8 @@ export default function Otp() {
         setError(t('auth.otp.expired'));
         setLeft(0);
       } else {
-        setError(t('common.noConnection'));
+        // Too many tries, the service being down, and so on: say which, in plain Bangla.
+        setError(errorMessage(e, t));
       }
     } finally {
       setBusy(false);
@@ -91,11 +94,11 @@ export default function Otp() {
           label={t('auth.otp.label')}
           value={otp}
           onChangeText={(v) => {
-            setOtp(toLatinDigits(v).replace(/\D/g, '').slice(0, 6));
+            setOtp(cleanOtp(v));
             setError(null);
           }}
           keyboardType="number-pad"
-          maxLength={6}
+          maxLength={OTP_MAX_DIGITS}
           autoFocus
           error={error}
           style={{ fontSize: 30, textAlign: 'center', letterSpacing: 10 }}
@@ -110,7 +113,7 @@ export default function Otp() {
         <Button
           label={t('auth.otp.verify')}
           loading={busy}
-          disabled={otp.length !== 6 || left === 0}
+          disabled={!isOtpComplete(otp) || left === 0}
           onPress={verify}
         />
         {left === 0 ? (

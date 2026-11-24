@@ -75,7 +75,7 @@ export const bn = {
     otp: {
       title: 'কোডটি লিখুন',
       sentTo: 'কোড পাঠানো হয়েছে',
-      label: '৬ সংখ্যার কোড',
+      label: 'এসএমএসে পাওয়া কোড',
       verify: 'যাচাই করুন',
       countdown: 'কোডের মেয়াদ',
       resend: 'আবার কোড পাঠান',

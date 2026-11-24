@@ -13,6 +13,7 @@ import { Button } from './Button';
 import { Icon } from './Icon';
 import { Text } from './Text';
 import { TextField } from './TextField';
+import { OTP_MAX_DIGITS, cleanOtp, isOtpComplete } from '../utils/otp';
 
 type Step = 'price' | 'code' | 'processing' | 'success' | 'noBalance' | 'failed';
 
@@ -156,9 +157,9 @@ export function PaymentSheet({
           <TextField
             label={t('pay.codeLabel')}
             value={otp}
-            onChangeText={(v) => setOtp(toLatinDigits(v).replace(/\D/g, '').slice(0, 6))}
+            onChangeText={(v) => setOtp(cleanOtp(v))}
             keyboardType="number-pad"
-            maxLength={6}
+            maxLength={OTP_MAX_DIGITS}
             error={error}
             autoFocus
             style={{ textAlign: 'center', letterSpacing: 6 }}
@@ -166,7 +167,7 @@ export function PaymentSheet({
           <Button
             label={t('pay.pay')}
             loading={busy}
-            disabled={otp.length !== 6}
+            disabled={!isOtpComplete(otp)}
             onPress={verify}
           />
           {expired ? (

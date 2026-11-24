@@ -21,6 +21,7 @@ import { useT } from '../../src/i18n';
 import { toLatinDigits } from '../../src/utils/bangla';
 import { errorMessage } from '../../src/utils/errors';
 import { normalizeBdMsisdn } from '../../src/utils/phone';
+import { cleanOtp, isOtpComplete } from '../../src/utils/otp';
 
 const ROLES: LinkRole[] = ['ADMIN', 'CAREGIVER', 'VIEWER'];
 const DEFAULT_MEALS: MealTimes = {
@@ -340,13 +341,13 @@ export default function ProfileDetails() {
             <TextField
               label={t('auth.otp.label')}
               value={linkOtp}
-              onChangeText={(v) => setLinkOtp(toLatinDigits(v).replace(/\D/g, '').slice(0, 6))}
+              onChangeText={(v) => setLinkOtp(cleanOtp(v))}
               keyboardType="number-pad"
               error={linkError}
             />
             <Button
               label={t('addDependent.consentVerify')}
-              disabled={linkOtp.length !== 6}
+              disabled={!isOtpComplete(linkOtp)}
               onPress={async () => {
                 try {
                   await api.circles.verifyLink(

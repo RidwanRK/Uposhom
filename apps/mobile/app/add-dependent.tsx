@@ -18,6 +18,7 @@ import { bn, useT } from '../src/i18n';
 import { toLatinDigits } from '../src/utils/bangla';
 import { errorMessage } from '../src/utils/errors';
 import { normalizeBdMsisdn } from '../src/utils/phone';
+import { OTP_MAX_DIGITS, cleanOtp, isOtpComplete } from '../src/utils/otp';
 
 const RELS = ['FATHER', 'MOTHER', 'SON', 'DAUGHTER', 'SPOUSE', 'OTHER'] as const;
 const DEFAULT_MEALS: MealTimes = {
@@ -137,16 +138,16 @@ export default function AddDependent() {
               <TextField
                 label={t('auth.otp.label')}
                 value={otp}
-                onChangeText={(v) => setOtp(toLatinDigits(v).replace(/\D/g, '').slice(0, 6))}
+                onChangeText={(v) => setOtp(cleanOtp(v))}
                 keyboardType="number-pad"
-                maxLength={6}
+                maxLength={OTP_MAX_DIGITS}
                 error={error}
                 style={{ fontSize: 28, textAlign: 'center', letterSpacing: 8 }}
               />
               <Button
                 label={t('addDependent.consentVerify')}
                 loading={busy}
-                disabled={otp.length !== 6}
+                disabled={!isOtpComplete(otp)}
                 onPress={verify}
               />
             </>
