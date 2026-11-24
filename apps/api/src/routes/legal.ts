@@ -73,7 +73,9 @@ function contact(cfg: LegalConfig): string {
 
 export function termsHtml(cfg: LegalConfig): string {
   const fc = cfg.billing.plans.FAMILY_CIRCLE;
-  const one = cfg.billing.caas.DOCTOR_SUMMARY.amount;
+  const summary = cfg.billing.caas.DOCTOR_SUMMARY.amount;
+  const scan = cfg.billing.caas.SCAN.amount;
+  const explain = cfg.billing.caas.REPORT_EXPLAIN.amount;
   return layout(
     'Terms of service',
     `
@@ -91,7 +93,7 @@ export function termsHtml(cfg: LegalConfig): string {
 <h2>4. Paid features</h2>
 <ul>
   <li><strong>Family Circle Premium:</strong> ${esc(fc.amount)} ${esc(fc.currency)} per month, charged to your mobile account, renewing automatically each month. Before you subscribe we show the price, the renewal and these terms, and we record that you accepted them.</li>
-  <li><strong>Pay per use:</strong> some features (for example an extra doctor summary) cost ${esc(one)} BDT each. Every payment needs a fresh one-time code that you enter yourself. Nothing is charged without it.</li>
+  <li><strong>Pay per use:</strong> a doctor summary costs ${esc(summary)} BDT; an extra prescription scan costs ${esc(scan)} BDT and a report explanation ${esc(explain)} BDT, each time. Every payment needs a fresh one-time code that you enter yourself. Nothing is charged without it.</li>
   <li><strong>Cancelling:</strong> cancel in the app (Settings), or reply STOP. A cancelled subscription ends at once and also ends our messages to your number.</li>
   <li><strong>Problems with a charge:</strong> contact support with the date and the amount and we will look into it.</li>
 </ul>

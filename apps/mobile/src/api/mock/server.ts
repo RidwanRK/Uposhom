@@ -900,7 +900,12 @@ route('POST', '/billing/caas/initiate', true, async (req, _p, w) => {
   await sleep(500);
   const id = nid('chg');
   w.charges.set(id, { purpose: b.purpose, status: 'OTP_SENT', attempts: 0 });
-  return ok({ chargeId: id, amount: '5.00', currency: 'BDT', status: 'OTP_SENT' });
+  return ok({
+    chargeId: id,
+    amount: b.purpose === 'DOCTOR_SUMMARY' ? '2.00' : '5.00',
+    currency: 'BDT',
+    status: 'OTP_SENT',
+  });
 });
 const grant = (w: World, purpose: string) => {
   if (purpose === 'SCAN') w.scanCredits += 1;

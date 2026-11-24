@@ -78,7 +78,7 @@ describe('delete my data', () => {
     expect(await h.stores.charges.get(chargeId)).toMatchObject({
       userId: null,
       subscriberId: 'erased',
-      amount: '5.00',
+      amount: '2.00',
     });
     expect(await h.deadLetterCount()).toBe(0);
 

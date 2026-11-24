@@ -441,7 +441,7 @@ describe('entitlements and quotas', () => {
     const user = await h.addUser();
     expect(await h.app.services.entitlements.useFeature(user.id, 'DOCTOR_SUMMARY')).toMatchObject({
       allowed: false,
-      payWith: { purpose: 'DOCTOR_SUMMARY', amount: '5.00' },
+      payWith: { purpose: 'DOCTOR_SUMMARY', amount: '2.00' },
     });
 
     await subscribe(h, user);

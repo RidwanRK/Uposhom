@@ -30,7 +30,8 @@ describe('public legal pages', () => {
     const body = (await get(app, '/legal/terms')).body;
     expect(body).toContain('30.00 BDT per month');
     expect(body).toContain('renewing automatically');
-    expect(body).toContain('5.00 BDT each');
+    expect(body).toContain('a doctor summary costs 2.00 BDT');
+    expect(body).toContain('scan costs 5.00 BDT');
     expect(body).toContain('STOP');
     expect(body).toContain('UPOSHOM 1');
     expect(body).toContain('999');
@@ -46,7 +47,7 @@ describe('public legal pages', () => {
     const app = buildApp({ NODE_ENV: 'test', SMS_KEYWORD: 'DAWAI' }, { billing });
     const body = (await get(app, '/legal/terms')).body;
     expect(body).toContain('49.50 BDT per month');
-    expect(body).toContain('8.00 BDT each');
+    expect(body).toContain('a doctor summary costs 8.00 BDT');
     expect(body).toContain('DAWAI 1');
     expect(body).not.toContain('30.00');
     await app.close();

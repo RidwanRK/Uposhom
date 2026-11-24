@@ -425,7 +425,13 @@ export const bn = {
   },
   pay: {
     title: 'পেমেন্ট',
-    price: 'এই কাজের জন্য ৫ টাকা (৳৫.০০) আপনার মোবাইল ব্যালেন্স থেকে কাটা হবে।',
+    // Must match the server's prices (apps/api/src/billing/config.ts): this text is shown before
+    // paying and stored as the consent for that payment.
+    prices: {
+      SCAN: 'এই কাজের জন্য ৫ টাকা (৳৫.০০) আপনার মোবাইল ব্যালেন্স থেকে কাটা হবে।',
+      DOCTOR_SUMMARY: 'এই কাজের জন্য ২ টাকা (৳২.০০) আপনার মোবাইল ব্যালেন্স থেকে কাটা হবে।',
+      REPORT_EXPLAIN: 'এই কাজের জন্য ৫ টাকা (৳৫.০০) আপনার মোবাইল ব্যালেন্স থেকে কাটা হবে।',
+    },
     send: 'কোড পাঠান',
     codeLabel: 'এসএমএসে পাওয়া পেমেন্ট কোড',
     pay: 'পেমেন্ট করুন',

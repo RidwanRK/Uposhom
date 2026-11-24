@@ -65,7 +65,7 @@ export function PaymentSheet({
     setError(null);
     try {
       // The exact wording shown on screen is stored as consent evidence.
-      const r = await api.billing.caasInitiate(purpose, t('pay.price'));
+      const r = await api.billing.caasInitiate(purpose, t(`pay.prices.${purpose}`));
       setChargeId(r.chargeId);
       setStep('code');
       setExpired(false);
@@ -148,7 +148,7 @@ export function PaymentSheet({
       {step === 'price' ? (
         <>
           <View style={{ backgroundColor: colors.mintTint, padding: 16, borderRadius: 12 }}>
-            <Text variant="headlineSmall">{t('pay.price')}</Text>
+            <Text variant="headlineSmall">{purpose ? t(`pay.prices.${purpose}`) : null}</Text>
           </View>
           {error ? (
             <Text variant="bodyMedium" style={{ color: colors.emergency }}>
