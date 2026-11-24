@@ -363,6 +363,38 @@ describe('insights', () => {
     expect((await t.h.api(t.user, 'GET', '/insights/prf_none')).statusCode).toBe(404);
     await t.h.app.close();
   });
+
+  it('a real profile sees only its own history, never the demo data', async () => {
+    const t = await setup();
+    vi.spyOn(t.h.app.services.subscriptions, 'isPremium').mockResolvedValue(true);
+    const before = insightsResponse.parse(
+      (await t.h.api(t.user, 'GET', `/insights/${t.self.id}`)).json(),
+    );
+    expect(before.timeline).toEqual([]);
+    expect(before.patterns).toEqual([]);
+
+    await t.h.api(t.user, 'POST', '/prescriptions/new/confirm', {
+      profileId: t.self.id,
+      items: [
+        {
+          brandName: 'Seclo',
+          dosageStrength: '20mg',
+          form: 'Capsule',
+          parsedPattern: '0+0+1',
+          mealRelation: 'NONE',
+          durationDays: 3,
+          isCritical: false,
+        },
+      ],
+    });
+    const after = insightsResponse.parse(
+      (await t.h.api(t.user, 'GET', `/insights/${t.self.id}`)).json(),
+    );
+    expect(after.timeline).toHaveLength(1);
+    expect(after.timeline[0]).toMatchObject({ kind: 'PRESCRIPTION' });
+    expect(after.timeline[0]!.title).toContain('Seclo');
+    await t.h.app.close();
+  });
 });
 
 describe('generic medicine finder', () => {
