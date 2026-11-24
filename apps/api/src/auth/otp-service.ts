@@ -10,6 +10,13 @@ import { REFRESH_TOKEN_TTL_MS, hashRefreshToken, type Role, type TokenService } 
 
 export const OTP_VALIDITY_SECONDS = 300; // Applink OTPs are valid five minutes
 export const MAX_VERIFY_ATTEMPTS = 5;
+/**
+ * Applink's sign-in OTP is five digits. Anything else is refused here, before Applink is called; a
+ * five-digit code is then checked by Applink itself (otp/verify), never by us, so only the code
+ * the phone received passes. Payment (CaaS) codes are a separate service (billing/caas.ts).
+ */
+export const OTP_DIGITS = 5;
+const OTP_FORMAT = new RegExp(`^\\d{${OTP_DIGITS}}$`);
 
 /** OTP requests are paid SMS: without these limits the endpoint is an SMS-bombing tool. */
 export const LIMITS = {
@@ -195,7 +202,7 @@ export function createOtpService(deps: OtpServiceDeps) {
     accountType?: AccountType | undefined;
   }): Promise<VerifiedSession> {
     const msisdn = normalizeBdMsisdn(input.msisdn);
-    if (!msisdn || !/^\d{4,8}$/.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
+    if (!msisdn || !OTP_FORMAT.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
 
     const verified = await checkOtp(msisdn, input.otp, 'SIGNUP');
 
@@ -227,7 +234,7 @@ export function createOtpService(deps: OtpServiceDeps) {
 
   /** Proves the person holding the phone is the signed-in user. Returns a five-minute token. */
   async function verifyStepUp(input: { userId: string; otp: string }): Promise<string> {
-    if (!/^\d{4,8}$/.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
+    if (!OTP_FORMAT.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
     const user = await deps.stores.users.findById(input.userId);
     if (!user) throw new AuthError('INVALID_REFRESH', 401);
     const verified = await checkOtp(user.msisdn, input.otp, 'STEP_UP');
@@ -266,7 +273,7 @@ export function createOtpService(deps: OtpServiceDeps) {
     profileId: string;
   }): Promise<{ msisdn: string; subscriberId: string | null }> {
     const msisdn = normalizeBdMsisdn(input.msisdn);
-    if (!msisdn || !/^\d{4,8}$/.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
+    if (!msisdn || !OTP_FORMAT.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
     const verified = await checkOtp(msisdn, input.otp, 'FAMILY_LINK', input.profileId);
     return { msisdn, subscriberId: verified.subscriberId ?? null };
   }

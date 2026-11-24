@@ -44,7 +44,7 @@ describe('OTP sign-up on the Applink mock', () => {
     // referenceNo never reaches the app
     expect(req.body).not.toMatch(/reference/i);
 
-    const ver = await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '123456' });
+    const ver = await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '12345' });
     expect(ver.statusCode).toBe(200);
     const body = ver.json();
     expect(body.success).toBe(true);
@@ -65,7 +65,7 @@ describe('OTP sign-up on the Applink mock', () => {
     await post(a, '/api/v1/auth/otp/request', { msisdn: '01811111111' });
     const ver = await post(a, '/api/v1/auth/otp/verify', {
       msisdn: '01811111111',
-      otp: '123456',
+      otp: '12345',
       accountType: 'PHARMACY',
     });
     expect(ver.json().user.role).toBe('PHARMACY_OWNER');
@@ -76,7 +76,7 @@ describe('OTP sign-up on the Applink mock', () => {
     const a = app();
     await post(a, '/api/v1/auth/otp/request', { msisdn: MSISDN });
     const { refreshToken } = (
-      await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '123456' })
+      await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '12345' })
     ).json();
 
     const r1 = await post(a, '/api/v1/auth/refresh', { refreshToken });
@@ -102,6 +102,12 @@ describe('OTP sign-up on the Applink mock', () => {
     expect(
       (await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: 'abcdef' })).statusCode,
     ).toBe(400);
+    // Only the five-digit code from the SMS: 4, 6, 7 or 8 digits are refused before Applink.
+    for (const otp of ['1234', '123456', '1234567', '12345678', '1234 ']) {
+      const res = await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp });
+      expect(res.statusCode, otp).toBe(400);
+      expect(res.json().error.code, otp).toBe('INVALID_INPUT');
+    }
     await a.close();
   });
 
@@ -138,7 +144,7 @@ describe('OTP sign-up on the Applink mock', () => {
 
   it('asks for a new code when there is no open session', async () => {
     const a = app();
-    const ver = await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '123456' });
+    const ver = await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '12345' });
     expect(ver.statusCode).toBe(410);
     expect(ver.json().error.code).toBe('OTP_EXPIRED');
     await a.close();
@@ -149,7 +155,7 @@ describe('OTP sign-up on the Applink mock', () => {
     const a = app({ now: () => t });
     await post(a, '/api/v1/auth/otp/request', { msisdn: MSISDN });
     t = new Date(t.getTime() + 301_000);
-    const ver = await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '123456' });
+    const ver = await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '12345' });
     expect(ver.json().error.code).toBe('OTP_EXPIRED');
     await a.close();
   });
@@ -158,11 +164,11 @@ describe('OTP sign-up on the Applink mock', () => {
     const a = app({ applink: mock.clientWithVerifyFailure('E1850') });
     await post(a, '/api/v1/auth/otp/request', { msisdn: MSISDN });
     for (let i = 0; i < 5; i++) {
-      const ver = await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '000000' });
+      const ver = await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '00000' });
       expect(ver.statusCode).toBe(401);
       expect(ver.json().error.code).toBe('OTP_WRONG');
     }
-    const sixth = await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '000000' });
+    const sixth = await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '00000' });
     expect(sixth.statusCode).toBe(410);
     expect(sixth.json().error.code).toBe('OTP_EXPIRED');
     await a.close();
@@ -176,7 +182,7 @@ describe('OTP sign-up on the Applink mock', () => {
   ])('maps Applink %s on verify to %s/%s, never a raw code', async (code, status, mapped) => {
     const a = app({ applink: mock.clientWithVerifyFailure(code) });
     await post(a, '/api/v1/auth/otp/request', { msisdn: MSISDN });
-    const ver = await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '123456' });
+    const ver = await post(a, '/api/v1/auth/otp/verify', { msisdn: MSISDN, otp: '12345' });
     expect(ver.statusCode).toBe(status);
     expect(ver.json().error.code).toBe(mapped);
     expect(ver.body).not.toContain(code);

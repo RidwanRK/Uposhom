@@ -43,7 +43,7 @@ describe.skipIf(!url)('OTP sign-up on the Postgres stores', () => {
 
     const a = make();
     expect((await post(a, 'otp/request', { msisdn: '01959979376' })).statusCode).toBe(200);
-    const ver = await post(a, 'otp/verify', { msisdn: '01959979376', otp: '123456' });
+    const ver = await post(a, 'otp/verify', { msisdn: '01959979376', otp: '12345' });
     expect(ver.statusCode).toBe(200);
     const body = ver.json();
     expect(body.user.msisdn).toBe('8801959979376');
@@ -95,7 +95,7 @@ describe.skipIf(!url)('OTP sign-up on the Postgres stores', () => {
     const signUp = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/otp/verify',
-      payload: { msisdn: '01811111111', otp: '123456' },
+      payload: { msisdn: '01811111111', otp: '12345' },
     });
     const { token, user } = signUp.json();
 

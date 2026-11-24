@@ -24,7 +24,7 @@ async function setup(opts: { subscriberId?: string } = {}) {
   ).json();
   const request = (profileId: string, msisdn = DEP_MSISDN) =>
     h.api(admin, 'POST', `/profiles/${profileId}/link/request`, { msisdn });
-  const verify = (profileId: string, otp = '123456', msisdn = DEP_MSISDN) =>
+  const verify = (profileId: string, otp = '12345', msisdn = DEP_MSISDN) =>
     h.api(admin, 'POST', `/profiles/${profileId}/link/verify`, { msisdn, otp });
   return { h, store, admin, self, dep, request, verify };
 }
@@ -164,7 +164,7 @@ describe('admins from ADMIN_MSISDNS', () => {
     const ver = await h.app.inject({
       method: 'POST',
       url: '/api/v1/auth/otp/verify',
-      payload: { msisdn: '01959979376', otp: '123456' },
+      payload: { msisdn: '01959979376', otp: '12345' },
     });
     expect(ver.json().user.isAdmin).toBe(true);
     const traces = await h.app.inject({
@@ -194,7 +194,7 @@ describe('admins from ADMIN_MSISDNS', () => {
     const ver = await h.app.inject({
       method: 'POST',
       url: '/api/v1/auth/otp/verify',
-      payload: { msisdn: '01959979376', otp: '123456' },
+      payload: { msisdn: '01959979376', otp: '12345' },
     });
     expect(ver.json().user.isAdmin).toBeUndefined();
     expect((await h.stores.users.findById(user.id))?.isAdmin).toBe(false);
