@@ -1,19 +1,35 @@
 import { toLatinDigits } from './bangla';
 
 /**
- * Applink does not publish a fixed OTP length (its samples are 6 digits), and the server accepts
- * 4 to 8 digits on every code it checks (sign-up, step-up, Family Link, payments). The app accepts
- * the same, so a shorter or longer real code never leaves the verify button disabled.
+ * Applink's OTP service (sign-up, step-up before a sensitive action, Family Link) sends 5-digit
+ * codes, for example 22436. Change it here if Applink ever changes it.
  */
-export const OTP_MIN_DIGITS = 4;
-export const OTP_MAX_DIGITS = 8;
+export const OTP_LENGTH = 5;
 
-/** Keeps digits only (Bangla digits become Latin), at most OTP_MAX_DIGITS. */
+/**
+ * The payment code comes from a different Applink service (CaaS) whose length we have not seen
+ * yet, so the payment sheet accepts what the server accepts: 4 to 8 digits.
+ */
+export const PAYMENT_OTP_MIN = 4;
+export const PAYMENT_OTP_MAX = 8;
+
+const digitsOnly = (input: string) => toLatinDigits(input).replace(/\D/g, '');
+
+/** Digits only (Bangla digits become Latin), at most OTP_LENGTH. */
 export function cleanOtp(input: string): string {
-  return toLatinDigits(input).replace(/\D/g, '').slice(0, OTP_MAX_DIGITS);
+  return digitsOnly(input).slice(0, OTP_LENGTH);
 }
 
-/** True when the code is long enough to send. */
+/** True when the sign-up, step-up or Family Link code is complete. */
 export function isOtpComplete(otp: string): boolean {
-  return otp.length >= OTP_MIN_DIGITS && otp.length <= OTP_MAX_DIGITS;
+  return otp.length === OTP_LENGTH;
+}
+
+/** Digits only, at most PAYMENT_OTP_MAX. */
+export function cleanPaymentOtp(input: string): string {
+  return digitsOnly(input).slice(0, PAYMENT_OTP_MAX);
+}
+
+export function isPaymentOtpComplete(otp: string): boolean {
+  return otp.length >= PAYMENT_OTP_MIN && otp.length <= PAYMENT_OTP_MAX;
 }

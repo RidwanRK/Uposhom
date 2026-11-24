@@ -37,7 +37,7 @@ The AI endpoints (scans, reports, journal, voice, insights) answer with workstre
 when the server has no `OPENROUTER_API_KEY`, so they work against `pnpm dev:local` too. If `voice/query`
 fails, the voice screen still answers from today's doses on the phone.
 
-Mock sign-in: any valid mobile number, OTP `123456`. Number endings `1111` / `9999` / `0000` / `5555` show
+Mock sign-in: any valid mobile number, OTP `12345` (Applink codes are 5 digits). Number endings `1111` / `9999` / `0000` / `5555` show
 the four sign-up error states. `01700000099` is a Premium demo account with three profiles, alerts and
 agent traces.
 

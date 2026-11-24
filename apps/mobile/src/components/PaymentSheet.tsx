@@ -13,7 +13,7 @@ import { Button } from './Button';
 import { Icon } from './Icon';
 import { Text } from './Text';
 import { TextField } from './TextField';
-import { OTP_MAX_DIGITS, cleanOtp, isOtpComplete } from '../utils/otp';
+import { PAYMENT_OTP_MAX, cleanPaymentOtp, isPaymentOtpComplete } from '../utils/otp';
 
 type Step = 'price' | 'code' | 'processing' | 'success' | 'noBalance' | 'failed';
 
@@ -157,9 +157,9 @@ export function PaymentSheet({
           <TextField
             label={t('pay.codeLabel')}
             value={otp}
-            onChangeText={(v) => setOtp(cleanOtp(v))}
+            onChangeText={(v) => setOtp(cleanPaymentOtp(v))}
             keyboardType="number-pad"
-            maxLength={OTP_MAX_DIGITS}
+            maxLength={PAYMENT_OTP_MAX}
             error={error}
             autoFocus
             style={{ textAlign: 'center', letterSpacing: 6 }}
@@ -167,7 +167,7 @@ export function PaymentSheet({
           <Button
             label={t('pay.pay')}
             loading={busy}
-            disabled={!isOtpComplete(otp)}
+            disabled={!isPaymentOtpComplete(otp)}
             onPress={verify}
           />
           {expired ? (

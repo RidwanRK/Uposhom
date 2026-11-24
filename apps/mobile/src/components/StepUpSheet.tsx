@@ -6,7 +6,7 @@ import { BottomSheet } from './BottomSheet';
 import { Button } from './Button';
 import { Text } from './Text';
 import { TextField } from './TextField';
-import { OTP_MAX_DIGITS, cleanOtp, isOtpComplete } from '../utils/otp';
+import { OTP_LENGTH, cleanOtp, isOtpComplete } from '../utils/otp';
 
 /**
  * Step-up code before a sensitive action (remove a person, delete my data). Sends a code to the
@@ -73,7 +73,7 @@ export function StepUpSheet({
             value={otp}
             onChangeText={(v) => setOtp(cleanOtp(v))}
             keyboardType="number-pad"
-            maxLength={OTP_MAX_DIGITS}
+            maxLength={OTP_LENGTH}
             autoFocus
             error={error}
             accessibilityLabel={t('auth.otp.label')}

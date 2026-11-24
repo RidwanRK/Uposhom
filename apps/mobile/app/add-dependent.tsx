@@ -18,7 +18,7 @@ import { bn, useT } from '../src/i18n';
 import { toLatinDigits } from '../src/utils/bangla';
 import { errorMessage } from '../src/utils/errors';
 import { normalizeBdMsisdn } from '../src/utils/phone';
-import { OTP_MAX_DIGITS, cleanOtp, isOtpComplete } from '../src/utils/otp';
+import { OTP_LENGTH, cleanOtp, isOtpComplete } from '../src/utils/otp';
 
 const RELS = ['FATHER', 'MOTHER', 'SON', 'DAUGHTER', 'SPOUSE', 'OTHER'] as const;
 const DEFAULT_MEALS: MealTimes = {
@@ -140,7 +140,7 @@ export default function AddDependent() {
                 value={otp}
                 onChangeText={(v) => setOtp(cleanOtp(v))}
                 keyboardType="number-pad"
-                maxLength={OTP_MAX_DIGITS}
+                maxLength={OTP_LENGTH}
                 error={error}
                 style={{ fontSize: 28, textAlign: 'center', letterSpacing: 8 }}
               />
