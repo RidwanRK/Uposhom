@@ -77,9 +77,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-image-picker',
       {
+        // Never set cameraPermission or microphonePermission to false here: in this plugin `false`
+        // adds CAMERA / RECORD_AUDIO to the blocked list (tools:node="remove"), which strips them
+        // from the merged manifest. Android then refuses every request without a dialog, and the
+        // scan and voice screens can never get the camera or the microphone.
         photosPermission: 'গ্যালারি থেকে প্রেসক্রিপশনের ছবি বেছে নিতে অনুমতি দরকার।',
-        cameraPermission: false,
-        microphonePermission: false,
+        cameraPermission: 'প্রেসক্রিপশনের ছবি তুলতে উপশমের ক্যামেরা দরকার।',
+        microphonePermission: 'বাংলায় কথা বলে জানাতে মাইক্রোফোন দরকার।',
       },
     ],
     [

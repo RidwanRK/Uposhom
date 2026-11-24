@@ -17,6 +17,7 @@ import { useVoiceRecorder } from '../src/hooks/useVoiceRecorder';
 import { useT } from '../src/i18n';
 import { errorMessage } from '../src/utils/errors';
 import { answerScheduleQuestion } from '../src/utils/scheduleAnswer';
+import { openAppSettings } from '../src/utils/permissions';
 
 type Phase = 'idle' | 'recording' | 'transcribing' | 'ask' | 'asking' | 'answer';
 
@@ -33,6 +34,7 @@ export default function Voice() {
   const [text, setText] = useState('');
   const [answer, setAnswer] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [micBlocked, setMicBlocked] = useState(false);
 
   useEffect(() => () => void Speech.stop(), []);
 
@@ -49,8 +51,16 @@ export default function Voice() {
     setError(null);
     if (!recording) {
       const r = await start();
+      setMicBlocked(r === 'blocked');
       if (r === 'ok') setPhase('recording');
-      else setError(r === 'denied' ? t('symptoms.micDenied') : t('common.errorGeneric'));
+      else
+        setError(
+          r === 'blocked'
+            ? t('symptoms.micBlocked')
+            : r === 'denied'
+              ? t('symptoms.micDenied')
+              : t('common.errorGeneric'),
+        );
       return;
     }
     setPhase('transcribing');
@@ -127,6 +137,14 @@ export default function Voice() {
         </Text>
 
         {error ? <Banner icon="alert-circle-outline" text={error} /> : null}
+        {micBlocked ? (
+          <Button
+            label={t('common.openSettings')}
+            icon="cog-outline"
+            variant="secondary"
+            onPress={() => void openAppSettings()}
+          />
+        ) : null}
 
         {showInput ? (
           <View style={{ gap: 12 }}>

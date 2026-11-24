@@ -3,8 +3,15 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  AppState,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -26,6 +33,7 @@ import { useDraft } from '../src/store/draft';
 import { colors } from '../src/theme/colors';
 import { MIN_TOUCH } from '../src/theme/spacing';
 import { prepareImage } from '../src/utils/image';
+import { openAppSettings } from '../src/utils/permissions';
 
 /** Screen 2: camera prescription scanner (design.md 6.2). Preprocesses on the phone, then uploads. */
 export default function Scan() {
@@ -34,7 +42,14 @@ export default function Scan() {
   const gate = usePaymentGate();
   const startDraft = useDraft((s) => s.start);
   const startManual = useDraft((s) => s.startManual);
-  const [permission, requestPermission] = useCameraPermissions();
+  const [permission, requestPermission, getPermission] = useCameraPermissions();
+  // Coming back from Settings (where a blocked camera is switched on): look again.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void getPermission();
+    });
+    return () => sub.remove();
+  }, [getPermission]);
   const [torch, setTorch] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,10 +127,18 @@ export default function Scan() {
             {t('scan.permissionTitle')}
           </Text>
           <Text variant="bodyLarge" style={{ textAlign: 'center' }}>
-            {t('scan.permissionBody')}
+            {permission.canAskAgain ? t('scan.permissionBody') : t('scan.blocked')}
           </Text>
         </View>
-        <Button label={t('scan.grant')} onPress={() => void requestPermission()} />
+        {permission.canAskAgain ? (
+          <Button label={t('scan.grant')} onPress={() => void requestPermission()} />
+        ) : (
+          <Button
+            label={t('common.openSettings')}
+            icon="cog-outline"
+            onPress={() => void openAppSettings()}
+          />
+        )}
         <Button
           label={t('scan.gallery')}
           icon="image-outline"

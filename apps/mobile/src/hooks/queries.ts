@@ -191,7 +191,8 @@ export function useSubscription(poll = false) {
   return useQuery({
     queryKey: qk.subscription,
     queryFn: () => api.billing.subscriptionStatus(),
-    refetchInterval: poll ? 2000 : false,
+    // While waiting for the subscriber's SMS reply (up to 60 minutes): often enough to feel instant.
+    refetchInterval: poll ? 5000 : false,
   });
 }
 

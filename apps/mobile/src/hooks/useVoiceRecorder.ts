@@ -8,7 +8,8 @@ import {
 import { useCallback, useState } from 'react';
 import type { UploadFile } from '../api/client';
 
-export type StartResult = 'ok' | 'denied' | 'error';
+/** `blocked`: denied for good ("don't ask again"); only Settings can turn it back on. */
+export type StartResult = 'ok' | 'denied' | 'blocked' | 'error';
 
 /**
  * Record-then-transcribe voice capture (design.md 6.7). The caller sends the file to
@@ -22,7 +23,7 @@ export function useVoiceRecorder() {
   const start = useCallback(async (): Promise<StartResult> => {
     try {
       const perm = await requestRecordingPermissionsAsync();
-      if (!perm.granted) return 'denied';
+      if (!perm.granted) return perm.canAskAgain === false ? 'blocked' : 'denied';
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
       await recorder.prepareToRecordAsync();
       recorder.record();
