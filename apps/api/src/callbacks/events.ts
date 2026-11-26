@@ -5,6 +5,7 @@ import { z } from 'zod';
  * platform adds fields without notice. Only what a handler needs is required.
  */
 const str = z.string().min(1);
+const optStr = z.union([z.string(), z.number().transform(String)]).optional();
 
 export const smsReceive = z.looseObject({
   applicationId: z.string().optional(),
@@ -25,7 +26,7 @@ export const subscriptionNotify = z.looseObject({
   applicationId: z.string().optional(),
   subscriberId: str,
   status: str,
-  timeStamp: str,
+  timeStamp: optStr,
   frequency: z.string().optional(),
 });
 
@@ -61,7 +62,7 @@ export function dedupeKey(event: CallbackEvent): string {
     case 'sms.report':
       return `sms.report:${event.data.requestId}:${event.data.deliveryStatus}`;
     case 'subscription.notify':
-      return `subscription.notify:${event.data.subscriberId}:${event.data.status}:${event.data.timeStamp}`;
+      return `subscription.notify:${event.data.subscriberId}:${event.data.status}:${event.data.timeStamp ?? ''}`;
     case 'charging.notification':
       return `charging.notification:${event.data.externalTrxId}:${event.data.statusCode}`;
   }

@@ -216,6 +216,51 @@ describe('Premium gate', () => {
     await h.app.close();
   });
 
+  it('keeps PENDING when intermediate INITIAL or REG_PENDING notifications arrive, and does not re-register', async () => {
+    const h = await harness({ applink: registering('INITIAL') });
+    const user = await h.addUser();
+    expect((await subscribe(h, user)).json().status).toBe('PENDING');
+
+    h.clock.now = new Date(h.clock.now.getTime() + 60_000);
+    await h.callback('subscription/notify', notify('REG_PENDING', SUB, '20261122100100'));
+    await settle(h);
+    expect((await h.api(user, 'GET', '/billing/subscription/status')).json().status).toBe(
+      'PENDING',
+    );
+    expect((await subscribe(h, user)).json().status).toBe('PENDING');
+    expect(h.applink.register).toHaveBeenCalledTimes(1);
+
+    h.clock.now = new Date(h.clock.now.getTime() + 60_000);
+    await h.callback('subscription/notify', notify('REGISTERED', SUB, '20261122100200'));
+    await settle(h);
+    expect((await h.api(user, 'GET', '/billing/subscription/status')).json().status).toBe('ACTIVE');
+    await h.app.close();
+  });
+
+  it('does not overwrite an in-flight REGISTERED notification with a stale INITIAL response', async () => {
+    let resolveRegister!: (v: ReturnType<typeof ok<{ subscriptionStatus: string }>>) => void;
+    const applink = fakeApplink({
+      register: () =>
+        new Promise((resolve) => {
+          resolveRegister = resolve;
+        }),
+    });
+    const h = await harness({ applink });
+    const user = await h.addUser();
+    const pending = subscribe(h, user);
+
+    await vi.waitFor(() => expect(applink.register).toHaveBeenCalledTimes(1));
+    h.clock.now = new Date(h.clock.now.getTime() + 1000);
+    await h.callback('subscription/notify', notify('REGISTERED', SUB, '20261122100001'));
+    await settle(h);
+
+    resolveRegister(ok({ subscriptionStatus: 'INITIAL' }));
+    const res = await pending;
+    expect(res.json().status).toBe('ACTIVE');
+    expect((await h.stores.subscriptions.get(SUB))?.status).toBe('REGISTERED');
+    await h.app.close();
+  });
+
   it('an unconfirmed request lapses after Applink’s 60 minutes, and the person can ask again', async () => {
     const h = await harness({ applink: registering('UNREGISTERED.') });
     const user = await h.addUser();

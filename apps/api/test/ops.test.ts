@@ -136,6 +136,28 @@ describe('scheduled jobs', () => {
     await h.app.close();
   });
 
+  it('the sweep matches a stored plus-form subscriber id when Applink omits the plus', async () => {
+    const plus = 'tel:+8801959979376';
+    const applink = fakeApplink({
+      getSubscriberChargingInfo: async () =>
+        ok({
+          destinationResponses: [
+            { subscriberId: SUB, subscriptionStatus: 'REGISTERED', statusCode: 'S1000' },
+          ],
+        }),
+    });
+    const h = await harness({ applink });
+    await h.addUser(plus);
+    await h.stores.subscriptions.upsert({ subscriberId: plus, status: 'INITIAL' }, h.clock.now);
+    h.clock.now = new Date(h.clock.now.getTime() + 25 * 3600_000);
+
+    const out = await h.app.services.jobs.sweepSubscriptions();
+    expect(out).toEqual({ checked: 1, updated: 1 });
+    expect((await h.stores.subscriptions.get(plus))?.status).toBe('REGISTERED');
+    expect(await h.stores.subscriptions.get(SUB)).toBeNull();
+    await h.app.close();
+  });
+
   it('the sweep skips recently confirmed rows and does nothing without Applink', async () => {
     const applink = fakeApplink({
       getSubscriberChargingInfo: async () => ok({ destinationResponses: [] }),
