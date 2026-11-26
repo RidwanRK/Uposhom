@@ -34,4 +34,6 @@ export interface ServiceDeps {
   smsMinIntervalMs?: number | undefined;
   /** Only a provisioned alias works (else E1331). Leave unset to use the platform default. */
   smsSourceAddress?: string | undefined;
+  /** Published support contact (SUPPORT_EMAIL, SUPPORT_PHONE), quoted in the SMS help reply. */
+  support?: { email?: string; phone?: string } | undefined;
 }

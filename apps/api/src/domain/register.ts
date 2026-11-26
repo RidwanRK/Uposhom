@@ -9,16 +9,19 @@
  * attach() builds the domain store, service, reminder ladder and push sender, registers B's
  * routes under /api/v1 and B's queue jobs, and fills A's domain ports.
  */
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import type { Pool } from 'pg';
 import { createDb } from '@uposhom/db';
+import { RETENTION } from '../ops/retention.js';
 import type { DomainPorts } from '../ports.js';
 import type { JobQueue } from '../queue/types.js';
 import { createPhoneCrypto } from '../security/phone-crypto.js';
 import type { Services } from '../services/index.js';
 import type { Stores } from '../stores/types.js';
 import { domainRoutes } from '../routes/domain.js';
+import { featureRoutes } from '../routes/features.js';
+import { createFeatureService, type FeatureService } from './features.js';
 import { CARE_JOBS, createCareJobs, type CareJobs } from './care-jobs.js';
 import { LADDER_JOB, createLadderRunner, type LadderRunner } from './escalation.js';
 import { createMemoryDomainStore } from './memory.js';
@@ -32,7 +35,7 @@ import {
   type PushJobPayload,
   type PushSender,
 } from './push.js';
-import { createDomainService, type DomainService } from './service.js';
+import { createDomainService, type DomainService, type DomainServiceDeps } from './service.js';
 import type { DomainStore } from './types.js';
 
 declare module 'fastify' {
@@ -43,8 +46,18 @@ declare module 'fastify' {
     ladder: LadderRunner;
     /** Refill, follow-up and digest jobs (tests call them directly). */
     careJobs: CareJobs;
+    /** Scans, reports, journal, voice, insights, drugs, pharmacies, settings. */
+    features: FeatureService;
+    /** Nightly retention for agent_traces and audit_log (tests call it directly). */
+    purgeDomainData: () => Promise<{ agentTraces: number; auditLog: number }>;
   }
 }
+
+/** Free-text SMS questions answered per number per day. */
+export const SMS_QUESTIONS_PER_DAY = 10;
+
+/** Runs after A's platform purge (03:30). */
+export const DOMAIN_RETENTION_JOB = { queue: 'job.domain.retention', cron: '45 3 * * *' } as const;
 
 /** What the caller may choose. Everything defaults to in-memory, for development and tests. */
 export interface DomainOptions {
@@ -54,6 +67,11 @@ export interface DomainOptions {
    * PhoneCrypto.lookupHash; the default, for development and tests, is a plain SHA-256.
    */
   phoneKey?: (msisdn: string) => string;
+  /**
+   * Encrypts a dependent's number for profiles.phone_enc. postgresDomain() uses A's PhoneCrypto;
+   * the default, for development and tests, uses a key made up at start.
+   */
+  encryptPhone?: (msisdn: string) => string;
   /** Where caregiver pushes go. Defaults to Expo, or nowhere under NODE_ENV=test. */
   push?: PushSender;
 }
@@ -64,18 +82,29 @@ export function postgresDomain(pool: Pool, phoneEncKey: string): DomainOptions {
   return {
     store: createPostgresDomainStore(createDb(pool)),
     phoneKey: (msisdn) => crypto.lookupHash(msisdn),
+    encryptPhone: (msisdn) => crypto.encrypt(msisdn),
   };
 }
 
 export function createDomainHooks() {
   // A's services need the ports before the domain service exists, and the domain service needs
   // A's services: the ports call through a reference that attach() fills.
-  const ref: { domain?: DomainService; ladder?: LadderRunner } = {};
+  const ref: {
+    domain?: DomainService;
+    ladder?: LadderRunner;
+    store?: DomainStore;
+    smsQuestion?: DomainPorts['smsQuestion'];
+  } = {};
   const ports: DomainPorts = {
     doseReply: (input) => ref.domain!.smsReply(input),
     eraseDomainData: (userId) => ref.domain!.eraseUser(userId),
     // A bounced reminder for a critical dose brings the caregiver alert forward.
     onSmsDeliveryFailure: (input) => ref.ladder!.onDeliveryFailure(input),
+    // A dependent's own phone (Family Link) is a known sender too.
+    isProfileSubscriber: async (subscriberId) =>
+      (await ref.store!.profiles.findBySubscriberId(subscriberId)).length > 0,
+    smsQuestion: (input) => ref.smsQuestion!(input),
+    onProfileOptOut: (input) => ref.domain!.recordProfileOptOut(input),
   };
 
   function attach(
@@ -88,6 +117,8 @@ export function createDomainHooks() {
       nodeEnv: string;
       smsKeyword: string;
       options?: DomainOptions | undefined;
+      /** A's OTP service, for Family Link. */
+      familyLink?: DomainServiceDeps['familyLink'];
     },
   ): void {
     const { stores, services, queue } = ctx;
@@ -117,6 +148,10 @@ export function createDomainHooks() {
       phoneKey:
         ctx.options?.phoneKey ??
         ((msisdn) => createHash('sha256').update(`uposhom:${msisdn}`).digest('hex')),
+      encryptPhone:
+        ctx.options?.encryptPhone ??
+        ((msisdn) => createPhoneCrypto(randomBytes(32).toString('hex')).encrypt(msisdn)),
+      ...(ctx.familyLink ? { familyLink: ctx.familyLink } : {}),
     });
 
     // The reminder and escalation ladder, every minute, on the same queue as A's jobs.
@@ -167,6 +202,24 @@ export function createDomainHooks() {
       void queue.schedule(def.queue, def.cron, { tz: 'Asia/Dhaka' });
     }
 
+    // Retention for B's tables (Master Plan section 8): agent traces 30 days, audit log 1 year.
+    // A's nightly purge covers the platform tables; this one runs right after it.
+    queue.work(DOMAIN_RETENTION_JOB.queue, async () => {
+      await purgeDomainData();
+    });
+    void queue.schedule(DOMAIN_RETENTION_JOB.queue, DOMAIN_RETENTION_JOB.cron, {
+      tz: 'Asia/Dhaka',
+    });
+    async function purgeDomainData() {
+      const t = now().getTime();
+      const counts = {
+        agentTraces: await store.traces.purgeBefore(new Date(t - RETENTION.agentTracesMs)),
+        auditLog: await store.audit.purgeBefore(new Date(t - RETENTION.auditLogMs)),
+      };
+      app.log.info(counts, 'domain retention purge');
+      return counts;
+    }
+
     // Caregiver pushes go out from their own queue, so a slow Expo never holds up the ladder.
     const sender =
       ctx.options?.push ?? (ctx.nodeEnv === 'test' ? noopPushSender : createExpoPushSender({}));
@@ -183,10 +236,40 @@ export function createDomainHooks() {
 
     ref.domain = domain;
     ref.ladder = ladder;
+    ref.store = store;
     app.decorate('domain', domain);
     app.decorate('ladder', ladder);
     app.decorate('careJobs', care);
+    app.decorate('purgeDomainData', purgeDomainData);
     void app.register(domainRoutes(domain), { prefix: '/api/v1' });
+
+    // The app's remaining endpoints: scans, reports, journal, voice, insights, drugs, pharmacies,
+    // settings. C's AI does the thinking; B's store keeps the results; A's entitlements gate them.
+    const features = createFeatureService({
+      store,
+      domain,
+      now,
+      useScan: (userId) => services.entitlements.useScan(userId),
+      useFeature: (userId, feature) => services.entitlements.useFeature(userId, feature),
+      isPremium,
+      accountType: async (userId) => (await stores.users.findById(userId))?.accountType ?? null,
+      findUserIdBySubscriber,
+      useSms: (userId) => services.entitlements.useSms(userId),
+    });
+    // SMS Q&A calls a model and costs an SMS: a cap per number per day keeps a chatty (or abusive)
+    // sender from running up either bill. Over the cap, nothing is sent back.
+    ref.smsQuestion = async (input) => {
+      const hit = await stores.rateLimit.hit(
+        `smsqa:${input.subscriberId}`,
+        SMS_QUESTIONS_PER_DAY,
+        24 * 60 * 60 * 1000,
+        now(),
+      );
+      if (!hit.allowed) return { replyText: null, silent: true };
+      return features.smsQuestion(input);
+    };
+    app.decorate('features', features);
+    void app.register(featureRoutes(features), { prefix: '/api/v1' });
   }
 
   return { ports, attach };

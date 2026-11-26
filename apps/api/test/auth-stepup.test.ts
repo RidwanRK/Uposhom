@@ -41,7 +41,7 @@ const post = (
 
 async function signIn(a: FastifyInstance, msisdn = MSISDN) {
   await post(a, '/api/v1/auth/otp/request', { msisdn });
-  const res = await post(a, '/api/v1/auth/otp/verify', { msisdn, otp: '123456' });
+  const res = await post(a, '/api/v1/auth/otp/verify', { msisdn, otp: '12345' });
   const body = res.json();
   return { token: body.token as string, userId: body.user.id as string };
 }
@@ -98,9 +98,7 @@ describe('step-up OTP', () => {
   it('needs a signed-in user', async () => {
     const { app } = await setup();
     expect((await post(app, '/api/v1/auth/step-up/request')).statusCode).toBe(401);
-    expect((await post(app, '/api/v1/auth/step-up/verify', { otp: '123456' })).statusCode).toBe(
-      401,
-    );
+    expect((await post(app, '/api/v1/auth/step-up/verify', { otp: '12345' })).statusCode).toBe(401);
     await app.close();
   });
 
@@ -116,7 +114,7 @@ describe('step-up OTP', () => {
     expect((await post(app, '/api/v1/auth/step-up/request', {}, bearer(token))).json()).toEqual({
       success: true,
     });
-    const ver = await post(app, '/api/v1/auth/step-up/verify', { otp: '654321' }, bearer(token));
+    const ver = await post(app, '/api/v1/auth/step-up/verify', { otp: '65432' }, bearer(token));
     expect(ver.statusCode).toBe(200);
     const { stepUpToken } = ver.json();
 
@@ -146,7 +144,7 @@ describe('step-up OTP', () => {
     const { token, userId } = await signIn(app);
     await post(app, '/api/v1/auth/step-up/request', {}, bearer(token));
     const { stepUpToken } = (
-      await post(app, '/api/v1/auth/step-up/verify', { otp: '654321' }, bearer(token))
+      await post(app, '/api/v1/auth/step-up/verify', { otp: '65432' }, bearer(token))
     ).json();
 
     const asAccess = await app.inject({
@@ -173,7 +171,7 @@ describe('step-up OTP', () => {
     const b = await signIn(app, '01711111111');
     await post(app, '/api/v1/auth/step-up/request', {}, bearer(a.token));
     const { stepUpToken } = (
-      await post(app, '/api/v1/auth/step-up/verify', { otp: '654321' }, bearer(a.token))
+      await post(app, '/api/v1/auth/step-up/verify', { otp: '65432' }, bearer(a.token))
     ).json();
 
     const res = await post(
@@ -200,7 +198,7 @@ describe('step-up OTP', () => {
     // A new SIGN-UP code for the same number replaces any open session...
     await post(app, '/api/v1/auth/otp/request', { msisdn: MSISDN });
     // ...and verifying it as a step-up code must fail.
-    const res = await post(app, '/api/v1/auth/step-up/verify', { otp: '123456' }, bearer(token));
+    const res = await post(app, '/api/v1/auth/step-up/verify', { otp: '12345' }, bearer(token));
     expect(res.statusCode).toBe(410);
     expect(res.json().error.code).toBe('OTP_EXPIRED');
     await app.close();
@@ -212,7 +210,7 @@ describe('step-up OTP', () => {
     const { token } = await signIn(app);
     await post(app, '/api/v1/auth/step-up/request', {}, bearer(token));
     answer = 'tel:somebody-else';
-    const res = await post(app, '/api/v1/auth/step-up/verify', { otp: '654321' }, bearer(token));
+    const res = await post(app, '/api/v1/auth/step-up/verify', { otp: '65432' }, bearer(token));
     expect(res.statusCode).toBe(401);
     expect(res.json().error.code).toBe('OTP_WRONG');
     await app.close();
@@ -233,11 +231,11 @@ describe('step-up OTP', () => {
     failing = true;
 
     for (let i = 0; i < 5; i++) {
-      const res = await post(app, '/api/v1/auth/step-up/verify', { otp: '000000' }, bearer(token));
+      const res = await post(app, '/api/v1/auth/step-up/verify', { otp: '00000' }, bearer(token));
       expect(res.statusCode).toBe(401);
       expect(res.json().error.code).toBe('OTP_WRONG');
     }
-    const sixth = await post(app, '/api/v1/auth/step-up/verify', { otp: '000000' }, bearer(token));
+    const sixth = await post(app, '/api/v1/auth/step-up/verify', { otp: '00000' }, bearer(token));
     expect(sixth.statusCode).toBe(410);
 
     const malformed = await post(app, '/api/v1/auth/step-up/verify', { otp: 'abc' }, bearer(token));

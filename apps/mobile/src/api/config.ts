@@ -26,23 +26,13 @@ export const USE_MOCK = extra.useMock === '1' || (extra.useMock !== '0' && API_U
 export const MOCK_MISSING = !USE_MOCK && extra.mockMissing !== '0';
 
 /**
- * Endpoints docs/domain-api.md and apps/api do not serve yet (the AI package is not wired into the API
- * routes). Delete a line here as soon as the server implements it.
+ * Endpoints docs/domain-api.md and apps/api do not serve yet. Delete a line here as soon as the server
+ * implements it. Scans, reports, drugs, pharmacies, insights, the doctor summary, the symptom journal,
+ * voice and account settings are served now (apps/api/src/routes/features.ts), and Family Link by
+ * apps/api/src/routes/domain.ts.
  */
 const MISSING_ON_SERVER: [method: string, path: RegExp][] = [
-  ['POST', /^\/prescriptions\/upload-and-parse$/],
-  ['GET', /^\/reports(\/|$)/],
-  ['POST', /^\/reports\//],
-  ['GET', /^\/drugs\//],
-  ['GET', /^\/pharmacies(\/|$)/],
-  ['PUT', /^\/pharmacies\//],
-  ['GET', /^\/insights\//],
-  ['POST', /^\/summaries\//],
-  ['POST', /^\/symptoms\//],
-  ['POST', /^\/voice\/transcribe$/],
-  ['GET', /^\/account\/settings$/],
-  ['PUT', /^\/account\/settings$/],
-  ['POST', /^\/profiles\/[^/]+\/link\/(request|verify)$/],
+  // Empty: Family Link (POST /profiles/:id/link/request and /verify) is served by the API now.
 ];
 
 /** True when this call must be answered by the in-app mock even though a live API is configured. */

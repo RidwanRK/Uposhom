@@ -16,7 +16,9 @@ import { TimeStepper } from '../src/components/TimeStepper';
 import { qk } from '../src/hooks/queries';
 import { bn, useT } from '../src/i18n';
 import { toLatinDigits } from '../src/utils/bangla';
+import { errorMessage } from '../src/utils/errors';
 import { normalizeBdMsisdn } from '../src/utils/phone';
+import { OTP_LENGTH, cleanOtp, isOtpComplete } from '../src/utils/otp';
 
 const RELS = ['FATHER', 'MOTHER', 'SON', 'DAUGHTER', 'SPOUSE', 'OTHER'] as const;
 const DEFAULT_MEALS: MealTimes = {
@@ -90,7 +92,7 @@ export default function AddDependent() {
       setError(
         code in bn.auth.errors
           ? t(`auth.errors.${code as keyof typeof bn.auth.errors}`)
-          : t('common.noConnection'),
+          : errorMessage(e, t),
       );
     } finally {
       setBusy(false);
@@ -106,11 +108,7 @@ export default function AddDependent() {
       void qc.invalidateQueries({ queryKey: qk.circle });
       router.back();
     } catch (e) {
-      setError(
-        e instanceof ApiError && e.code === 'OTP_WRONG'
-          ? t('auth.otp.wrong')
-          : t('common.noConnection'),
-      );
+      setError(errorMessage(e, t));
     } finally {
       setBusy(false);
     }
@@ -140,16 +138,16 @@ export default function AddDependent() {
               <TextField
                 label={t('auth.otp.label')}
                 value={otp}
-                onChangeText={(v) => setOtp(toLatinDigits(v).replace(/\D/g, '').slice(0, 6))}
+                onChangeText={(v) => setOtp(cleanOtp(v))}
                 keyboardType="number-pad"
-                maxLength={6}
+                maxLength={OTP_LENGTH}
                 error={error}
                 style={{ fontSize: 28, textAlign: 'center', letterSpacing: 8 }}
               />
               <Button
                 label={t('addDependent.consentVerify')}
                 loading={busy}
-                disabled={otp.length !== 6}
+                disabled={!isOtpComplete(otp)}
                 onPress={verify}
               />
             </>

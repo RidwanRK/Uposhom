@@ -24,6 +24,7 @@ import type {
   ProfileLink,
   TodayDosesResponse,
 } from '@uposhom/shared';
+import { ApiError } from '../errors.js';
 import type { DoseReplyCode } from '../ports.js';
 import { DomainError } from './errors.js';
 import { isExpoPushToken } from './push.js';
@@ -88,6 +89,25 @@ export interface DomainServiceDeps {
   findUserIdByMsisdn: (msisdn: string) => Promise<string | null>;
   /** A's keyed lookup hash of a normalised number (security/phone-crypto.ts). */
   phoneKey: (msisdn: string) => string;
+  /** A's AES-GCM encryption of a normalised number, for profiles.phone_enc. */
+  encryptPhone: (msisdn: string) => string;
+  /**
+   * A's OTP service, for Family Link (the dependent's own phone). Undefined when OTP is not
+   * configured: the two endpoints then answer SERVICE_TROUBLE.
+   */
+  familyLink?: {
+    request(input: {
+      msisdn: string;
+      ip: string;
+      userId: string;
+      profileId: string;
+    }): Promise<unknown>;
+    verify(input: {
+      msisdn: string;
+      otp: string;
+      profileId: string;
+    }): Promise<{ subscriberId: string | null }>;
+  };
 }
 
 const newId = (prefix: string) => `${prefix}_${randomUUID().replace(/-/g, '').slice(0, 16)}`;
@@ -395,6 +415,95 @@ export function createDomainService(deps: DomainServiceDeps) {
       acceptedBy: null,
     });
     return { success: true };
+  }
+
+  // ---------------------------------------------------------------- Family Link
+
+  /**
+   * Family Link is for a dependent without the app (an elderly parent) who has their own phone:
+   * the code goes to that phone, and the subscriber id Applink returns on verify is stored on the
+   * profile, so reminders and replies for that profile use the dependent's own number. Someone
+   * with an account is linked by invite instead (POST /links), and their number is their own.
+   */
+  async function familyLinkTarget(userId: string, profileId: string, rawMsisdn: string) {
+    const { profile, role } = await access(userId, profileId, true);
+    if (role !== 'ADMIN') throw new DomainError('FORBIDDEN', 403);
+    if (profile.userId !== null) throw new DomainError('OWN_PROFILE', 409);
+    const msisdn = normalizeBdMsisdn(latinDigits(rawMsisdn));
+    if (!msisdn) throw new DomainError('INVALID_INPUT', 400, { message: 'MSISDN' });
+    const me = await deps.findUser(userId);
+    if (me?.msisdn === msisdn) throw new DomainError('INVALID_INPUT', 400, { message: 'SELF' });
+    if (await deps.findUserIdByMsisdn(msisdn)) {
+      throw new DomainError('ALREADY_LINKED', 409, { message: 'HAS_ACCOUNT' });
+    }
+    if (!deps.familyLink) throw new ApiError('SERVICE_TROUBLE', 503);
+    return { msisdn, familyLink: deps.familyLink };
+  }
+
+  /** POST /profiles/:id/link/request: an Applink OTP to the dependent's own phone. */
+  async function requestFamilyLink(
+    userId: string,
+    profileId: string,
+    body: { msisdn: string; ip: string },
+  ): Promise<{ success: boolean }> {
+    const { msisdn, familyLink } = await familyLinkTarget(userId, profileId, body.msisdn);
+    await familyLink.request({ msisdn, ip: body.ip, userId, profileId });
+    return { success: true };
+  }
+
+  /** POST /profiles/:id/link/verify: the dependent's code. Binds their number to the profile. */
+  async function verifyFamilyLink(
+    userId: string,
+    profileId: string,
+    body: { msisdn: string; otp: string },
+  ): Promise<{ success: boolean }> {
+    const { msisdn, familyLink } = await familyLinkTarget(userId, profileId, body.msisdn);
+    const { subscriberId } = await familyLink.verify({
+      msisdn,
+      otp: latinDigits(body.otp.trim()),
+      profileId,
+    });
+    if (!subscriberId) throw new ApiError('SERVICE_TROUBLE', 503);
+    // One number, one holder, across users and profiles (Master Plan section 5).
+    if (await deps.findUserIdBySubscriber(subscriberId)) {
+      throw new DomainError('ALREADY_LINKED', 409, { message: 'HAS_ACCOUNT' });
+    }
+    const elsewhere = await store.profiles.findBySubscriberId(subscriberId);
+    if (elsewhere.some((p) => p.id !== profileId)) {
+      throw new DomainError('ALREADY_LINKED', 409, { message: 'NUMBER_IN_USE' });
+    }
+    await store.profiles.setOwnPhone(profileId, {
+      subscriberId,
+      phoneEnc: deps.encryptPhone(msisdn),
+    });
+    await store.audit.record({
+      actorUserId: userId,
+      action: 'FAMILY_LINK_VERIFIED',
+      subjectType: 'profiles',
+      subjectId: profileId,
+      profileId,
+      detail: null,
+      at: deps.now(),
+    });
+    return { success: true };
+  }
+
+  /**
+   * STOP from a dependent's own phone. A's opt-out already suppressed the number and queued the
+   * Applink Unregister; this records it against the profile (Master Plan section 8).
+   */
+  async function recordProfileOptOut(input: { subscriberId: string; source: 'SMS' }) {
+    for (const p of await store.profiles.findBySubscriberId(input.subscriberId)) {
+      await store.audit.record({
+        actorUserId: null,
+        action: 'SMS_OPT_OUT',
+        subjectType: 'profiles',
+        subjectId: p.id,
+        profileId: p.id,
+        detail: { source: input.source },
+        at: deps.now(),
+      });
+    }
   }
 
   /** PUT /links/:id: an admin changes someone's role. */
@@ -1030,7 +1139,11 @@ export function createDomainService(deps: DomainServiceDeps) {
 
   return {
     getCircle,
+    access,
     invite,
+    requestFamilyLink,
+    verifyFamilyLink,
+    recordProfileOptOut,
     changeRole,
     removeLink,
     setSecondary,

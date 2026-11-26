@@ -82,10 +82,13 @@ export function createLadderRunner(deps: LadderDeps) {
     const now = deps.now();
     // A new user's own profile is still called 'আমি' (me): say "your family member" instead.
     const who = profile.name === 'আমি' ? 'আপনার পরিবারের সদস্য' : `${profile.name}-এর`;
-    const message =
-      `উপশম: ${who} জরুরি ওষুধ ${medicine} (${bnClock(dose.dueAt.getTime())}) ` +
+    const textFor = (discreet: boolean) =>
+      `উপশম: ${who} জরুরি ওষুধ${discreet ? '' : ` ${medicine}`} (${bnClock(dose.dueAt.getTime())}) ` +
       'এখনও খাওয়া হয়নি। অ্যাপে দেখুন।';
     for (const t of targets) {
+      // A caregiver who chose discreet SMS gets the alert without the medicine's name. Alerts are
+      // not reminders: they go out even when that caregiver turned reminder SMS off.
+      const message = textFor((await store.settings.get(t.userId))?.discreetSms === true);
       const key = `${dose.id}:${level}:${t.userId}`;
       const created = await store.escalations.record({
         doseEventId: dose.id,
@@ -157,15 +160,19 @@ export function createLadderRunner(deps: LadderDeps) {
       if (step.kind === 'WAIT') return;
 
       if (step.kind === 'REMIND') {
-        const sub = await patientSubscriber(profile);
+        // The circle owner's settings: reminder SMS off (the phone's own alarm still rings), or
+        // discreet SMS without the medicine's name.
+        const settings = await store.settings.get(circle.ownerUserId);
+        const sub = settings?.smsReminders === false ? null : await patientSubscriber(profile);
         const allowed = sub ? (await deps.useSms(circle.ownerUserId)).allowed : false;
         if (sub && allowed) {
           const tag = profile.smsTag ? ` ${profile.smsTag}` : '';
           const kw = deps.smsKeyword;
+          const what = settings?.discreetSms ? 'ওষুধ' : medicine;
           await deps.sendSms({
             subscriberId: sub,
             message:
-              `উপশম: ${medicine} খাওয়ার সময় (${bnClock(ladderBase(dose).getTime())})। ` +
+              `উপশম: ${what} খাওয়ার সময় (${bnClock(ladderBase(dose).getTime())})। ` +
               `খেলে ${kw} 1${tag}, পরে ${kw} 2${tag}, বাদ ${kw} 3${tag}`,
             purpose: 'REMINDER',
             idempotencyKey: `remind:${dose.id}:${ladderBase(dose).getTime()}:${step.repeat ? 2 : 1}`,

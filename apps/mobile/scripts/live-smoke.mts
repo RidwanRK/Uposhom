@@ -9,6 +9,17 @@
  * Uses only synthetic data and the local fake Applink. It signs up a throwaway number each run.
  */
 import {
+  accountSettings,
+  drugSearchResponse,
+  genericsResponse,
+  insightsResponse,
+  journalResponse,
+  pharmaciesResponse,
+  reportDetail,
+  reportListResponse,
+  transcribeResponse,
+  uploadAndParseResponse,
+  voiceQueryResponse,
   alertsResponse,
   appointment,
   appointmentsResponse,
@@ -200,6 +211,121 @@ await call('appointment add', 'POST', `/profiles/${me.id}/appointments`, {
 });
 await call('appointment list', 'GET', `/profiles/${me.id}/appointments`, {
   schema: appointmentsResponse,
+});
+
+// ---- scans, reports, journal, voice, insights, drugs, pharmacies, settings (apps/api features.ts).
+// Without OPENROUTER_API_KEY on the server the AI answers with workstream C's built-in samples.
+async function upload<T>(
+  label: string,
+  path: string,
+  field: string,
+  type: string,
+  schema: z.ZodType<T>,
+  fields: Record<string, string> = {},
+): Promise<T | undefined> {
+  // Same order as the app's FormData: the file first, then the fields.
+  const form = new FormData();
+  form.append(field, new Blob([new Uint8Array([1, 2, 3, 4])], { type }), 'upload');
+  for (const [k, v] of Object.entries(fields)) form.append(k, v);
+  const res = await fetch(BASE + path, {
+    method: 'POST',
+    headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  const text = await res.text();
+  const parsed = res.status === 200 ? schema.safeParse(text ? JSON.parse(text) : null) : null;
+  const ok = parsed?.success === true;
+  if (!ok) failures++;
+  const why = ok
+    ? ''
+    : res.status !== 200
+      ? `status ${res.status}: ${text.slice(0, 160)}`
+      : `contract mismatch: ${parsed?.error?.message.slice(0, 200)}`;
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}${why ? `\n      ${why}` : ''}`);
+  return parsed?.success ? parsed.data : undefined;
+}
+
+const scan = await upload(
+  'prescription scan (multipart)',
+  '/prescriptions/upload-and-parse',
+  'file',
+  'image/webp',
+  uploadAndParseResponse,
+  { profileId: me.id },
+);
+console.log(`      draft=${scan?.draftPrescriptionId} items=${scan?.extractedItems.length}`);
+if (scan) {
+  await call(
+    'confirm the scanned draft',
+    'POST',
+    `/prescriptions/${scan.draftPrescriptionId}/confirm`,
+    {
+      body: {
+        profileId: me.id,
+        items: scan.extractedItems.map((i) => ({
+          brandName: i.brandName,
+          dosageStrength: i.strength,
+          form: i.form,
+          parsedPattern: i.pattern,
+          mealRelation: i.mealRelation,
+          durationDays: i.durationDays,
+          isCritical: false,
+        })),
+      },
+      schema: confirmResponse,
+      expect: 201,
+    },
+  );
+}
+const rep = await upload(
+  'report scan (multipart)',
+  '/reports/upload-and-parse',
+  'file',
+  'image/webp',
+  reportDetail,
+  {
+    profileId: me.id,
+  },
+);
+await call('report list', 'GET', `/reports?profileId=${me.id}`, { schema: reportListResponse });
+if (rep) await call('report detail', 'GET', `/reports/${rep.id}`, { schema: reportDetail });
+const j = await call('symptom journal (first turn)', 'POST', '/symptoms/journal', {
+  body: { profileId: me.id, inputText: 'তিন দিন ধরে জ্বর', channel: 'TEXT' },
+  schema: journalResponse,
+});
+console.log(
+  `      next=${j.data?.nextQuestion ? 'question' : 'none'} ${j.data?.questionIndex}/${j.data?.questionTotal}`,
+);
+await call('symptom journal red flag', 'POST', '/symptoms/journal', {
+  body: { profileId: me.id, inputText: 'হঠাৎ তীব্র শ্বাসকষ্ট', channel: 'TEXT' },
+  schema: journalResponse,
+});
+await call('doctor summary on Free -> 402 PAYMENT_REQUIRED', 'POST', '/summaries/doctor', {
+  body: { profileId: me.id },
+  expect: 402,
+});
+await upload(
+  'voice transcribe (multipart)',
+  '/voice/transcribe',
+  'audio',
+  'audio/mp4',
+  transcribeResponse,
+);
+await call('voice query', 'POST', '/voice/query', {
+  body: { profileId: me.id, text: 'আমার পরের ওষুধ কখন?' },
+  schema: voiceQueryResponse,
+});
+await call('insights', 'GET', `/insights/${me.id}`, { schema: insightsResponse });
+await call('drug search', 'GET', `/drugs/search?q=${encodeURIComponent('napa')}`, {
+  schema: drugSearchResponse,
+});
+await call('drug generics', 'GET', '/drugs/generics?brand=Napa', { schema: genericsResponse });
+await call('pharmacies near', 'GET', '/pharmacies?area=Dhanmondi', { schema: pharmaciesResponse });
+await call('my pharmacy as an individual -> 403', 'GET', '/pharmacies/me', { expect: 403 });
+await call('settings', 'GET', '/account/settings', { schema: accountSettings });
+await call('settings update', 'PUT', '/account/settings', {
+  body: { discreetSms: true },
+  schema: accountSettings,
 });
 
 // ---- billing: entitlements, subscription, pay per use

@@ -57,7 +57,7 @@ describe('initiate', () => {
     const applink = charging({
       startCharge: async (input: { externalTrxId: string; amount: string }) => {
         order.push('applink');
-        expect(input.amount).toBe('5.00');
+        expect(input.amount).toBe('2.00');
         return {
           statusCode: 'P1003',
           externalTrxId: input.externalTrxId,
@@ -85,12 +85,12 @@ describe('initiate', () => {
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(caasInitiateResponse.safeParse(body).success).toBe(true);
-    expect(body).toMatchObject({ amount: '5.00', currency: 'BDT', status: 'OTP_SENT' });
+    expect(body).toMatchObject({ amount: '2.00', currency: 'BDT', status: 'OTP_SENT' });
 
     const row = await h.stores.charges.get(body.chargeId);
     expect(row).toMatchObject({
       status: 'OTP_SENT',
-      amount: '5.00',
+      amount: '2.00',
       requestCorrelator: 'corr-1',
       internalTrxId: 'int-1',
       userId: user.id,
@@ -433,8 +433,8 @@ describe('the charging notification settles the ledger', () => {
   });
 
   it.each([
-    ['paid short of the price', { paidAmount: '3.00', balanceDue: '0' }],
-    ['money still owed', { paidAmount: '5.00', balanceDue: '1.00' }],
+    ['paid short of the price', { paidAmount: '1.00', balanceDue: '0' }],
+    ['money still owed', { paidAmount: '2.00', balanceDue: '1.00' }],
     ['no paid amount at all', { paidAmount: '' }],
     ['an amount that is not a number', { paidAmount: 'five' }],
   ])('an S1000 with %s does not fulfil', async (_label, over) => {

@@ -348,7 +348,7 @@ Opened from `প্রিমিয়াম নিন` prompts (Free-tier limits
 ### 6.13 Screen 12: Pay-per-use Payment Sheet
 A bottom sheet shown when a Free user needs a paid action (a scan over the monthly quota, a doctor summary PDF).
 
-* **Step 1, price**: `এই কাজের জন্য ৫ টাকা (৳৫.০০) আপনার মোবাইল ব্যালেন্স থেকে কাটা হবে।` (৳5.00 will be deducted from your mobile balance). The button `কোড পাঠান` (Send code) is the user's explicit consent and sends the payment code by SMS.
+* **Step 1, price**: `এই কাজের জন্য ৫ টাকা (৳৫.০০) আপনার মোবাইল ব্যালেন্স থেকে কাটা হবে।` (৳5.00 will be deducted from your mobile balance; a doctor summary says ২ টাকা (৳২.০০)). The button `কোড পাঠান` (Send code) is the user's explicit consent and sends the payment code by SMS.
 * **Step 2, payment code**: 6-digit field. A wrong code can be retried on the same request. Below it, `কোড আসেনি? আবার চেষ্টা করুন` appears only after the code has expired, and it starts a new payment with a new request.
 * **Step 3, result**: `প্রক্রিয়া চলছে...` (processing) until the carrier confirms, then `পেমেন্ট সম্পন্ন` and the unlocked action starts. Not enough balance shows `ব্যালেন্স যথেষ্ট নয়`. Nothing is granted until the confirmation arrives.
 

@@ -128,6 +128,67 @@ export interface EscalationRecord {
   acknowledgedVia: ActionChannel | null;
 }
 
+export type ReportFlag = 'HIGH' | 'LOW' | 'NORMAL' | 'UNKNOWN';
+
+export interface ReportRecord {
+  id: string;
+  profileId: string;
+  title: string | null;
+  /** YYYY-MM-DD when the printed date could be read. */
+  reportDate: string | null;
+  center: string | null;
+  testType: string | null;
+  createdBy: string | null;
+  createdAt: Date;
+}
+
+export interface ReportValueRecord {
+  testName: string;
+  value: string;
+  unit: string | null;
+  printedRange: string | null;
+  flag: ReportFlag;
+  explanationBn: string | null;
+}
+
+export interface SymptomLogRecord {
+  id: string;
+  profileId: string;
+  source: 'TEXT' | 'VOICE' | 'SMS';
+  /** The journal's collected answers and, when finished, its summary. */
+  data: Record<string, unknown>;
+  redFlag: boolean;
+  loggedAt: Date;
+}
+
+export interface PharmacyRecord {
+  id: string;
+  ownerUserId: string | null;
+  name: string;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  phone: string | null;
+  openingHours: string | null;
+  isPartner: boolean;
+  priorityListing: boolean;
+  createdAt: Date;
+}
+
+export interface StockRecord {
+  pharmacyId: string;
+  drugBrandId: string;
+  inStock: boolean;
+  updatedAt: Date;
+}
+
+export interface SettingsRecord {
+  userId: string;
+  discreetSms: boolean;
+  smsReminders: boolean;
+  updatedAt: Date;
+}
+
 export type NoticeType = 'REFILL_DUE' | 'FOLLOW_UP' | 'WEEKLY_DIGEST';
 
 export interface NoticeRecord {
@@ -166,6 +227,19 @@ export interface AuditRecord {
   profileId: string | null;
   detail: Record<string, unknown> | null;
   at: Date;
+}
+
+/** A doctor summary someone has paid for (or opened on Premium): reopening it costs nothing. */
+export interface DoctorSummaryRecord {
+  /** The summary's id: the journal entry it was built from, or one per profile per day. */
+  id: string;
+  profileId: string;
+  periodStart: string; // YYYY-MM-DD
+  periodEnd: string;
+  /** Where the PDF is stored. Empty until object storage (R2) exists: the phone renders it. */
+  objectPath: string;
+  chargeId: string | null;
+  generatedAt: Date;
 }
 
 export type AppointmentState = 'PENDING' | 'REMINDED' | 'DONE' | 'CANCELLED';
@@ -237,6 +311,15 @@ export interface DomainStore {
     roleOf(userId: string, profileId: string): Promise<LinkRole | null>;
     /** Profiles whose own phone has this subscriber id (Family Link). */
     findBySubscriberId(subscriberId: string): Promise<ProfileRecord[]>;
+    /**
+     * Family Link: binds the dependent's own phone to the profile (the subscriber id exactly as
+     * Applink returned it, and the number encrypted), or clears it with null. False when no such
+     * profile exists.
+     */
+    setOwnPhone(
+      id: string,
+      phone: { subscriberId: string; phoneEnc: string } | null,
+    ): Promise<boolean>;
     /** Links another user to a profile (an accepted invite, or a caregiver added by the admin). */
     addLink(link: LinkRecord): Promise<void>;
     /** Everyone linked to the profile, oldest link first. */
@@ -328,11 +411,17 @@ export interface DomainStore {
     record(row: TraceRecord): Promise<void>;
     /** Newest first. */
     list(limit: number): Promise<TraceRecord[]>;
+    /** Retention: deletes traces created before the cutoff. Returns how many went. */
+    purgeBefore(cutoff: Date): Promise<number>;
   };
   audit: {
     record(row: AuditRecord): Promise<void>;
     /** Newest first; for tests and support. */
     listForActor(actorUserId: string): Promise<AuditRecord[]>;
+    /** Newest first; for tests and support. */
+    listForProfile(profileId: string): Promise<AuditRecord[]>;
+    /** Retention: deletes entries recorded before the cutoff. Returns how many went. */
+    purgeBefore(cutoff: Date): Promise<number>;
   };
   appointments: {
     create(row: AppointmentRecord): Promise<void>;
@@ -344,11 +433,46 @@ export interface DomainStore {
     markReminded(id: string): Promise<boolean>;
   };
   items: {
+    /** Items of the profile's CONFIRMED prescriptions confirmed since then, newest first. */
+    confirmedForProfile(
+      profileId: string,
+      since: Date,
+    ): Promise<Array<{ item: PrescriptionItemRecord; confirmedAt: Date }>>;
     /** Items of CONFIRMED prescriptions whose refill date falls in [fromDate, toDate] (YYYY-MM-DD). */
     refillDueBetween(
       fromDate: string,
       toDate: string,
     ): Promise<Array<{ item: PrescriptionItemRecord; profileId: string }>>;
+  };
+  reports: {
+    create(report: ReportRecord, values: ReportValueRecord[]): Promise<void>;
+    findById(id: string): Promise<{ report: ReportRecord; values: ReportValueRecord[] } | null>;
+    /** Newest first. */
+    listForProfiles(profileIds: string[]): Promise<ReportRecord[]>;
+  };
+  symptoms: {
+    record(log: SymptomLogRecord): Promise<void>;
+    findById(id: string): Promise<SymptomLogRecord | null>;
+    /** Newest first, at most `limit`. */
+    listForProfile(profileId: string, limit: number): Promise<SymptomLogRecord[]>;
+  };
+  pharmacies: {
+    findByOwner(userId: string): Promise<PharmacyRecord | null>;
+    /** Insert, or replace the row with the same id. */
+    save(pharmacy: PharmacyRecord): Promise<void>;
+    list(): Promise<PharmacyRecord[]>;
+    setStock(row: StockRecord): Promise<void>;
+    stockOf(pharmacyId: string): Promise<StockRecord[]>;
+    stockForDrug(drugBrandId: string): Promise<StockRecord[]>;
+  };
+  settings: {
+    get(userId: string): Promise<SettingsRecord | null>;
+    put(row: SettingsRecord): Promise<void>;
+  };
+  summaries: {
+    findById(id: string): Promise<DoctorSummaryRecord | null>;
+    /** False when a row with that id exists already (nothing is changed). */
+    record(row: DoctorSummaryRecord): Promise<boolean>;
   };
   /** Removes every circle the user owns (and so their profiles and doses) and their links. */
   eraseUser(userId: string): Promise<void>;

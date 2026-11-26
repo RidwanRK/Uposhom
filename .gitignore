@@ -22,3 +22,6 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Firebase client config: keep it out of the repo (CI restores it from a secret)
+apps/mobile/google-services.json

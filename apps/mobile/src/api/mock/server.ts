@@ -3,7 +3,7 @@
  * screen before A, B and C ship the live endpoints. It returns exactly the shapes in
  * packages/shared and is switched off by setting EXPO_PUBLIC_API_URL (see src/api/config.ts).
  *
- * Demo sign-ins (OTP is always 123456):
+ * Demo sign-ins (OTP is always 12345):
  *   any valid number           new Family account, Free tier, one profile
  *   01700000099                demo admin: Premium, 3 profiles, alerts, agent traces
  *   numbers ending 1111        "number not accepted" (E1317)
@@ -54,7 +54,7 @@ interface MockRes {
 }
 
 const DEMO_ADMIN = '01700000099';
-const OTP = '123456';
+const OTP = '12345'; // 5 digits, like Applink's real codes
 const FREE_SCAN_LIMIT = 5;
 const MIN = 60 * 1000;
 
@@ -900,7 +900,12 @@ route('POST', '/billing/caas/initiate', true, async (req, _p, w) => {
   await sleep(500);
   const id = nid('chg');
   w.charges.set(id, { purpose: b.purpose, status: 'OTP_SENT', attempts: 0 });
-  return ok({ chargeId: id, amount: '5.00', currency: 'BDT', status: 'OTP_SENT' });
+  return ok({
+    chargeId: id,
+    amount: b.purpose === 'DOCTOR_SUMMARY' ? '2.00' : '5.00',
+    currency: 'BDT',
+    status: 'OTP_SENT',
+  });
 });
 const grant = (w: World, purpose: string) => {
   if (purpose === 'SCAN') w.scanCredits += 1;

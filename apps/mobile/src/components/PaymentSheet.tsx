@@ -2,19 +2,20 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import type { CaasPurpose } from '@uposhom/shared';
-import { ApiError } from '../api/client';
 import { api } from '../api/endpoints';
 import { useT } from '../i18n';
 import { colors } from '../theme/colors';
 import { toLatinDigits } from '../utils/bangla';
+import { errorMessage } from '../utils/errors';
 import { qk } from '../hooks/queries';
 import { BottomSheet } from './BottomSheet';
 import { Button } from './Button';
 import { Icon } from './Icon';
 import { Text } from './Text';
 import { TextField } from './TextField';
+import { PAYMENT_OTP_MAX, cleanPaymentOtp, isPaymentOtpComplete } from '../utils/otp';
 
-type Step = 'price' | 'code' | 'processing' | 'success' | 'noBalance' | 'failed';
+type Step = 'price' | 'code' | 'processing' | 'success' | 'noBalance' | 'failed' | 'slow';
 
 /**
  * Pay-per-use bottom sheet (design.md Screen 12). Two-step CaaS flow:
@@ -64,19 +65,26 @@ export function PaymentSheet({
     setError(null);
     try {
       // The exact wording shown on screen is stored as consent evidence.
-      const r = await api.billing.caasInitiate(purpose, t('pay.price'));
+      const r = await api.billing.caasInitiate(purpose, t(`pay.prices.${purpose}`));
       setChargeId(r.chargeId);
       setStep('code');
       setExpired(false);
       if (expiry.current) clearTimeout(expiry.current);
       expiry.current = setTimeout(() => setExpired(true), 5 * 60 * 1000);
     } catch (e) {
-      setError(e instanceof ApiError && e.isNetwork ? t('common.noConnection') : t('pay.failed'));
+      // Say why (not registered, too many tries, no balance, service down), never a bare "failed".
+      setError(errorMessage(e, t, 'PAYMENT_UNAVAILABLE'));
     } finally {
       setBusy(false);
     }
   };
 
+  /**
+   * The carrier settles the charge with a notification that can take a while. Poll for about two
+   * minutes; if it is still pending then, do not call it failed (money may already be taken): say
+   * so, and the credit applies when the notification lands.
+   */
+  const POLL_TRIES = 80;
   const poll = (id: string, tries = 0) => {
     timer.current = setTimeout(async () => {
       try {
@@ -86,10 +94,11 @@ export function PaymentSheet({
           void qc.invalidateQueries({ queryKey: qk.entitlements });
           setTimeout(() => onDone(true), 900);
         } else if (r.status === 'INSUFFICIENT_BALANCE') setStep('noBalance');
-        else if (r.status === 'FAILED' || r.status === 'EXPIRED' || tries > 20) setStep('failed');
+        else if (r.status === 'FAILED' || r.status === 'EXPIRED') setStep('failed');
+        else if (tries > POLL_TRIES) setStep('slow');
         else poll(id, tries + 1);
       } catch {
-        if (tries > 20) setStep('failed');
+        if (tries > POLL_TRIES) setStep('slow');
         else poll(id, tries + 1);
       }
     }, 1500);
@@ -114,7 +123,7 @@ export function PaymentSheet({
         poll(chargeId);
       }
     } catch (e) {
-      setError(e instanceof ApiError && e.isNetwork ? t('common.noConnection') : t('pay.failed'));
+      setError(errorMessage(e, t, 'PAYMENT_UNAVAILABLE'));
     } finally {
       setBusy(false);
     }
@@ -139,7 +148,7 @@ export function PaymentSheet({
       {step === 'price' ? (
         <>
           <View style={{ backgroundColor: colors.mintTint, padding: 16, borderRadius: 12 }}>
-            <Text variant="headlineSmall">{t('pay.price')}</Text>
+            <Text variant="headlineSmall">{purpose ? t(`pay.prices.${purpose}`) : null}</Text>
           </View>
           {error ? (
             <Text variant="bodyMedium" style={{ color: colors.emergency }}>
@@ -156,9 +165,9 @@ export function PaymentSheet({
           <TextField
             label={t('pay.codeLabel')}
             value={otp}
-            onChangeText={(v) => setOtp(toLatinDigits(v).replace(/\D/g, '').slice(0, 6))}
+            onChangeText={(v) => setOtp(cleanPaymentOtp(v))}
             keyboardType="number-pad"
-            maxLength={6}
+            maxLength={PAYMENT_OTP_MAX}
             error={error}
             autoFocus
             style={{ textAlign: 'center', letterSpacing: 6 }}
@@ -166,7 +175,7 @@ export function PaymentSheet({
           <Button
             label={t('pay.pay')}
             loading={busy}
-            disabled={otp.length !== 6}
+            disabled={!isPaymentOtpComplete(otp)}
             onPress={verify}
           />
           {expired ? (
@@ -190,6 +199,12 @@ export function PaymentSheet({
       {step === 'noBalance' ? (
         <>
           <Result icon="wallet-outline" tone="tertiary" text={t('pay.noBalance')} />
+          <Button label={t('common.close')} variant="secondary" onPress={close} />
+        </>
+      ) : null}
+      {step === 'slow' ? (
+        <>
+          <Result icon="timer-sand" tone="tertiary" text={t('pay.slow')} />
           <Button label={t('common.close')} variant="secondary" onPress={close} />
         </>
       ) : null}

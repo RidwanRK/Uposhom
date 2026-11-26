@@ -59,6 +59,21 @@ describe('a subscriber arriving in another address form is still the same person
     await h.app.close();
   });
 
+  it('a subscription notification without a plus updates a stored plus-form subscriber id', async () => {
+    const h = await harness();
+    await h.addUser(PLUS);
+    await h.callback('subscription/notify', {
+      timeStamp: '20261122100000',
+      subscriberId: SUB,
+      status: 'REGISTERED',
+      applicationId: 'APP_1',
+    });
+    await settle(h);
+    expect((await h.stores.subscriptions.get(PLUS))?.status).toBe('REGISTERED');
+    expect(await h.stores.subscriptions.get(SUB)).toBeNull();
+    await h.app.close();
+  });
+
   it('an unknown number is left exactly as given, and its STOP is still honoured', async () => {
     const h = await harness();
     await h.callback('sms/receive', mo('STOP', 'tel:+8801700000000', 'id-3'));

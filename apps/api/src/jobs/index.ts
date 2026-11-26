@@ -1,7 +1,8 @@
-import { ApplinkError, toTelAddress } from '@uposhom/applink-client';
+import { ApplinkError } from '@uposhom/applink-client';
 import type { CaasService } from '../billing/caas.js';
 import type { SubscriptionService } from '../billing/subscriptions.js';
 import type { ServiceDeps } from '../services/deps.js';
+import { addressCandidates } from '../sms/identity.js';
 
 /** Queue names and their schedules (cron, Asia/Dhaka). One job at a time, no pile-ups. */
 export const JOBS = {
@@ -45,9 +46,12 @@ export function createJobs(deps: ServiceDeps, caas: CaasService, subs: Subscript
 
     for (let i = 0; i < stale.length; i += SWEEP_BATCH) {
       const batch = stale.slice(i, i + SWEEP_BATCH);
-      const byNormalised = new Map(
-        batch.map((r) => [toTelAddress(r.subscriberId), r.subscriberId]),
-      );
+      const byVariant = new Map<string, string>();
+      for (const r of batch) {
+        for (const candidate of addressCandidates(r.subscriberId)) {
+          if (!byVariant.has(candidate)) byVariant.set(candidate, r.subscriberId);
+        }
+      }
       let res;
       try {
         res = await deps.applink.getSubscriberChargingInfo(batch.map((r) => r.subscriberId));
@@ -64,7 +68,9 @@ export function createJobs(deps: ServiceDeps, caas: CaasService, subs: Subscript
           log.warn({ statusCode: entry.statusCode }, 'subscription sweep entry rejected');
           continue;
         }
-        const stored = byNormalised.get(toTelAddress(entry.subscriberId));
+        const stored = addressCandidates(entry.subscriberId)
+          .map((c) => byVariant.get(c))
+          .find((v): v is string => v !== undefined);
         if (!stored || !entry.subscriptionStatus) continue;
         await subs.handleNotification({
           subscriberId: stored,

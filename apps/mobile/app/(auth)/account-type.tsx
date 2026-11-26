@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Icon, type IconName } from '../../src/components/Icon';
@@ -56,12 +57,16 @@ function TypeCard({
   sub: string;
   onPress: () => void;
 }) {
+  const [pressed, setPressed] = useState(false);
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={title}
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+      // A plain style array: NativeWind's Pressable wrapper can drop a style function.
+      style={[styles.card, pressed && { opacity: 0.85 }]}
     >
       <View style={styles.iconWrap}>
         <Icon name={icon} size={34} color="primary" />

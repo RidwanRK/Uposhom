@@ -43,6 +43,12 @@ export const AI_CONFIG = {
         'openai/gpt-4o-mini'
       );
     },
+    get audioSTT(): string {
+      return (
+        process.env.OPENROUTER_MODEL_AUDIO ||
+        'whisper-1'
+      );
+    },
   },
   headers: {
     referer: 'https://uposhom.health',

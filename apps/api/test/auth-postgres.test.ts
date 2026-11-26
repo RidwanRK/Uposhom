@@ -43,7 +43,7 @@ describe.skipIf(!url)('OTP sign-up on the Postgres stores', () => {
 
     const a = make();
     expect((await post(a, 'otp/request', { msisdn: '01959979376' })).statusCode).toBe(200);
-    const ver = await post(a, 'otp/verify', { msisdn: '01959979376', otp: '123456' });
+    const ver = await post(a, 'otp/verify', { msisdn: '01959979376', otp: '12345' });
     expect(ver.statusCode).toBe(200);
     const body = ver.json();
     expect(body.user.msisdn).toBe('8801959979376');
@@ -95,7 +95,7 @@ describe.skipIf(!url)('OTP sign-up on the Postgres stores', () => {
     const signUp = await app.inject({
       method: 'POST',
       url: '/api/v1/auth/otp/verify',
-      payload: { msisdn: '01811111111', otp: '123456' },
+      payload: { msisdn: '01811111111', otp: '12345' },
     });
     const { token, user } = signUp.json();
 
@@ -135,7 +135,10 @@ describe.skipIf(!url)('OTP sign-up on the Postgres stores', () => {
     await vi.waitFor(async () =>
       expect((await stores.charges.get(chargeId))?.status).toBe('SETTLED'),
     );
-    expect(await stores.entitlements.available(user.id, 'DOCTOR_SUMMARY')).toBe(1);
+    // The grant is written just after the charge is marked SETTLED, by the same queued job.
+    await vi.waitFor(async () =>
+      expect(await stores.entitlements.available(user.id, 'DOCTOR_SUMMARY')).toBe(1),
+    );
 
     // A replay cannot grant a second credit (UNIQUE on granted_by_charge).
     await app.services.caas.handleNotification(note({}));

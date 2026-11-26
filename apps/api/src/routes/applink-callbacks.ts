@@ -89,7 +89,13 @@ export function applinkCallbackRoutes(deps: CallbackDeps) {
       app.post(route.path, { bodyLimit: MAX_CALLBACK_BYTES }, async (req) => {
         const parsed = route.schema.safeParse(req.body);
         if (!parsed.success) {
-          req.log.warn({ type: route.type }, 'callback payload rejected');
+          req.log.warn(
+            {
+              type: route.type,
+              fields: parsed.error.issues.map((i) => i.path.join('.') || '(root)'),
+            },
+            'callback payload rejected',
+          );
           return ACK;
         }
         // The subscriber notification carries our API key back to us: drop it before anything

@@ -10,6 +10,13 @@ import { REFRESH_TOKEN_TTL_MS, hashRefreshToken, type Role, type TokenService } 
 
 export const OTP_VALIDITY_SECONDS = 300; // Applink OTPs are valid five minutes
 export const MAX_VERIFY_ATTEMPTS = 5;
+/**
+ * Applink's sign-in OTP is five digits. Anything else is refused here, before Applink is called; a
+ * five-digit code is then checked by Applink itself (otp/verify), never by us, so only the code
+ * the phone received passes. Payment (CaaS) codes are a separate service (billing/caas.ts).
+ */
+export const OTP_DIGITS = 5;
+const OTP_FORMAT = new RegExp(`^\\d{${OTP_DIGITS}}$`);
 
 /** OTP requests are paid SMS: without these limits the endpoint is an SMS-bombing tool. */
 export const LIMITS = {
@@ -51,6 +58,11 @@ export interface OtpServiceDeps {
   tokens: TokenService;
   log: { warn: (obj: object, msg: string) => void };
   now?: () => Date;
+  /**
+   * Normalised numbers that hold the admin flag (ADMIN_MSISDNS). Applied at OTP sign-in. Undefined
+   * leaves the flag as it is in the database.
+   */
+  adminMsisdns?: ReadonlySet<string>;
 }
 
 export interface VerifiedSession {
@@ -74,6 +86,7 @@ export function createOtpService(deps: OtpServiceDeps) {
     msisdn: string,
     ip: string,
     purpose: OtpPurpose,
+    familyLink?: { userId: string; profileId: string },
   ): Promise<{ maskedPhone: string; expiresInSeconds: number }> {
     if (!deps.applink) throw new AuthError('SERVICE_TROUBLE', 503);
 
@@ -93,6 +106,22 @@ export function createOtpService(deps: OtpServiceDeps) {
     // code only re-proves a number that already consented.
     if (purpose === 'SIGNUP') {
       await deps.stores.consents.record({ msisdn, kind: 'SIGNUP_OTP_V1', channel: 'APP', ip }, t);
+    }
+    // Family Link verify activates an Applink subscription for the DEPENDENT's number, so their
+    // consent is recorded against their profile before the code goes out. The admin who asked is
+    // kept as the user who showed them the disclosure.
+    if (purpose === 'FAMILY_LINK' && familyLink) {
+      await deps.stores.consents.record(
+        {
+          msisdn,
+          userId: familyLink.userId,
+          profileId: familyLink.profileId,
+          kind: 'FAMILY_LINK_OTP_V1',
+          channel: 'APP',
+          ip,
+        },
+        t,
+      );
     }
 
     let referenceNo: string | undefined;
@@ -116,18 +145,24 @@ export function createOtpService(deps: OtpServiceDeps) {
       purpose,
       referenceNo,
       expiresAt: new Date(t.getTime() + OTP_VALIDITY_SECONDS * 1000),
+      ...(familyLink ? { context: familyLink.profileId } : {}),
     });
     return { maskedPhone: maskMsisdn(msisdn), expiresInSeconds: OTP_VALIDITY_SECONDS };
   }
 
   /** Attempt cap, expiry, the Applink verify call, error mapping. Returns what Applink answered. */
-  async function checkOtp(msisdn: string, otp: string, purpose: OtpPurpose) {
+  async function checkOtp(msisdn: string, otp: string, purpose: OtpPurpose, context?: string) {
     if (!deps.applink) throw new AuthError('SERVICE_TROUBLE', 503);
 
     const t = now();
     const session = await deps.stores.otpSessions.findOpen(msisdn, t);
-    // A code requested for one purpose can never be spent on another.
-    if (!session || session.purpose !== purpose || session.attempts >= MAX_VERIFY_ATTEMPTS) {
+    // A code requested for one purpose (or one profile) can never be spent on another.
+    if (
+      !session ||
+      session.purpose !== purpose ||
+      (context !== undefined && session.context !== context) ||
+      session.attempts >= MAX_VERIFY_ATTEMPTS
+    ) {
       throw new AuthError('OTP_EXPIRED', 410);
     }
     // Count the attempt before calling Applink, so a crash cannot grant a free retry.
@@ -167,17 +202,26 @@ export function createOtpService(deps: OtpServiceDeps) {
     accountType?: AccountType | undefined;
   }): Promise<VerifiedSession> {
     const msisdn = normalizeBdMsisdn(input.msisdn);
-    if (!msisdn || !/^\d{4,8}$/.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
+    if (!msisdn || !OTP_FORMAT.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
 
     const verified = await checkOtp(msisdn, input.otp, 'SIGNUP');
 
     // subscriberId and subscriptionStatus are stored exactly as returned and treated as opaque.
-    const user = await deps.stores.users.upsertVerified({
+    let user = await deps.stores.users.upsertVerified({
       msisdn,
       accountType: input.accountType ?? 'INDIVIDUAL',
       subscriberId: verified.subscriberId ?? null,
       subscriptionStatus: verified.subscriptionStatus ?? null,
     });
+    // The admin flag follows ADMIN_MSISDNS when it is configured. Only an OTP-verified number can
+    // pick it up, and the token carries it, so it changes at the next sign-in.
+    if (deps.adminMsisdns) {
+      const isAdmin = deps.adminMsisdns.has(msisdn);
+      if (isAdmin !== user.isAdmin) {
+        await deps.stores.users.setAdmin(user.id, isAdmin);
+        user = { ...user, isAdmin };
+      }
+    }
     return issueSession(user);
   }
 
@@ -190,7 +234,7 @@ export function createOtpService(deps: OtpServiceDeps) {
 
   /** Proves the person holding the phone is the signed-in user. Returns a five-minute token. */
   async function verifyStepUp(input: { userId: string; otp: string }): Promise<string> {
-    if (!/^\d{4,8}$/.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
+    if (!OTP_FORMAT.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
     const user = await deps.stores.users.findById(input.userId);
     if (!user) throw new AuthError('INVALID_REFRESH', 401);
     const verified = await checkOtp(user.msisdn, input.otp, 'STEP_UP');
@@ -199,6 +243,39 @@ export function createOtpService(deps: OtpServiceDeps) {
       throw new AuthError('OTP_WRONG', 401);
     }
     return deps.tokens.signStepUp(user.id, now());
+  }
+
+  /**
+   * Family Link, step 1: a code to the dependent's own phone. The caller (the domain service) has
+   * already checked that the signed-in user administers the profile.
+   */
+  async function requestFamilyLink(input: {
+    msisdn: string;
+    ip: string;
+    userId: string;
+    profileId: string;
+  }): Promise<{ maskedPhone: string; expiresInSeconds: number }> {
+    const msisdn = normalizeBdMsisdn(input.msisdn);
+    if (!msisdn) throw new AuthError('NUMBER_NOT_ACCEPTED', 422);
+    return sendOtp(msisdn, input.ip, 'FAMILY_LINK', {
+      userId: input.userId,
+      profileId: input.profileId,
+    });
+  }
+
+  /**
+   * Family Link, step 2: the dependent's code. Returns the subscriber id exactly as Applink gave it
+   * (opaque, never shown to the app), for the domain service to store on the profile.
+   */
+  async function verifyFamilyLink(input: {
+    msisdn: string;
+    otp: string;
+    profileId: string;
+  }): Promise<{ msisdn: string; subscriberId: string | null }> {
+    const msisdn = normalizeBdMsisdn(input.msisdn);
+    if (!msisdn || !OTP_FORMAT.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
+    const verified = await checkOtp(msisdn, input.otp, 'FAMILY_LINK', input.profileId);
+    return { msisdn, subscriberId: verified.subscriberId ?? null };
   }
 
   async function issueSession(user: UserRecord): Promise<VerifiedSession> {
@@ -246,7 +323,16 @@ export function createOtpService(deps: OtpServiceDeps) {
     if (session) await deps.stores.sessions.revoke(session.id, now());
   }
 
-  return { requestOtp, verifyOtp, requestStepUp, verifyStepUp, refresh, logout };
+  return {
+    requestOtp,
+    verifyOtp,
+    requestStepUp,
+    verifyStepUp,
+    requestFamilyLink,
+    verifyFamilyLink,
+    refresh,
+    logout,
+  };
 }
 
 export type OtpService = ReturnType<typeof createOtpService>;

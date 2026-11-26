@@ -41,13 +41,15 @@ describe.skipIf(!url)('domain schema on Postgres', () => {
     await admin?.end();
   });
 
-  it('applies after A, once, and is a no-op the second time', async () => {
+  it('applies after A, once, and is a no-op the second time', { timeout: 30_000 }, async () => {
     expect(await runMigrations(pool)).toEqual(MIGRATIONS.map((m) => m.id));
     expect(await runDomainMigrations(pool)).toEqual([
       '0000_extensions',
       '0001_domain_tables',
       '0002_invites',
       '0003_notices',
+      '0004_app_features',
+      'drug:0002_drug_tables',
     ]);
     expect(await runDomainMigrations(pool)).toEqual([]);
 

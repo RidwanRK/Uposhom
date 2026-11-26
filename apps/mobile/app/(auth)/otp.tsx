@@ -1,17 +1,20 @@
 import { useLocalSearchParams, router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import { ApiError } from '../../src/api/client';
 import { api } from '../../src/api/endpoints';
 import { Button } from '../../src/components/Button';
 import { Header } from '../../src/components/Header';
 import { Screen } from '../../src/components/Screen';
 import { Text } from '../../src/components/Text';
-import { TextField } from '../../src/components/TextField';
+import { OtpBoxes } from '../../src/components/OtpBoxes';
 import { useT } from '../../src/i18n';
 import { useSession } from '../../src/store/session';
 import { toBn, toLatinDigits, pad2 } from '../../src/utils/bangla';
+import { errorMessage } from '../../src/utils/errors';
+import { isOtpComplete } from '../../src/utils/otp';
 
-/** Sign-up step 3: 6-digit code, visible 5-minute countdown, resend only after the countdown. */
+/** Sign-up step 3: the 5-digit SMS code, a 5-minute countdown, resend after it. */
 export default function Otp() {
   const t = useT();
   const { msisdn, masked, expiresAt } = useLocalSearchParams<{
@@ -53,7 +56,8 @@ export default function Otp() {
         setError(t('auth.otp.expired'));
         setLeft(0);
       } else {
-        setError(t('common.noConnection'));
+        // Too many tries, the service being down, and so on: say which, in plain Bangla.
+        setError(errorMessage(e, t));
       }
     } finally {
       setBusy(false);
@@ -83,34 +87,40 @@ export default function Otp() {
   return (
     <>
       <Header title={t('auth.otp.title')} tone="plain" />
-      <Screen edges={['bottom']} contentStyle={{ gap: 18 }}>
-        <Text variant="bodyLarge">
-          {t('auth.otp.sentTo')}: {toBn(masked ?? '')}
-        </Text>
-        <TextField
+      <Screen edges={['bottom']} contentStyle={{ gap: 20 }}>
+        <View style={{ gap: 4 }}>
+          <Text variant="bodyLarge" color="onSurfaceVariant">
+            {t('auth.otp.sentTo')}
+          </Text>
+          <Text variant="headlineSmall" color="onSurface">
+            {toBn(masked ?? '')}
+          </Text>
+        </View>
+        <Text variant="titleMedium">{t('auth.otp.label')}</Text>
+        <OtpBoxes
           label={t('auth.otp.label')}
           value={otp}
-          onChangeText={(v) => {
-            setOtp(toLatinDigits(v).replace(/\D/g, '').slice(0, 6));
+          onChange={(v) => {
+            setOtp(v);
             setError(null);
           }}
-          keyboardType="number-pad"
-          maxLength={6}
-          autoFocus
           error={error}
-          style={{ fontSize: 30, textAlign: 'center', letterSpacing: 10 }}
+          autoFocus
         />
         <Text
-          variant="titleMedium"
+          variant="bodyMedium"
+          color={left === 0 ? 'emergency' : 'onSurfaceVariant'}
           style={{ textAlign: 'center' }}
           accessibilityLiveRegion="polite"
         >
-          {t('auth.otp.countdown')}: {toBn(`${pad2(mm)}:${pad2(ss)}`)}
+          {left === 0
+            ? t('auth.otp.expired')
+            : `${t('auth.otp.countdown')}: ${toBn(`${pad2(mm)}:${pad2(ss)}`)}`}
         </Text>
         <Button
           label={t('auth.otp.verify')}
           loading={busy}
-          disabled={otp.length !== 6 || left === 0}
+          disabled={!isOtpComplete(otp) || left === 0}
           onPress={verify}
         />
         {left === 0 ? (

@@ -8,5 +8,7 @@
 !.env.example
 apps/mobile/*
 !apps/mobile/package.json
-data
+# Only the seed JSON the API reads at runtime (workstream C's catalogue, glossary, partner list)
+data/*
+!data/*.json
 *.md

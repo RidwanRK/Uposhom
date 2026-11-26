@@ -31,7 +31,7 @@ export const DEFAULT_BILLING: BillingConfig = {
   },
   caas: {
     SCAN: { amount: '5.00' },
-    DOCTOR_SUMMARY: { amount: '5.00' },
+    DOCTOR_SUMMARY: { amount: '2.00' },
     REPORT_EXPLAIN: { amount: '5.00' },
   },
   limits: {

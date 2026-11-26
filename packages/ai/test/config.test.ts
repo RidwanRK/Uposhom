@@ -12,6 +12,7 @@ describe('OpenRouter Model Configuration via Environment Variables', () => {
     delete process.env.OPENROUTER_MODEL_VISION;
     delete process.env.OPENROUTER_MODEL_VISION_FALLBACK;
     delete process.env.OPENROUTER_MODEL_FALLBACK;
+    delete process.env.OPENROUTER_MODEL_AUDIO;
   });
 
   afterEach(() => {
@@ -23,6 +24,12 @@ describe('OpenRouter Model Configuration via Environment Variables', () => {
     expect(AI_CONFIG.models.visionPrimary).toBe('google/gemini-2.5-flash');
     expect(AI_CONFIG.models.visionFallback).toBe('qwen/qwen2.5-vl-72b-instruct');
     expect(AI_CONFIG.models.agentsFallback).toBe('openai/gpt-4o-mini');
+    expect(AI_CONFIG.models.audioSTT).toBe('whisper-1');
+  });
+
+  it('controls audio STT model via OPENROUTER_MODEL_AUDIO', () => {
+    process.env.OPENROUTER_MODEL_AUDIO = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
+    expect(AI_CONFIG.models.audioSTT).toBe('nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free');
   });
 
   it('controls primary model slug across agents and vision via OPENROUTER_MODEL', () => {

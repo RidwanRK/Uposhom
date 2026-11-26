@@ -152,7 +152,8 @@ export function detectSicknessPatterns(timeline: TimelineEntry[]): PatternCard[]
     const months = Object.keys(monthlyCounts).sort();
 
     const chronicTip =
-      tips.find((t) => t.tags?.includes('hypertension') || t.category === 'blood_pressure')?.contentBn ||
+      tips.find((t) => t.tags?.includes('hypertension') || t.category === 'blood_pressure')
+        ?.contentBn ||
       'উচ্চ রক্তচাপ কোনো দৃশ্যমান লক্ষণ ছাড়াই ক্ষতি করতে পারে। রক্তচাপ স্বাভাবিক থাকলেও চিকিৎসকের নির্দেশ ছাড়া প্রেশারের ওষুধ বাদ দেবেন না।';
 
     patterns.push({
@@ -169,7 +170,10 @@ export function detectSicknessPatterns(timeline: TimelineEntry[]): PatternCard[]
 
 /**
  * Returns comprehensive sickness-pattern insights for a profile.
- * Merges synthetic baseline data with any runtime timeline records.
+ *
+ * The labelled synthetic history (data/synthetic-history.json) belongs to its own demo profile
+ * only. A real profile sees its own timeline, and its patterns are computed from that alone, so
+ * nobody is shown medical history that is not theirs.
  */
 export function getProfileInsights(
   profileId: string,
@@ -178,9 +182,10 @@ export function getProfileInsights(
     isPremium?: boolean;
   } = {},
 ): InsightsResponse {
-  const seed = loadSyntheticHistory();
+  const history = loadSyntheticHistory();
+  const seed = history && history.profileId === profileId ? history : null;
 
-  // Combine seed timeline with any additional profile-specific timeline items
+  // Combine the demo timeline (demo profile only) with the profile's own timeline items
   const baseTimeline = seed?.timeline || [];
   const fullTimeline = [...baseTimeline, ...(options.additionalTimeline || [])];
 

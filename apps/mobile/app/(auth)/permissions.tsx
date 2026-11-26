@@ -1,3 +1,4 @@
+import { requestRecordingPermissionsAsync } from 'expo-audio';
 import { Camera } from 'expo-camera';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -10,15 +11,28 @@ import { useT } from '../../src/i18n';
 import { requestNotificationPermission } from '../../src/notifications/reminders';
 import { colors } from '../../src/theme/colors';
 import { toBn } from '../../src/utils/bangla';
+import { openAppSettings } from '../../src/utils/permissions';
 
 interface Step {
-  key: 'notifications' | 'camera';
+  key: 'notifications' | 'camera' | 'microphone';
   icon: IconName;
 }
 const STEPS: Step[] = [
   { key: 'notifications', icon: 'bell-ring-outline' },
   { key: 'camera', icon: 'camera-outline' },
+  { key: 'microphone', icon: 'microphone-outline' },
 ];
+
+const TITLE = {
+  notifications: 'auth.permissions.notifications',
+  camera: 'auth.permissions.camera',
+  microphone: 'auth.permissions.microphone',
+} as const;
+const WHY = {
+  notifications: 'auth.permissions.notificationsWhy',
+  camera: 'auth.permissions.cameraWhy',
+  microphone: 'auth.permissions.microphoneWhy',
+} as const;
 
 /**
  * Sign-up step 4: permissions, one at a time with a plain-Bangla reason (design.md 6.11).
@@ -28,6 +42,8 @@ export default function Permissions() {
   const t = useT();
   const [i, setI] = useState(0);
   const [granted, setGranted] = useState<Record<string, boolean>>({});
+  // Denied for good ("don't ask again"): only Settings can turn it on now.
+  const [blocked, setBlocked] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
   const step = STEPS[i] as Step;
 
@@ -40,10 +56,19 @@ export default function Permissions() {
     setBusy(true);
     try {
       let ok = false;
-      if (step.key === 'notifications')
+      let canAskAgain = true;
+      if (step.key === 'notifications') {
         ok = Platform.OS === 'android' ? await requestNotificationPermission() : false;
-      else ok = (await Camera.requestCameraPermissionsAsync()).granted;
+      } else {
+        const res =
+          step.key === 'camera'
+            ? await Camera.requestCameraPermissionsAsync()
+            : await requestRecordingPermissionsAsync();
+        ok = res.granted;
+        canAskAgain = res.canAskAgain;
+      }
       setGranted((g) => ({ ...g, [step.key]: ok }));
+      setBlocked((b) => ({ ...b, [step.key]: !ok && !canAskAgain }));
     } catch {
       setGranted((g) => ({ ...g, [step.key]: false }));
     } finally {
@@ -72,14 +97,10 @@ export default function Permissions() {
           <Icon name={step.icon} size={60} color="primary" />
         </View>
         <Text variant="headlineMedium" style={{ textAlign: 'center' }} accessibilityRole="header">
-          {step.key === 'notifications'
-            ? t('auth.permissions.notifications')
-            : t('auth.permissions.camera')}
+          {t(TITLE[step.key])}
         </Text>
         <Text variant="bodyLarge" style={{ textAlign: 'center' }}>
-          {step.key === 'notifications'
-            ? t('auth.permissions.notificationsWhy')
-            : t('auth.permissions.cameraWhy')}
+          {t(WHY[step.key])}
         </Text>
       </View>
       {done ? (
@@ -91,7 +112,20 @@ export default function Permissions() {
         </>
       ) : (
         <>
-          <Button label={t('auth.permissions.allow')} loading={busy} onPress={allow} />
+          {blocked[step.key] ? (
+            <>
+              <Text variant="bodyMedium" style={{ textAlign: 'center', color: colors.emergency }}>
+                {t('auth.permissions.blocked')}
+              </Text>
+              <Button
+                label={t('common.openSettings')}
+                icon="cog-outline"
+                onPress={() => void openAppSettings()}
+              />
+            </>
+          ) : (
+            <Button label={t('auth.permissions.allow')} loading={busy} onPress={allow} />
+          )}
           <Button label={t('auth.permissions.skip')} variant="ghost" onPress={next} />
         </>
       )}

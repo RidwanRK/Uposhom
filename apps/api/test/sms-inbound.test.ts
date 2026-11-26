@@ -27,8 +27,9 @@ describe('parseMo', () => {
     ['HELP', { kind: 'HELP' }],
     ['UPOSHOM', { kind: 'HELP' }],
     ['', { kind: 'HELP' }],
-    ['hello there', { kind: 'UNKNOWN' }],
-    ['UPOSHOM 9', { kind: 'UNKNOWN' }],
+    ['hello there', { kind: 'UNKNOWN', text: 'hello there' }],
+    ['UPOSHOM 9', { kind: 'UNKNOWN', text: '9' }],
+    ['uposhom   Next  medicine kokhon?', { kind: 'UNKNOWN', text: 'Next medicine kokhon?' }],
   ])('%j', (text, expected) => {
     expect(parseMo(text, 'UPOSHOM')).toEqual(expected);
   });
@@ -249,6 +250,108 @@ describe('delivery reports', () => {
       await settle(h);
     }
     expect(await h.stores.optOuts.suppressionFor(SUB)).toBeNull();
+    await h.app.close();
+  });
+});
+
+describe('SMS Q&A, HELP and dependents’ own numbers', () => {
+  const sent = (h: Awaited<ReturnType<typeof harness>>) =>
+    h.applink.sendSms.mock.calls.map((c) => (c as unknown as [string, string])[1]);
+
+  it('sends free text (without the keyword) to the Q&A port and SMSes the answer back', async () => {
+    const smsQuestion = vi.fn(async () => ({ replyText: 'পরের ওষুধ রাত ৯টায়।' }));
+    const h = await harness({ ports: { smsQuestion } });
+    await h.addUser();
+    await h.callback('sms/receive', mo('UPOSHOM next medicine kokhon?'));
+    await settle(h);
+    expect(smsQuestion).toHaveBeenCalledWith({ subscriberId: SUB, text: 'next medicine kokhon?' });
+    expect(sent(h)).toEqual(['পরের ওষুধ রাত ৯টায়।']);
+    await h.app.close();
+  });
+
+  it('never sends a reply code or HELP to the Q&A port', async () => {
+    const smsQuestion = vi.fn(async () => ({ replyText: 'x' }));
+    const h = await harness({ ports: { smsQuestion } });
+    await h.addUser();
+    for (const text of ['UPOSHOM 1', '২', 'HELP', 'UPOSHOM'])
+      await h.callback('sms/receive', mo(text));
+    await settle(h);
+    expect(smsQuestion).not.toHaveBeenCalled();
+    await h.app.close();
+  });
+
+  it('stays silent when the port says so (daily cap or SMS allowance used up)', async () => {
+    const h = await harness({
+      ports: { smsQuestion: async () => ({ replyText: null, silent: true }) },
+    });
+    await h.addUser();
+    await h.callback('sms/receive', mo('what is my next dose'));
+    await settle(h);
+    expect(h.applink.sendSms).not.toHaveBeenCalled();
+    await h.app.close();
+  });
+
+  it('falls back to the usage line when the Q&A fails, and quotes the support contact', async () => {
+    const h = await harness({
+      ports: {
+        smsQuestion: async () => {
+          throw new Error('model down');
+        },
+      },
+      config: { SUPPORT_EMAIL: 'help@example.com', SUPPORT_PHONE: '01700000000' },
+    });
+    await h.addUser();
+    await h.callback('sms/receive', mo('what is my next dose'));
+    await h.callback('sms/receive', mo('HELP'));
+    await settle(h);
+    for (const text of sent(h)) {
+      expect(text).toContain('UPOSHOM 1');
+      expect(text).toContain('STOP');
+      expect(text).toContain('help@example.com, 01700000000');
+      expect(text).not.toContain('next dose');
+    }
+    expect(sent(h)).toHaveLength(2);
+    await h.app.close();
+  });
+
+  it('treats a dependent’s own phone (Family Link) as a known sender', async () => {
+    const doseReply = vi.fn(async () => ({ replyText: 'ধন্যবাদ' }));
+    const smsQuestion = vi.fn(async () => ({ replyText: 'উত্তর' }));
+    const onProfileOptOut = vi.fn(async () => undefined);
+    const h = await harness({
+      ports: {
+        doseReply,
+        smsQuestion,
+        onProfileOptOut,
+        isProfileSubscriber: async (id) => id === OTHER,
+      },
+    });
+    await h.callback('sms/receive', mo('UPOSHOM 1', OTHER));
+    await h.callback('sms/receive', mo('ki khabo', OTHER));
+    await h.callback('sms/receive', mo('STOP', OTHER));
+    await settle(h);
+    expect(doseReply).toHaveBeenCalledWith({
+      subscriberId: OTHER,
+      code: 'TAKEN',
+      profileTag: null,
+    });
+    expect(smsQuestion).toHaveBeenCalledWith({ subscriberId: OTHER, text: 'ki khabo' });
+    expect(onProfileOptOut).toHaveBeenCalledWith({ subscriberId: OTHER, source: 'SMS' });
+    expect(await h.stores.optOuts.suppressionFor(OTHER)).toBe('STOP');
+    expect(h.applink.unregister).toHaveBeenCalledWith(OTHER);
+    await h.app.close();
+  });
+
+  it('asks nothing for a number nobody holds', async () => {
+    const smsQuestion = vi.fn(async () => ({ replyText: 'x' }));
+    const onProfileOptOut = vi.fn(async () => undefined);
+    const h = await harness({ ports: { smsQuestion, onProfileOptOut } });
+    await h.callback('sms/receive', mo('what is my next dose', OTHER));
+    await h.callback('sms/receive', mo('STOP', OTHER));
+    await settle(h);
+    expect(smsQuestion).not.toHaveBeenCalled();
+    expect(onProfileOptOut).not.toHaveBeenCalled();
+    expect(h.applink.sendSms).not.toHaveBeenCalled();
     await h.app.close();
   });
 });

@@ -108,44 +108,41 @@ uposhom/
 │   │
 │   ├── api/                         # Fastify Core REST Gateway (Node.js 22 / TypeScript)
 │   │   ├── src/
-│   │   │   ├── config/              # Env validation, Applink credentials, static IP check
-│   │   │   ├── middleware/          # JWT auth, circle-scoped RBAC, rate-limiter, CORS
-│   │   │   ├── plugins/             # Fastify Swagger, Multipart, rate-limit (scoped to /api/v1 only, never the callbacks), Postgres (Drizzle) connector
-│   │   │   ├── plugins/applink-callbacks.ts  # Encapsulated plugin for the four callback routes: lenient JSON parser, small bodyLimit, error handler that always returns 200 S1000, no rate limiter or JWT/CSRF hooks
-│   │   │   ├── routes/
-│   │   │   │   ├── auth.ts          # /api/v1/auth (OTP request, verify, JWT issuance, refresh, logout)
-│   │   │   │   ├── circles.ts       # /api/v1/circles, /profiles, /links (family circle, profiles, roles, invites, secondary caregiver)
-│   │   │   │   ├── devices.ts       # /api/v1/devices (Expo push token registration)
-│   │   │   │   ├── account.ts       # /api/v1/account (settings, discreet mode, SMS opt-out, delete-my-data)
-│   │   │   │   ├── admin.ts         # /api/v1/admin/traces (admin flag only)
-│   │   │   │   ├── prescriptions.ts # /api/v1/prescriptions (upload, OCR parse, confirm)
-│   │   │   │   ├── doses.ts         # /api/v1/doses (today's schedule, taken/snooze/skip action)
-│   │   │   │   ├── billing.ts       # /api/v1/billing (CaaS micro-charge, Subscription)
-│   │   │   │   ├── reports.ts       # /api/v1/reports (lab report upload & flag analysis)
-│   │   │   │   ├── symptoms.ts      # /api/v1/symptoms (symptom journal, 999 red flag)
-│   │   │   │   ├── generics.ts      # /api/v1/drugs/generics (same-ingredient, strength and form alternatives)
-│   │   │   │   ├── pharmacies.ts    # /api/v1/pharmacies (geolocation & stock lookup, owner stock toggle and store profile)
-│   │   │   │   └── callbacks/       # Applink Inbound Webhook Handlers
-│   │   │   │       ├── sms-receive.ts             # Inbound MO reply processor
-│   │   │   │       ├── sms-delivery.ts            # DLR delivery receipts
-│   │   │   │       ├── subscriber-notify.ts       # Subscription lifecycle events (password stripped)
-│   │   │   │       └── charging-notify.ts         # CaaS transaction settlement
-│   │   │   ├── services/            # Business logic services bridging routes & DB
-│   │   │   └── index.ts             # Fastify server bootstrap & graceful shutdown
+│   │   │   ├── app.ts               # buildApp(): wires stores, queue, services, routes; tests build the same app
+│   │   │   ├── index.ts             # Server bootstrap, Postgres/pg-boss selection, graceful shutdown
+│   │   │   ├── config/env.ts        # Single zod-validated config module; refuses to boot on bad config
+│   │   │   ├── auth/                # OTP service (sign-up, step-up, Family Link), JWT + rotating refresh tokens, guard
+│   │   │   ├── billing/             # Subscription plans, CaaS two-step charging, entitlements and quotas
+│   │   │   ├── callbacks/           # Callback event sink (acknowledge first, queue, process out of band)
+│   │   │   ├── sms/                 # Throttled send job, MO parser (reply codes, STOP, free-text Q&A), delivery reports
+│   │   │   ├── subscription/        # Opt-out and the retried Applink Unregister
+│   │   │   ├── jobs/                # Platform crons: charge reconciliation, subscription sweep, Base Size, retention, dead letters
+│   │   │   ├── queue/               # pg-boss and in-memory queues behind one interface
+│   │   │   ├── stores/              # Platform tables (users, otp_sessions, consents, sms_log ...), memory and Postgres
+│   │   │   ├── db/                  # Workstream A's ordered SQL migrations for the platform tables
+│   │   │   ├── domain/              # Workstream B: circles, Family Link, confirm, doses, ladder, care jobs, push, features
+│   │   │   ├── ports.ts             # The seams platform code calls into the domain through
+│   │   │   ├── ops/                 # Alerts, retention periods, HTTP safety, smoke checks
+│   │   │   ├── privacy/             # Delete-my-data
+│   │   │   ├── security/            # AES-GCM phone encryption and keyed lookup hash
+│   │   │   └── routes/
+│   │   │       ├── auth.ts          # /api/v1/auth (OTP request, verify, step-up, refresh, logout)
+│   │   │       ├── domain.ts        # /api/v1 circles, profiles, Family Link, links, confirm, doses, devices, appointments, alerts, admin traces
+│   │   │       ├── features.ts      # /api/v1 scans, reports, symptom journal, doctor summary, voice, insights, drugs, pharmacies, settings
+│   │   │       ├── billing.ts       # /api/v1/billing (Subscription)
+│   │   │       ├── caas.ts          # /api/v1/billing/caas (pay-per-use)
+│   │   │       ├── optout.ts        # /api/v1/account (SMS opt-out, delete-my-data)
+│   │   │       ├── legal.ts         # /legal/terms, /legal/privacy, /support
+│   │   │       └── applink-callbacks.ts # The four callback routes: lenient parser, small bodyLimit, always 200 S1000, no JWT
+│   │   ├── test/                    # Vitest suites; Postgres contract suites run when TEST_DATABASE_URL is set
 │   │   ├── package.json
 │   │   └── tsconfig.json
 │   │
-│   ├── worker/                      # Asynchronous Background Processor (pg-boss)
-│   │   ├── src/
-│   │   │   ├── queues/              # Queue names and job payload schemas
-│   │   │   ├── jobs/
-│   │   │   │   ├── reminder-job.ts         # Dispatches due medication SMS alerts and push
-│   │   │   │   ├── sms-send-job.ts         # Throttled outbound SMS queue (E1318 per-second, E1319 per-day limits)
-│   │   │   │   ├── refill-appointment-job.ts # Refill-date and follow-up appointment reminders
-│   │   │   │   ├── escalation-job.ts       # 15m/30m/50m Caregiver escalation state machine
-│   │   │   │   ├── reconciliation-cron.ts  # Daily CaaS P1003 & Subscription reconciliation
-│   │   │   │   └── digest-job.ts           # Weekly caregiver adherence summaries
-│   │   │   └── index.ts             # pg-boss worker supervisor
+│   ├── worker/                      # Placeholder container (heartbeat only)
+│   │   ├── src/index.ts             # All pg-boss consumers (reminder ladder, SMS send, refills and follow-ups,
+│   │   │                            # digest, reconciliation, retention) currently run inside the API process
+│   │   │                            # (apps/api/src/jobs and src/domain). Moving them here is optional; the
+│   │   │                            # queue is in Postgres either way, so nothing is lost on restart.
 │   │   ├── package.json
 │   │   └── tsconfig.json
 │   │
@@ -162,14 +159,9 @@ uposhom/
 │   │
 │   ├── applink-client/              # Type-Safe Applink CPaaS Platform Client
 │   │   ├── src/
-│   │   │   ├── client.ts            # Unified post() with fixed IP egress & credential injection
-│   │   │   ├── normalizer.ts        # Single tel: normalizer & masking handler
-│   │   │   ├── services/
-│   │   │   │   ├── sms.ts           # POST /sms/send wrapper
-│   │   │   │   ├── subscription.ts  # POST /subscription/send (register/unregister), query-base, getSubscriberChargingInfo
-│   │   │   │   ├── otp.ts           # POST /otp/request & /otp/verify
-│   │   │   │   └── caas.ts          # POST /caas/direct/debit & /caas/otp/verify (BDT decimal)
-│   │   │   ├── status-codes.ts      # Published status code enumerations & error mappers
+│   │   │   ├── client.ts            # Every Applink call (SMS, Subscription, OTP, CaaS): 10 s timeout, transient-only retries
+│   │   │   ├── address.ts           # The single tel: normaliser, subscriber id variants and masking
+│   │   │   ├── errors.ts            # ApplinkError with the published status codes, retryable or not
 │   │   │   └── types.ts             # Request & Response TypeScript interfaces
 │   │   ├── package.json
 │   │   └── tsconfig.json
@@ -200,10 +192,12 @@ uposhom/
 │   │   └── tsconfig.json
 │   │
 │   └── db/                          # Drizzle schema, migrations & queries
-│       ├── migrations/              # drizzle-kit generated SQL migrations
+│       ├── drizzle/                 # drizzle-kit generated SQL migrations for the domain tables (run on boot)
+│       ├── migrations/              # 0002_drug_tables.sql (workstream C; not in the boot migration chain yet)
 │       ├── src/
-│       │   ├── schema/              # Drizzle table definitions (users, prescriptions, doses, charges...)
-│       │   ├── queries/             # Scoped database query helpers
+│       │   ├── schema/              # Drizzle table definitions (domain.ts, drugs.ts, platform.ts)
+│       │   ├── migrate.ts           # Applies the embedded migrations (migrations.generated.ts)
+│       │   ├── seed.ts              # Builds typed catalogue rows from data/*.json
 │       │   └── client.ts            # pg pool + Drizzle client
 │       ├── package.json
 │       └── tsconfig.json
@@ -218,8 +212,8 @@ uposhom/
 │
 ├── scripts/                         # DevOps, Testing & Mock Utilities
 │   ├── mock-applink.mjs             # Zero-dependency local Applink CPaaS simulation server (copied from the Applink skill's scripts/)
-│   ├── test-callbacks.sh            # Posts valid, malformed, wrong-app, partial-payment and duplicate callback payloads at our handlers (copied from the Applink skill's scripts/)
-│   └── seed-db.ts                   # Populates PostgreSQL with synthetic seed data
+│   ├── replay-callbacks.sh          # Posts valid, malformed, wrong-app, partial-payment and duplicate callback payloads at our handlers
+│   └── dev-local.mjs                # Starts the mock Applink and the API together for local development
 │
 ├── deploy/                          # Deployment & Container Configuration
 │   ├── docker-compose.yml           # Postgres 16, Fastify API (port bound to 127.0.0.1:3000 for the deploy smoke test; Caddy reaches it on the Docker network), Worker (no Redis: pg-boss runs on Postgres)
@@ -350,7 +344,7 @@ By API:
 - Subscription: the Family Circle plan and the pharmacy plan. Record explicit consent with evidence (what was shown, when, which channel, amount, currency, frequency) before Register, after disclosing amount, currency and frequency. Register and Unregister send only `applicationId`, `password`, `subscriberId` and `action` (`"1"` or `"0"`). Decide the outcome from `subscriptionStatus` in the response, because S1000 only means the request was processed (the unregister sample returns S1000 for someone never registered). Applink has no "already registered" error code, so Register and Unregister are made idempotent by reading `subscriptionStatus`. Only REGISTERED and TRIAL are active states, but an active status alone never unlocks Premium, because `/otp/verify` already returns REGISTERED at free sign-up. The Premium gate is: an active `subscriptions_mirror` row for the subscriber AND a recorded `FAMILY_CIRCLE` (or pharmacy-plan) consent row AND a recorded Register call we made for that plan. `users.applink_subscription_status` (set at OTP verify) is informational only and is never read by the entitlement check. A sign-up REGISTERED with no plan consent and no plan Register stays free. If a later Register for an already-active number returns REGISTERED with no new notification, the plan screen resolves from the Register response itself (status read from `subscriptionStatus`) and the next sweep, not by waiting for a notification that may never come. REG_PENDING means activation is in progress (wait for the notification and do not re-register), TEMPORARY_BLOCKED is a billing failure (show the fix-payment path, do not log out), and UNREGISTERED and INITIAL show the re-subscribe screen. Entitlements read only the local mirror fed by the subscriber notification, and the mirror stores when and by what it was last confirmed. A nightly sweep of `getSubscriberChargingInfo` (at most 10 `subscriberIds` per call, array sent as `subscriberIds`, no space after `tel:`) reconciles stale rows, and branches on each entry's own `statusCode`. No Applink call on any login or page-load path, and if a lookup fails we serve the last known good state. A notification is not authorisation: before unlocking a paid feature it is reconciled against our own consent and subscribe records. Opt-out is available on the Android app and by SMS.
 - CaaS: two calls then a callback, and every payment is its own flow with a new `externalTrxId` and a new OTP (a live session or an earlier OTP never authorises a charge). A ledger row (`charges`, status PENDING) is written with `externalTrxId` **before** `/caas/direct/debit` is called. The debit response is P1003 (OTP sent, nothing charged) and carries `requestCorrelator` and `internalTrxId`, which are saved, after asserting the echoed `externalTrxId` matches. `/caas/otp/verify` takes `referenceNo` (= `requestCorrelator`), `otp` and `sourceAddress`; its S1000 only means the charge was submitted. The charging notification is the only thing that settles the ledger. Fulfil only when it arrives with `statusCode` S1000, `paidAmount` covering the amount and `balanceDue` of 0. Partial (P-prefixed) or error (E-prefixed) notifications are recorded, not fulfilled. Never re-run generation to retry a verification: E1850 re-prompts for the OTP against the same `referenceNo`, and E1851 (OTP expired) abandons the charge (the user starts a new payment with a new `externalTrxId`, it is never silently restarted). E1337 (duplicate) means resolve the original from the notification. E1326 (insufficient balance) is shown to the user and not retried immediately. A reconciliation job resolves charges stuck at P1003 or timed out. Amounts are decimal BDT strings (`Currency` has a capital C on this API), come from server-side config keyed by the feature (the app sends only a `featureKey`, never an amount), and must equal what the payment sheet disclosed. `externalTrxId` is a ULID or UUIDv4, unique across all time.
 - Test matrix: an SMS STOP (opt-out recorded at once, then Unregister), an SMS reply and a STOP from a dependent's own number resolving to their profile, callbacks with malformed JSON, an oversized body and a wrong content type all returning 200 S1000, duplicate callbacks (each on its own dedupe key), partial payment then full payment (two charging notifications with different `statusCode`), E1313, E1303, E1343, E1326, E1337, E1850, E1851, E1855 and timeouts, all tested from the production IP.
-- Before requesting production approval (Applink checks these): the portal application description states accurately what Uposhom does, the Family Circle price (30 BDT per month) and the 5.00 BDT pay-per-use charge are the amounts the app discloses, and terms of service, a privacy policy and a support contact (email and phone, shown in Settings and in the SMS help reply) are published and reachable by users. Limited Production testing with whitelisted numbers is finished first.
+- Before requesting production approval (Applink checks these): the portal application description states accurately what Uposhom does, the Family Circle price (30 BDT per month) and the pay-per-use charges (2.00 BDT for a doctor summary, 5.00 BDT for an extra scan or a report explanation) are the amounts the app discloses, and terms of service, a privacy policy and a support contact (email and phone, shown in Settings and in the SMS help reply) are published and reachable by users. Limited Production testing with whitelisted numbers is finished first.
 - Open questions for the 24 Nov mentoring: (1) which numbers can be billed or messaged. Product rule: anyone can create an account with any Bangladeshi number, so sign-up never filters by operator in our code. Applink itself runs on the Banglalink network, so confirm with Applink that OTP and SMS reach numbers on other networks. If it does not, those numbers come back as E1317 and sign-up needs a fallback (not designed yet); until then they see the generic "number cannot be used" message in Screen 10. Also confirm which numbers can be billed for the paid plans. (2) Because OTP verify activates a subscription, how the Uposhom application is provisioned: whether OTP sign-up (free binding) and the paid Family Circle and pharmacy plans are the same Applink application or separate ones, and whether OTP activation itself triggers a charge. If the Day 0 emails have already gone out, send this as a follow-up now rather than waiting for the mentoring, because the answer decides the Premium gate and the Screen 10 disclosure wording. If they are separate applications the client takes credentials and endpoint variables per plan, and each has its own callback registration. (3) Whether numbers are plain or masked for this application, which decides how `subscriber_id` and the typed number relate.
 
 ## 9. Business plumbing
@@ -734,7 +728,7 @@ sequenceDiagram
 ---
 
 ### 15.6 Flow 6: Pay-Per-Use Micro-Charging (CaaS Two-Step OTP Flow)
-When a free user exceeds their scan quota, or requests an AI Doctor Summary PDF, CaaS charges 5.00 BDT via carrier airtime debit.
+When a free user exceeds their scan quota, CaaS charges 5.00 BDT via carrier airtime debit; an AI Doctor Summary PDF costs 2.00 BDT.
 
 ```mermaid
 sequenceDiagram
@@ -747,7 +741,7 @@ sequenceDiagram
     participant Applink as Applink CaaS Gateway
     participant Webhook as Callback Receiver (/api/applink/caas/charging-notification)
 
-    User->>App: Requests Extra AI Doctor Summary (5.00 BDT)
+    User->>App: Requests Extra AI Doctor Summary (2.00 BDT)
     App->>API: POST /api/v1/billing/caas/initiate { featureKey: "DOCTOR_SUMMARY_PDF" }
     API->>API: Generate unique externalTrxId once (ULID or UUIDv4, e.g. "01JDZ3K8Q4W7X2N5T9B6C1VAHE"), never regenerated on retry
     API->>DB: Insert into `charges` (external_trx_id, amount: "5.00", status: 'PENDING') BEFORE calling Applink
@@ -757,7 +751,7 @@ sequenceDiagram
     Applink-->>Client: 200 OK { timeStamp, externalTrxId, statusDetail, requestCorrelator: "8801442233...", internalTrxId, statusCode: "P1003" }
     Note over Client,API: P1003 means OTP is sent to user. Money HAS NOT moved! Assert the echoed externalTrxId matches.
     API->>DB: Update charges set request_correlator = "8801442233...", internal_trx_id, status = 'OTP_SENT'
-    API-->>App: 200 OK { externalTrxId, status: "OTP_SENT", message: "Enter SMS OTP to complete 5.00 BDT charge" }
+    API-->>App: 200 OK { externalTrxId, status: "OTP_SENT", message: "Enter SMS OTP to complete 2.00 BDT charge" }
 
     User->>App: Enters 6-digit payment OTP (e.g. "931204")
     App->>API: POST /api/v1/billing/caas/verify { externalTrxId, otpCode: "931204" }
@@ -1199,11 +1193,11 @@ Agents and engineers must verify each item prior to declaring a milestone comple
 - [ ] **SMS Handling**: `destinationAddresses` is an array; each `destinationResponses` entry's `statusCode` is read; `requestId` is saved in `sms_log`; delivery states are DELIVERED, EXPIRED, DELETED, UNDELIVERABLE, ACCEPTED, UNKNOWN and REJECTED (there is no FAILED); the MO keyword is trimmed and compared case-insensitively; STOP, UNSUB and OFF call Subscription Unregister.
 
 ### C. Safety & Domain Core Integrity
-- [ ] **Deterministic Scheduling**: 100% of reminder timestamps are produced by `packages/schedule-engine` with zero LLM guesswork.
-- [ ] **Asia/Dhaka Anchor Calculations**: Morning, Noon, Night meal anchors calculate in UTC+6 timezone without drift.
-- [ ] **Human-in-the-Loop Confirmation**: Prescription drafts require explicit human visual confirmation via the app UI before dose generation.
+- [x] **Deterministic Scheduling**: 100% of reminder timestamps are produced by `packages/schedule-engine` with zero LLM guesswork.
+- [x] **Asia/Dhaka Anchor Calculations**: Morning, Noon, Night meal anchors calculate in UTC+6 timezone without drift.
+- [x] **Human-in-the-Loop Confirmation**: Prescription drafts require explicit human visual confirmation via the app UI before dose generation.
 - [x] **Numeric Guard**: AI Bangla explanations are rejected if any dosage number differs from the confirmed prescription item (100% verified in `packages/ai/test/numeric-guard.test.ts`).
-- [ ] **Escalation Timers**: Dose misses trigger the 15-min repeat and 30-min Caregiver escalation without duplicate dispatch.
+- [x] **Escalation Timers**: Dose misses trigger the 15-min repeat and 30-min Caregiver escalation without duplicate dispatch.
 - [x] **Red-Flag Emergency Interruption**: Symptom inputs with chest pain, severe breathing difficulty, severe bleeding, or stroke signs immediately route to the 999 alert, decided by the deterministic keyword guard before any model call (100% verified in `packages/ai/test/redflag-guard.test.ts`).
 
 ### D. React Native App Quality & Packaging

@@ -26,6 +26,25 @@ export interface DomainPorts {
    */
   eraseDomainData(userId: string): Promise<void>;
 
+  /**
+   * True when this subscriber id is a dependent's own phone, bound to a profile by Family Link.
+   * Such a sender has no account, but their replies and STOP still count (Master Plan section 8).
+   */
+  isProfileSubscriber(subscriberId: string): Promise<boolean>;
+
+  /**
+   * A free-text SMS from a known subscriber ("what is my next medicine?"). Read-only: the answer
+   * comes from the AI router over that person's own doses. `replyText` null means "send the usage
+   * line instead"; `silent` means send nothing (for example the daily question cap is used up).
+   */
+  smsQuestion(input: {
+    subscriberId: string;
+    text: string;
+  }): Promise<{ replyText: string | null; silent?: boolean }>;
+
+  /** A STOP came from a dependent's own phone: record the opt-out against their profile. */
+  onProfileOptOut(input: { subscriberId: string; source: 'SMS' }): Promise<void>;
+
   /** A reminder SMS could not be delivered (UNDELIVERABLE, EXPIRED or REJECTED). */
   onSmsDeliveryFailure(input: {
     subscriberId: string;
@@ -44,5 +63,14 @@ export const defaultDomainPorts: DomainPorts = {
   },
   async onSmsDeliveryFailure() {
     // Nothing to escalate until B's reminder state machine exists.
+  },
+  async isProfileSubscriber() {
+    return false;
+  },
+  async smsQuestion() {
+    return { replyText: null };
+  },
+  async onProfileOptOut() {
+    // Nothing to record until the domain tables exist.
   },
 };

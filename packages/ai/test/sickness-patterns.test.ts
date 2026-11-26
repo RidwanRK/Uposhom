@@ -20,7 +20,9 @@ describe('Sickness-Pattern Analytics & Seasonal Timeline Aggregates', () => {
   it('loads curated health tips from data/health-tips.json', () => {
     const tips = loadHealthTips();
     expect(tips.length).toBeGreaterThan(0);
-    expect(tips.some((t) => t.tags?.includes('antibiotic') || t.category === 'medication_safety')).toBe(true);
+    expect(
+      tips.some((t) => t.tags?.includes('antibiotic') || t.category === 'medication_safety'),
+    ).toBe(true);
   });
 
   it('correctly aggregates timeline entries by month', () => {
@@ -65,6 +67,32 @@ describe('Sickness-Pattern Analytics & Seasonal Timeline Aggregates', () => {
     expect(insights.timeline.length).toBeGreaterThanOrEqual(16);
     expect(insights.patterns.length).toBeGreaterThanOrEqual(1);
     expect(insights.patternsLocked).toBe(false);
+  });
+
+  it('never shows the demo history to any other profile', () => {
+    const empty = getProfileInsights('prf_real_user', { isPremium: true });
+    expect(empty.timeline).toEqual([]);
+    expect(empty.patterns).toEqual([]);
+
+    const own: TimelineEntry[] = [
+      {
+        id: 'a',
+        date: '2026-01-05',
+        kind: 'PRESCRIPTION',
+        title: 'Amdocal',
+        therapeuticClass: 'Antihypertensive',
+      },
+      {
+        id: 'b',
+        date: '2026-03-05',
+        kind: 'PRESCRIPTION',
+        title: 'Amdocal',
+        therapeuticClass: 'Antihypertensive',
+      },
+    ];
+    const mine = getProfileInsights('prf_real_user', { isPremium: true, additionalTimeline: own });
+    expect(mine.timeline.map((e) => e.id)).toEqual(['a', 'b']);
+    expect(mine.patterns.map((p) => p.id)).toEqual(['pattern-chronic-maintenance']);
   });
 
   it('locks patterns for Free tier circles according to Freemium entitlements', () => {

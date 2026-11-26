@@ -7,6 +7,8 @@ import {
   okResponse,
   changeRoleBody,
   inviteBody,
+  linkRequestBody,
+  linkVerifyBody,
   confirmBody,
   confirmResponse,
   createProfileBody,
@@ -70,6 +72,21 @@ export function domainRoutes(domain: DomainService) {
     app.put<{ Params: { id: string } }>('/profiles/:id', async (req) => {
       const body = parse(updateProfileBody, req.body);
       return profile.parse(await domain.updateProfile(userOf(req), req.params.id, body));
+    });
+
+    // Family Link: an OTP to a dependent's own phone binds that number to their profile.
+    app.post<{ Params: { id: string } }>('/profiles/:id/link/request', async (req) => {
+      const body = parse(linkRequestBody, req.body);
+      return okResponse.parse(
+        await domain.requestFamilyLink(userOf(req), req.params.id, {
+          msisdn: body.msisdn,
+          ip: req.ip,
+        }),
+      );
+    });
+    app.post<{ Params: { id: string } }>('/profiles/:id/link/verify', async (req) => {
+      const body = parse(linkVerifyBody, req.body);
+      return okResponse.parse(await domain.verifyFamilyLink(userOf(req), req.params.id, body));
     });
 
     // Caregivers and viewers. An invite becomes a link when that person signs in.

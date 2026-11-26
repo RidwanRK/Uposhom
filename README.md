@@ -34,7 +34,7 @@ to `main` redeploys the live VM.
 * **AI Sickness History:** Combines symptom logs and past prescriptions to detect recurring illness patterns and offer preventive lifestyle tips, shown on an in-app Insights screen.
 * **Generic Drug Finder & Pharmacy Discovery:** Suggests lower-priced alternatives with the same ingredient, strength and form (indicative prices; a doctor or pharmacist confirms any substitution) and lists nearby pharmacies whose owners have marked them in stock.
 * **Bangla Voice Support:** Hands-free spoken Bangla input for symptom logging and schedule questions ("what is my next medicine?"), with the answer read aloud, for elderly or low-literacy users.
-* **SMS Access:** SMS reply codes sent with the shortcode keyword (`UPOSHOM 1` taken, `UPOSHOM 2` snooze, `UPOSHOM 3` skip) for users without smartphones or data.
+* **SMS Access:** SMS reply codes sent with the shortcode keyword (`UPOSHOM 1` taken, `UPOSHOM 2` snooze, `UPOSHOM 3` skip) for users without smartphones or data, plus free-text questions by SMS ("UPOSHOM next medicine?") answered read-only from the person's own schedule. A dependent without the app can be linked by their own phone (Family Link: an OTP to that phone), so their reminders and replies use their number.
 * **Health Advice Carousel:** Auto-swiping homepage tips on medicine storage and safe usage.
 
 ## 💳 Tiers & Pricing Model
@@ -67,8 +67,8 @@ to `main` redeploys the live VM.
 1. **Client Layer:** Android-only app (Bangla-optimized). Pharmacies use a separate Pharmacy account type in the same app. No web portal, no iOS.
 2. **API Gateway & Backend:** Handles auth, Role-Based Access Control (Individual, Family Admin, B2B), and routing.
 3. **AI Pipeline:** Vision-model text extraction and JSON structuring through OpenRouter, multi-agent Bangla assistant (OpenAI Agents SDK), and Bangla Speech-to-Text.
-4. **Deterministic Rule Engine:** Non-AI TypeScript package plus pg-boss worker that computes exact reminder timestamps and escalation rules.
-5. **Data & Storage:** PostgreSQL for schedules/users and encrypted Cloudflare R2 object storage for medical scans.
+4. **Deterministic Rule Engine:** Non-AI TypeScript package plus pg-boss jobs that compute exact reminder timestamps and escalation rules.
+5. **Data & Storage:** PostgreSQL for schedules/users; encrypted Cloudflare R2 object storage for medical scans is planned (not wired yet).
 6. **Applink Telecom APIs:** Carrier integration for OTPs, SMS alerts, and airtime micro-billing (backend only).
 
 > **Sign-up:** Anyone can create an account with any Bangladeshi mobile number. A number Applink rejects sees a clear message at sign-up instead of a silent failure, and during Limited Production only whitelisted test numbers can sign up. Plans are billed to the mobile account (prepaid is debited, postpaid is added to the bill).
@@ -88,9 +88,9 @@ Everything is TypeScript except SQL. The app and the server share zod schemas an
 
 * **Mobile (Android only):** React Native with Expo (development build, Expo Router), NativeWind, TanStack Query, Zustand, `expo-sqlite` (offline cache), `expo-camera` + `expo-image-picker` + `expo-image-manipulator` (prescription capture), Reanimated + Gesture Handler (swipe-to-confirm), Notifee (exact-alarm reminders with Taken/Snooze/Skip buttons), Expo Push (caregiver alerts), `expo-audio` + `expo-speech` (voice), `expo-secure-store`, `expo-haptics`, `expo-location`, `expo-print` + `expo-sharing` (doctor summary PDF), Noto Sans Bengali
 * **Backend:** Node.js 22 LTS with Fastify (TypeScript, zod validation)
-* **Worker:** pg-boss on Postgres (reminders, escalation ladder, SMS queue, reconciliation, digests)
-* **Database:** PostgreSQL 16, self-hosted in Docker on the VM, with Drizzle ORM. `pg_trgm` powers drug-name search (Latin names, plus a Bangla name and aliases column for Bangla input). No Redis.
-* **Storage:** Cloudflare R2 (encrypted object storage for prescription and report images)
+* **Jobs:** pg-boss on Postgres (reminders, escalation ladder, SMS queue, reconciliation, digests, retention). The consumers currently run inside the API process; `apps/worker` is a placeholder container.
+* **Database:** PostgreSQL 16, self-hosted in Docker on the VM, with Drizzle ORM. No Redis. Drug-name search currently runs a trigram matcher in code over `data/dgda-drugs.json` (Latin names plus Bangla names and aliases); moving it to `pg_trgm` is planned.
+* **Storage:** Cloudflare R2 (encrypted object storage for prescription and report images) is planned and not wired yet: scans are read and their results stored, but the images themselves are not kept.
 * **AI:** `@openai/agents` through OpenRouter (`google/gemini-2.5-flash` for vision and agents, `qwen/qwen2.5-vl-72b-instruct` fallback); Bangla speech-to-text chosen in a Day 1 spike (Whisper or Gemini audio)
 * **Telecom & Billing:** Applink APIs (OTP, SMS, Subscription, CaaS), called from the backend only
 * **Hosting & CI:** One free always-on VM with a fixed IPv4 (Oracle Cloud Always Free first, Google Cloud e2-micro as the free fallback) running Docker Compose (API, worker, Postgres) behind Caddy. GitHub Actions builds the images into GHCR, deploys over SSH, and builds the APK, which is published as a public GitHub Release asset. Nothing is compiled on the VM.

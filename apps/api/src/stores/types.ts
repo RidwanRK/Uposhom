@@ -39,9 +39,11 @@ export interface UserStore {
     subscriberId: string | null;
     subscriptionStatus: string | null;
   }): Promise<UserRecord>;
+  /** Grants or withdraws the admin flag (agent-trace screen). Set from ADMIN_MSISDNS at sign-in. */
+  setAdmin(userId: string, isAdmin: boolean): Promise<void>;
 }
 
-export type OtpPurpose = 'SIGNUP' | 'STEP_UP';
+export type OtpPurpose = 'SIGNUP' | 'STEP_UP' | 'FAMILY_LINK';
 
 export interface OtpSessionRecord {
   id: string;
@@ -53,6 +55,8 @@ export interface OtpSessionRecord {
   expiresAt: Date;
   consumedAt: Date | null;
   createdAt: Date;
+  /** What the code is for beyond its purpose: for FAMILY_LINK, the profile id. */
+  context: string | null;
 }
 
 export interface OtpSessionStore {
@@ -62,6 +66,7 @@ export interface OtpSessionStore {
     purpose: OtpPurpose;
     referenceNo: string;
     expiresAt: Date;
+    context?: string;
   }): Promise<OtpSessionRecord>;
   /** Latest unconsumed, unexpired session for the number. */
   findOpen(msisdn: string, now: Date): Promise<OtpSessionRecord | null>;
@@ -74,6 +79,8 @@ export interface ConsentRecord {
   /** Set once the person has an account. Sign-up consent is recorded before that, by number. */
   userId: string | null;
   msisdn: string | null;
+  /** Set when the consent is a dependent's (Family Link): the profile it was given for. */
+  profileId: string | null;
   /** What was shown and accepted, for example 'SIGNUP_OTP_V1' or 'FAMILY_CIRCLE_V1'. */
   kind: string;
   channel: 'APP' | 'SMS';
@@ -91,6 +98,7 @@ export interface ConsentStore {
     input: {
       userId?: string;
       msisdn?: string;
+      profileId?: string;
       kind: string;
       channel: 'APP' | 'SMS';
       ip: string | null;

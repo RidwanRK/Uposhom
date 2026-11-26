@@ -29,18 +29,15 @@ app adds `/api/v1` itself. See `docs/local-backend.md`.
 
 ### Hybrid mode
 
-The AI package is not wired into the API routes yet, so these endpoints do not exist on the server and are
-answered by the in-app mock while a live API is configured (`MISSING_ON_SERVER` in `src/api/config.ts`):
+Every endpoint the app calls is served by the API now, including Family Link (`profiles/:id/link/*`,
+a real Applink OTP to the dependent's phone). `MISSING_ON_SERVER` in `src/api/config.ts` is empty; add
+a line there only if a new screen ships before its endpoint does.
 
-`prescriptions/upload-and-parse`, `reports/*`, `drugs/*`, `pharmacies/*`, `insights/*`, `summaries/doctor`,
-`symptoms/journal`, `voice/transcribe`, `account/settings`, `profiles/:id/link/*` (Family Link).
+The AI endpoints (scans, reports, journal, voice, insights) answer with workstream C's built-in samples
+when the server has no `OPENROUTER_API_KEY`, so they work against `pnpm dev:local` too. If `voice/query`
+fails, the voice screen still answers from today's doses on the phone.
 
-`voice/query` is answered from the dose events the server returns when its endpoint is missing. Delete a
-line from `MISSING_ON_SERVER` as soon as the server serves it, or set `EXPO_PUBLIC_MOCK_MISSING=0`.
-Everything else (auth, circles, profiles, links, prescription confirm, doses, alerts, devices, appointments,
-billing, pay-per-use, opt-out, delete my data, admin traces) talks to the real backend.
-
-Mock sign-in: any valid mobile number, OTP `123456`. Number endings `1111` / `9999` / `0000` / `5555` show
+Mock sign-in: any valid mobile number, OTP `12345` (Applink codes are 5 digits). Number endings `1111` / `9999` / `0000` / `5555` show
 the four sign-up error states. `01700000099` is a Premium demo account with three profiles, alerts and
 agent traces.
 

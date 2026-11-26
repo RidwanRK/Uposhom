@@ -18,6 +18,7 @@ import { useT } from '../src/i18n';
 import { toBn } from '../src/utils/bangla';
 import { errorMessage } from '../src/utils/errors';
 import { checkRedFlag, EMERGENCY_MESSAGE } from '../src/utils/redflag';
+import { openAppSettings } from '../src/utils/permissions';
 
 type Phase = 'describe' | 'question' | 'summary';
 
@@ -42,13 +43,22 @@ export default function Symptoms() {
   const [busy, setBusy] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [micBlocked, setMicBlocked] = useState(false);
   const [emergency, setEmergency] = useState<{ message?: string; dial?: string } | null>(null);
 
   const toggleMic = async () => {
     setError(null);
     if (!recording) {
       const r = await start();
-      if (r !== 'ok') setError(r === 'denied' ? t('symptoms.micDenied') : t('common.errorGeneric'));
+      setMicBlocked(r === 'blocked');
+      if (r !== 'ok')
+        setError(
+          r === 'blocked'
+            ? t('symptoms.micBlocked')
+            : r === 'denied'
+              ? t('symptoms.micDenied')
+              : t('common.errorGeneric'),
+        );
       return;
     }
     setTranscribing(true);
@@ -153,6 +163,14 @@ export default function Symptoms() {
         ) : null}
 
         {error ? <Banner icon="alert-circle-outline" text={error} /> : null}
+        {micBlocked ? (
+          <Button
+            label={t('common.openSettings')}
+            icon="cog-outline"
+            variant="secondary"
+            onPress={() => void openAppSettings()}
+          />
+        ) : null}
 
         {phase !== 'summary' ? (
           <View style={{ gap: 12 }}>

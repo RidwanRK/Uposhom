@@ -195,14 +195,113 @@ describe('Premium gate', () => {
     await h.app.close();
   });
 
-  it('a Register answer that did not activate is a failure, not a success', async () => {
-    const h = await harness({ applink: registering('UNREGISTERED.') });
+  it('INITIAL means Applink texted the person to confirm (reply A): pending, then active on the notification', async () => {
+    const h = await harness({ applink: registering('INITIAL') });
     const user = await h.addUser();
     const res = await subscribe(h, user);
-    expect(res.statusCode).toBe(503);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().status).toBe('PENDING');
+    expect((await h.api(user, 'GET', '/billing/entitlements')).json().tier).toBe('FREE');
+
+    // A second tap while waiting must not send a second Register (and a second SMS).
+    expect((await subscribe(h, user)).json().status).toBe('PENDING');
+    expect(h.applink.register).toHaveBeenCalledTimes(1);
+
+    // The person replies A; Applink's subscriber notification reports REGISTERED.
+    h.clock.now = new Date(h.clock.now.getTime() + 5 * 60_000);
+    await h.callback('subscription/notify', notify('REGISTERED', SUB, '20261122100500'));
+    await settle(h);
+    expect((await h.api(user, 'GET', '/billing/subscription/status')).json().status).toBe('ACTIVE');
+    expect((await h.api(user, 'GET', '/billing/entitlements')).json().tier).toBe('PREMIUM');
+    await h.app.close();
+  });
+
+  it('keeps PENDING when intermediate INITIAL or REG_PENDING notifications arrive, and does not re-register', async () => {
+    const h = await harness({ applink: registering('INITIAL') });
+    const user = await h.addUser();
+    expect((await subscribe(h, user)).json().status).toBe('PENDING');
+
+    h.clock.now = new Date(h.clock.now.getTime() + 60_000);
+    await h.callback('subscription/notify', notify('REG_PENDING', SUB, '20261122100100'));
+    await settle(h);
+    expect((await h.api(user, 'GET', '/billing/subscription/status')).json().status).toBe(
+      'PENDING',
+    );
+    expect((await subscribe(h, user)).json().status).toBe('PENDING');
+    expect(h.applink.register).toHaveBeenCalledTimes(1);
+
+    h.clock.now = new Date(h.clock.now.getTime() + 60_000);
+    await h.callback('subscription/notify', notify('REGISTERED', SUB, '20261122100200'));
+    await settle(h);
+    expect((await h.api(user, 'GET', '/billing/subscription/status')).json().status).toBe('ACTIVE');
+    await h.app.close();
+  });
+
+  it('does not overwrite an in-flight REGISTERED notification with a stale INITIAL response', async () => {
+    let resolveRegister!: (v: ReturnType<typeof ok<{ subscriptionStatus: string }>>) => void;
+    const applink = fakeApplink({
+      register: () =>
+        new Promise((resolve) => {
+          resolveRegister = resolve;
+        }),
+    });
+    const h = await harness({ applink });
+    const user = await h.addUser();
+    const pending = subscribe(h, user);
+
+    await vi.waitFor(() => expect(applink.register).toHaveBeenCalledTimes(1));
+    h.clock.now = new Date(h.clock.now.getTime() + 1000);
+    await h.callback('subscription/notify', notify('REGISTERED', SUB, '20261122100001'));
+    await settle(h);
+
+    resolveRegister(ok({ subscriptionStatus: 'INITIAL' }));
+    const res = await pending;
+    expect(res.json().status).toBe('ACTIVE');
+    expect((await h.stores.subscriptions.get(SUB))?.status).toBe('REGISTERED');
+    await h.app.close();
+  });
+
+  it('an unconfirmed request lapses after Applink’s 60 minutes, and the person can ask again', async () => {
+    const h = await harness({ applink: registering('UNREGISTERED.') });
+    const user = await h.addUser();
+    expect((await subscribe(h, user)).json().status).toBe('PENDING');
+
+    h.clock.now = new Date(h.clock.now.getTime() + 61 * 60_000);
+    // Never confirmed: back to the plan screen, not "cancelled", and never active.
+    expect((await h.api(user, 'GET', '/billing/subscription/status')).json().status).toBe(
+      'INACTIVE',
+    );
+    await subscribe(h, user);
+    expect(h.applink.register).toHaveBeenCalledTimes(2);
+    await h.app.close();
+  });
+
+  it('a billing block from Register is a failure, and Premium stays shut', async () => {
+    const h = await harness({ applink: registering('TEMPORARY_BLOCKED') });
+    const user = await h.addUser();
+    expect((await subscribe(h, user)).statusCode).toBe(503);
     expect((await h.api(user, 'GET', '/billing/subscription/status')).json().status).not.toBe(
       'ACTIVE',
     );
+    await h.app.close();
+  });
+
+  it('a failed Register never makes a number REGISTERED at sign-up look Premium', async () => {
+    const applink = fakeApplink({
+      register: async () => {
+        throw applinkError('E1603');
+      },
+    });
+    const h = await harness({ applink });
+    const user = await h.addUser();
+    // Free OTP sign-up already made the number REGISTERED at Applink.
+    await h.callback('subscription/notify', notify('REGISTERED'));
+    await settle(h);
+    expect((await subscribe(h, user)).statusCode).toBe(503);
+    expect((await h.api(user, 'GET', '/billing/subscription/status')).json().status).toBe(
+      'INACTIVE',
+    );
+    expect((await h.api(user, 'GET', '/billing/entitlements')).json().tier).toBe('FREE');
     await h.app.close();
   });
 
@@ -387,7 +486,7 @@ describe('entitlements and quotas', () => {
     const user = await h.addUser();
     expect(await h.app.services.entitlements.useFeature(user.id, 'DOCTOR_SUMMARY')).toMatchObject({
       allowed: false,
-      payWith: { purpose: 'DOCTOR_SUMMARY', amount: '5.00' },
+      payWith: { purpose: 'DOCTOR_SUMMARY', amount: '2.00' },
     });
 
     await subscribe(h, user);

@@ -1,10 +1,20 @@
 import type { Pool } from 'pg';
 import { DOMAIN_MIGRATIONS } from './migrations.generated.js';
+import { DRUG_MIGRATIONS } from './migrations.js';
 
 export interface Migration {
   id: string;
   sql: string;
 }
+
+/**
+ * Boot order inside packages/db: B's domain tables (which also enable pg_trgm), then workstream C's
+ * drug tables (src/migrations.ts, C's file). C's ids are prefixed so the two lists never collide.
+ */
+export const ALL_DB_MIGRATIONS: Migration[] = [
+  ...DOMAIN_MIGRATIONS,
+  ...DRUG_MIGRATIONS.map((m) => ({ id: `drug:${m.id}`, sql: m.sql })),
+];
 
 /** Not A's key (74_110_001): the two runners are called one after the other, never nested. */
 const LOCK_KEY = 74_110_002;
@@ -18,7 +28,7 @@ const LOCK_KEY = 74_110_002;
  */
 export async function runDomainMigrations(
   pool: Pool,
-  list: Migration[] = DOMAIN_MIGRATIONS,
+  list: Migration[] = ALL_DB_MIGRATIONS,
 ): Promise<string[]> {
   const client = await pool.connect();
   const applied: string[] = [];
