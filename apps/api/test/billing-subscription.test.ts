@@ -195,6 +195,25 @@ describe('Premium gate', () => {
     await h.app.close();
   });
 
+  it('PENDING CONFIRMATION (live Register answer, with E1338) is pending, then active on the notification', async () => {
+    const h = await harness({ applink: registering('PENDING CONFIRMATION') });
+    const user = await h.addUser();
+    const res = await subscribe(h, user);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().status).toBe('PENDING');
+    expect((await h.stores.subscriptions.get(SUB))?.registerRequestedAt).not.toBeNull();
+
+    // A second tap while waiting must not send a second Register.
+    expect((await subscribe(h, user)).json().status).toBe('PENDING');
+    expect(h.applink.register).toHaveBeenCalledTimes(1);
+
+    h.clock.now = new Date(h.clock.now.getTime() + 5 * 60_000);
+    await h.callback('subscription/notify', notify('REGISTERED', SUB, '20261122100500'));
+    await settle(h);
+    expect((await h.api(user, 'GET', '/billing/entitlements')).json().tier).toBe('PREMIUM');
+    await h.app.close();
+  });
+
   it('INITIAL means Applink texted the person to confirm (reply A): pending, then active on the notification', async () => {
     const h = await harness({ applink: registering('INITIAL') });
     const user = await h.addUser();

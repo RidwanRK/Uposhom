@@ -62,7 +62,8 @@ export function createJobs(deps: ServiceDeps, caas: CaasService, subs: Subscript
         );
         break;
       }
-      for (const entry of res.destinationResponses ?? []) {
+      // Live Applink answers in subscriberInfo; the published sample says destinationResponses.
+      for (const entry of res.subscriberInfo ?? res.destinationResponses ?? []) {
         checked++;
         if (entry.statusCode && entry.statusCode !== 'S1000') {
           log.warn({ statusCode: entry.statusCode }, 'subscription sweep entry rejected');

@@ -144,6 +144,38 @@ describe('guards', () => {
   });
 });
 
+describe('live Applink answers', () => {
+  const answering = (body: unknown) =>
+    createApplinkClient({
+      applicationId: 'a',
+      password: 'b',
+      endpoints: { subscriptionSend: 'https://api.applink.com.bd/subscription/send' },
+      fetch: (async () => new Response(JSON.stringify(body))) as typeof fetch,
+    });
+  const MASKED = 'tel:ZTBkNmI3OTZmNWFjNGNhNGI5ZGE3:banglalink';
+
+  it('Register answered E1338 PENDING CONFIRMATION is a request that worked, not an error', async () => {
+    // Exact body from the production account, 2026-11-26.
+    const c = answering({
+      subscriptionStatus: 'PENDING CONFIRMATION',
+      statusDetail: 'User confirmation required for subscription.',
+      version: '1.0',
+      statusCode: 'E1338',
+    });
+    const res = await c.register(MASKED);
+    expect(res.subscriptionStatus).toBe('PENDING CONFIRMATION');
+  });
+
+  it('Register still raises on a real failure', async () => {
+    const c = answering({
+      statusDetail: 'Format of the address is invalid Or User Already UnRegistered',
+      version: '1.0',
+      statusCode: 'E1951',
+    });
+    await expect(c.register('tel:8801941095987')).rejects.toBeInstanceOf(ApplinkError);
+  });
+});
+
 describe('helpers', () => {
   it('normalises addresses to tel: without a plus', () => {
     expect(toTelAddress('01973579363')).toBe('tel:8801973579363');
