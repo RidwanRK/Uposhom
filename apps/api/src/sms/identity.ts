@@ -3,6 +3,25 @@ import type { DomainPorts } from '../ports.js';
 import type { Stores, UserRecord } from '../stores/types.js';
 
 /**
+ * Candidate forms for matching an address from a callback or charging-info lookup against the
+ * opaque subscriberId we stored. Handles `tel:880...`, `tel:+880...`, and bare `880...` in both
+ * directions while leaving masked or non-numeric ids untouched.
+ */
+export function addressCandidates(address: string): string[] {
+  const trimmed = address.trim();
+  const seen = new Set<string>(subscriberIdVariants(trimmed));
+  const telNum = /^tel:\+?(\d+)$/i.exec(trimmed);
+  const bareNum = /^\+?(\d+)$/.exec(trimmed);
+  const digits = telNum?.[1] ?? bareNum?.[1];
+  if (digits) {
+    seen.add(`tel:${digits}`);
+    seen.add(`tel:+${digits}`);
+    seen.add(digits);
+  }
+  return [...seen];
+}
+
+/**
  * Resolves the address a callback carries to the subscriber id WE stored. Applink's samples use
  * `tel:880...` in some places and `tel:+880...` in others, so the same person can arrive in either
  * form. Everything we suppress, mirror or message is keyed by the stored form, so a STOP always
@@ -17,7 +36,7 @@ export async function resolveSubscriber(
   address: string,
   ports?: Pick<DomainPorts, 'isProfileSubscriber'>,
 ): Promise<{ id: string; user: UserRecord | null; isProfile: boolean }> {
-  const candidates = subscriberIdVariants(address);
+  const candidates = addressCandidates(address);
   for (const candidate of candidates) {
     const user = await stores.users.findBySubscriberId(candidate);
     if (user) return { id: user.subscriberId ?? candidate, user, isProfile: false };

@@ -9,6 +9,9 @@ import { planConsentKind } from './config.js';
 /** Only these two mean the subscriber can use the service. */
 export const ACTIVE_STATES = new Set(['REGISTERED', 'TRIAL']);
 
+/** Applink accepted the request and is still awaiting subscriber confirmation or billing. */
+const PENDING_STATES = new Set(['INITIAL', 'REG_PENDING']);
+
 /**
  * After Register, Applink texts the subscriber ("Applink Uposhom চালু করতে, ৬০ মিনিটের মধ্যে ...
  * A লিখে এসএমএস করুন") and the plan only starts once they reply. Until then Register answers
@@ -22,13 +25,14 @@ const BLOCKED_STATES = new Set(['TEMPORARY_BLOCKED', 'BLOCKED']);
 
 /**
  * True while our Register is waiting for the subscriber's SMS confirmation: we asked recently, the
- * status is not active yet, and Applink has said nothing newer than our request.
+ * status is not active yet, and Applink has not reported a final outcome since our request.
  */
 export function awaitingConfirmation(sub: SubscriptionRecord, now: Date): boolean {
   if (!sub.registerRequestedAt) return false;
   if (ACTIVE_STATES.has(sub.status) || BLOCKED_STATES.has(sub.status)) return false;
   if (now.getTime() - sub.registerRequestedAt.getTime() >= CONFIRM_WINDOW_MS) return false;
-  // Any word since our request settles it: a notification, the sweep, or the person cancelling.
+  if (PENDING_STATES.has(sub.status)) return true;
+  // Any final word since our request settles it: a notification, the sweep, or the person cancelling.
   const heardSince = sub.lastConfirmedAt !== null && sub.lastConfirmedAt >= sub.registerRequestedAt;
   return !heardSince;
 }
@@ -158,6 +162,16 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
       now,
     );
 
+    const settledSinceRequest = async (): Promise<boolean> => {
+      const current = await stores.subscriptions.get(user.subscriberId!);
+      return Boolean(
+        current &&
+          current.lastConfirmedAt &&
+          current.lastConfirmedAt >= now &&
+          !PENDING_STATES.has(current.status),
+      );
+    };
+
     let status: string;
     try {
       const res = await deps.applink.register(user.subscriberId);
@@ -166,10 +180,12 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
       if (err instanceof ApplinkTransportError) {
         // It may have gone through. Leave it pending: the notification or the sweep settles it.
         log.warn({ subscriber: maskAddress(user.subscriberId) }, 'register outcome unknown');
-        await stores.subscriptions.upsert(
-          { subscriberId: user.subscriberId, status: 'REG_PENDING' },
-          deps.now(),
-        );
+        if (!(await settledSinceRequest())) {
+          await stores.subscriptions.upsert(
+            { subscriberId: user.subscriberId, status: 'REG_PENDING' },
+            deps.now(),
+          );
+        }
         return view(user);
       }
       log.warn(
@@ -221,10 +237,12 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
         { subscriber: maskAddress(user.subscriberId), status: status || 'none' },
         'register awaiting the subscriber’s SMS confirmation',
       );
-      await stores.subscriptions.upsert(
-        { subscriberId: user.subscriberId, status: status || 'INITIAL' },
-        deps.now(),
-      );
+      if (!(await settledSinceRequest())) {
+        await stores.subscriptions.upsert(
+          { subscriberId: user.subscriberId, status: status || 'INITIAL' },
+          deps.now(),
+        );
+      }
     }
     return view(user);
   }
@@ -274,14 +292,14 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
         'subscription notification for unknown subscriber',
       );
     }
+    const settled = !PENDING_STATES.has(status);
     await stores.subscriptions.upsert(
       {
         subscriberId,
         ...(user ? { userId: user.id } : {}),
         status,
         ...(data.frequency ? { frequency: data.frequency } : {}),
-        confirmedAt: now,
-        confirmedBy: data.source ?? 'NOTIFICATION',
+        ...(settled ? { confirmedAt: now, confirmedBy: data.source ?? 'NOTIFICATION' } : {}),
       },
       now,
     );

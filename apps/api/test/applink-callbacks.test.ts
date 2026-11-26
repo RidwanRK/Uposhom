@@ -135,6 +135,19 @@ describe('Applink callbacks', () => {
     await app.close();
   });
 
+  it('accepts subscriber notification with numeric or missing timeStamp', async () => {
+    const { app, events, post } = setup();
+    const withoutTs: Record<string, unknown> = { ...VALID['subscription/notify'] };
+    delete withoutTs['timeStamp'];
+    expect((await post('subscription/notify', withoutTs)).json()).toEqual(ACK);
+    expect(
+      (await post('subscription/notify', { ...withoutTs, timeStamp: 20261122103001 })).json(),
+    ).toEqual(ACK);
+    await vi.waitFor(() => expect(events).toHaveLength(2));
+    expect(events[1]?.data).toMatchObject({ timeStamp: '20261122103001' });
+    await app.close();
+  });
+
   it('still acknowledges when the downstream handler throws', async () => {
     const app = buildApp(
       { NODE_ENV: 'test', APPLINK_CALLBACK_PATH_KEY: 'abc123' },
