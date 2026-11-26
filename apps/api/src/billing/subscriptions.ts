@@ -9,8 +9,11 @@ import { planConsentKind } from './config.js';
 /** Only these two mean the subscriber can use the service. */
 export const ACTIVE_STATES = new Set(['REGISTERED', 'TRIAL']);
 
-/** Applink accepted the request and is still awaiting subscriber confirmation or billing. */
-const PENDING_STATES = new Set(['INITIAL', 'REG_PENDING']);
+/**
+ * Applink accepted the request and is still awaiting subscriber confirmation or billing.
+ * PENDING CONFIRMATION is what live Applink returns from Register (with E1338).
+ */
+const PENDING_STATES = new Set(['INITIAL', 'REG_PENDING', 'PENDING CONFIRMATION']);
 
 /**
  * After Register, Applink texts the subscriber ("Applink Uposhom চালু করতে, ৬০ মিনিটের মধ্যে ...

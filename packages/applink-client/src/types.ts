@@ -35,7 +35,13 @@ export interface QueryBaseResponse extends ApplinkBaseResponse {
 }
 
 export type SubscriptionStatus =
-  'INITIAL' | 'REG_PENDING' | 'TRIAL' | 'REGISTERED' | 'UNREGISTERED' | 'TEMPORARY_BLOCKED';
+  | 'INITIAL'
+  | 'REG_PENDING'
+  | 'PENDING CONFIRMATION'
+  | 'TRIAL'
+  | 'REGISTERED'
+  | 'UNREGISTERED'
+  | 'TEMPORARY_BLOCKED';
 
 export interface SubscriberChargingInfo {
   subscriberId: string;
@@ -48,6 +54,9 @@ export interface SubscriberChargingInfo {
 }
 
 export interface SubscriberChargingInfoResponse extends ApplinkBaseResponse {
+  /** What live Applink returns. */
+  subscriberInfo?: SubscriberChargingInfo[];
+  /** What the published sample shows. Read both, live first. */
   destinationResponses?: SubscriberChargingInfo[];
 }
 

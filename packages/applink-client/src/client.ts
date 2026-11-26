@@ -149,12 +149,20 @@ export function createApplinkClient(config: ApplinkClientConfig) {
       });
     },
 
-    /* Subscription. Register only with recorded consent. */
+    /*
+     * Subscription. Register only with recorded consent.
+     *
+     * E1338 is not a failure: live Applink answers a Register that worked with E1338 "User
+     * confirmation required for subscription." and subscriptionStatus "PENDING CONFIRMATION", then
+     * texts the person to reply A. The caller reads subscriptionStatus, as on S1000.
+     */
     register(subscriberId: string) {
-      return post<SubscriptionSendResponse>('subscription-register', endpoint('subscriptionSend'), {
-        subscriberId: toTelAddress(subscriberId),
-        action: '1',
-      });
+      return post<SubscriptionSendResponse>(
+        'subscription-register',
+        endpoint('subscriptionSend'),
+        { subscriberId: toTelAddress(subscriberId), action: '1' },
+        ['E1338'],
+      );
     },
 
     unregister(subscriberId: string) {
