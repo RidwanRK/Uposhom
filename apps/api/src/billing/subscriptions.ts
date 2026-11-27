@@ -73,8 +73,10 @@ const normaliseStatus = (status: string | null | undefined): string =>
  * Premium subscriptions (Family Circle and the pharmacy plan), following Applink's documented flow:
  *
  *   1. requestOtp  : the consent is recorded, then Applink sends an OTP to the subscriber.
- *   2. verifyOtp   : the subscriber enters it; Applink verifies it and activates the subscription,
- *                    answering with the subscriptionStatus (INITIAL or REGISTERED). We act on that.
+ *   2. verifyOtp   : the subscriber enters it; Applink verifies it and answers with the
+ *                    subscriptionStatus (INITIAL or REGISTERED). REGISTERED is final. INITIAL means
+ *                    the request is not complete yet, so the subscription call (Register) follows
+ *                    once, as Applink advised.
  *
  * The Premium gate (Master Plan section 8) is ALL of:
  *   1. an active subscriptions_mirror row for the user's subscriber id (REGISTERED or TRIAL),
@@ -161,9 +163,11 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
 
   /**
    * Step 2. Applink verifies the code and answers with the subscription status. REGISTERED (or
-   * TRIAL) activates the plan now. INITIAL or REG_PENDING means Applink is still settling it: the
-   * plan stays pending and one status lookup, then the notification or the nightly sweep, settles it.
-   * The OTP call is never retried blindly: a wrong code costs an attempt, not a second SMS.
+   * TRIAL) activates the plan now. INITIAL means Applink has not completed the request, so the
+   * subscription call (Register) is made once to finish it. If the plan is still pending after
+   * that (or verify said REG_PENDING), one status lookup, then the notification or the nightly
+   * sweep, settles it. The OTP call is never retried blindly: a wrong code costs an attempt, not a
+   * second SMS.
    */
   async function verifyOtp(
     user: UserRecord,
@@ -232,14 +236,68 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
       'subscription otp verified: applink answered',
     );
 
-    if (!active && !settledSinceRequest) await reconcileNow(subscriberId);
+    if (!active && !settledSinceRequest) {
+      // INITIAL: Applink has the request but has not completed it (live Applink leaves it there
+      // after the OTP), so the subscription call finishes it. REG_PENDING already has its charging
+      // request out, so it only waits.
+      const registered =
+        status === 'INITIAL' && (await registerOnce(subscriberId, price.frequency));
+      if (!registered) await reconcileNow(subscriberId);
+    }
     return view(user);
   }
 
   /**
-   * One status lookup (getSubscriberChargingInfo) when verify answered INITIAL or REG_PENDING, so a
-   * plan that Applink has already settled does not wait for the nightly sweep. Best effort: if it
-   * fails the notification or the sweep settles it. UNREGISTERED is never applied from here.
+   * The OTP is verified and Applink still says INITIAL: call the subscription API (Register,
+   * /subscription/send action 1) exactly once, as Applink advised. Never retried blindly: a timeout
+   * does not mean it failed, so the notification or the sweep settles it. Returns true when the
+   * plan is now active. A failure here is not the person's failure (their code was right): the plan
+   * stays pending. A billing block is a failure and Premium stays shut.
+   */
+  async function registerOnce(subscriberId: string, frequency: string): Promise<boolean> {
+    if (!deps.applink) return false;
+    let answered: string;
+    try {
+      const res = await deps.applink.register(subscriberId);
+      answered = normaliseStatus(res.subscriptionStatus);
+    } catch (err) {
+      log.warn(
+        {
+          subscriber: maskAddress(subscriberId),
+          statusCode: (err as { statusCode?: string }).statusCode ?? 'transport',
+        },
+        'subscription register after otp failed: staying pending',
+      );
+      return false;
+    }
+    log.info(
+      { subscriber: maskAddress(subscriberId), status: answered || 'none' },
+      'subscription register after otp: applink answered',
+    );
+
+    if (BLOCKED_STATES.has(answered)) {
+      await stores.subscriptions.upsert({ subscriberId, status: answered }, deps.now());
+      throw new ApiError('SERVICE_TROUBLE', 503);
+    }
+    if (!ACTIVE_STATES.has(answered)) return false; // still pending (for example PENDING CONFIRMATION)
+
+    await stores.subscriptions.upsert(
+      {
+        subscriberId,
+        status: answered,
+        frequency,
+        confirmedAt: deps.now(),
+        confirmedBy: 'REGISTER_RESPONSE',
+      },
+      deps.now(),
+    );
+    return true;
+  }
+
+  /**
+   * One status lookup (getSubscriberChargingInfo) when the plan is still pending, so a plan that
+   * Applink has already settled does not wait for the nightly sweep. Best effort: if it fails the
+   * notification or the sweep settles it. UNREGISTERED is never applied from here.
    */
   async function reconcileNow(subscriberId: string): Promise<void> {
     if (!deps.applink) return;
@@ -247,6 +305,14 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
       const res = await deps.applink.getSubscriberChargingInfo([subscriberId]);
       const entry = (res.subscriberInfo ?? res.destinationResponses ?? [])[0];
       const status = normaliseStatus(entry?.subscriptionStatus);
+      log.info(
+        {
+          subscriber: maskAddress(subscriberId),
+          status: status || 'none',
+          statusCode: entry?.statusCode ?? res.statusCode,
+        },
+        'subscription status lookup: applink answered',
+      );
       if (!status || (entry?.statusCode && entry.statusCode !== 'S1000')) return;
       if (
         !ACTIVE_STATES.has(status) &&

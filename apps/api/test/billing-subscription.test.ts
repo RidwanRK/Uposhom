@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { ApplinkTransportError } from '@uposhom/applink-client';
 import { subscriptionStatusResponse } from '@uposhom/shared';
 import { applinkError, fakeApplink, harness, ok, OTHER, settle, SUB } from './platform.js';
 
@@ -32,17 +33,26 @@ const notify = (status: string, subscriberId = SUB, timeStamp = '20261122100000'
 
 /**
  * Applink as the Pro flow sees it: the OTP is sent, then verify answers with the subscription
- * status. `lookup` is what getSubscriberChargingInfo says afterwards. `register` is a spy that the
- * flow must never call: the OTP verify is what activates the subscription.
+ * status. `lookup` is what getSubscriberChargingInfo says afterwards. `register` is what the
+ * subscription call answers (or the error it throws); the flow only makes it when verify says
+ * INITIAL.
  */
-const otpApplink = (status = 'REGISTERED', lookup = status, subscriberId = SUB) =>
-  fakeApplink({
+const otpApplink = (
+  status = 'REGISTERED',
+  opts: { lookup?: string; subscriberId?: string; register?: string | Error } = {},
+) => {
+  const { lookup = status, subscriberId = SUB, register = 'REGISTERED' } = opts;
+  return fakeApplink({
     requestOtp: async () => ok({ referenceNo: 'ref-1' }),
     verifyOtp: async () => ok({ subscriberId, subscriptionStatus: status }),
     getSubscriberChargingInfo: async () =>
       ok({ subscriberInfo: [{ subscriberId, subscriptionStatus: lookup, statusCode: 'S1000' }] }),
-    register: async () => ok({ subscriptionStatus: 'REGISTERED' }),
+    register: async () => {
+      if (register instanceof Error) throw register;
+      return ok({ subscriptionStatus: register });
+    },
   });
+};
 
 describe('Premium gate', () => {
   it('a free sign-up is REGISTERED at Applink but is not Premium', async () => {
@@ -235,7 +245,7 @@ describe('Premium gate', () => {
   });
 
   it('the pharmacy plan is chosen by account type', async () => {
-    const h = await harness({ applink: otpApplink('REGISTERED', 'REGISTERED', 'tel:pharm-1') });
+    const h = await harness({ applink: otpApplink('REGISTERED', { subscriberId: 'tel:pharm-1' }) });
     const owner = await h.addUser('tel:pharm-1', {
       msisdn: '8801711111111',
       accountType: 'PHARMACY',
@@ -284,8 +294,73 @@ describe('Premium gate', () => {
     await h.app.close();
   });
 
+  it('INITIAL after the code: Register is called once and activates the plan', async () => {
+    const h = await harness({ applink: otpApplink('INITIAL', { register: 'REGISTERED' }) });
+    const user = await h.addUser();
+    const res = await subscribe(h, user);
+    expect(res.json().status).toBe('ACTIVE');
+    expect(h.applink.register).toHaveBeenCalledTimes(1);
+    expect(h.applink.register).toHaveBeenCalledWith(SUB);
+    expect((await h.stores.subscriptions.get(SUB))?.confirmedBy).toBe('REGISTER_RESPONSE');
+    expect(await h.app.services.subscriptions.isPremium(user)).toBe(true);
+    expect(h.applink.getSubscriberChargingInfo).not.toHaveBeenCalled();
+    await h.app.close();
+  });
+
+  it('REG_PENDING after the code never calls Register: its charging request is already out', async () => {
+    const h = await harness({ applink: otpApplink('REG_PENDING') });
+    const user = await h.addUser();
+    expect((await subscribe(h, user)).json().status).toBe('PENDING');
+    expect(h.applink.register).not.toHaveBeenCalled();
+    await h.app.close();
+  });
+
+  it('Register answering PENDING CONFIRMATION (E1338) keeps it pending, then one status lookup', async () => {
+    const h = await harness({
+      applink: otpApplink('INITIAL', { register: 'PENDING CONFIRMATION' }),
+    });
+    const user = await h.addUser();
+    const res = await subscribe(h, user);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().status).toBe('PENDING');
+    expect(h.applink.register).toHaveBeenCalledTimes(1);
+    expect(h.applink.getSubscriberChargingInfo).toHaveBeenCalledTimes(1);
+    await h.app.close();
+  });
+
+  it('a Register failure after a good code is not the person’s failure: still pending, not an error', async () => {
+    const h = await harness({
+      applink: otpApplink('INITIAL', { register: applinkError('E1603') }),
+    });
+    const user = await h.addUser();
+    const res = await subscribe(h, user);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().status).toBe('PENDING');
+    expect(await h.app.services.subscriptions.isPremium(user)).toBe(false);
+    await h.app.close();
+  });
+
+  it('a Register timeout stays pending and is never retried, because it may have gone through', async () => {
+    const timeout = new ApplinkTransportError('timed out', 'subscription-register');
+    const h = await harness({ applink: otpApplink('INITIAL', { register: timeout }) });
+    const user = await h.addUser();
+    expect((await subscribe(h, user)).json().status).toBe('PENDING');
+    expect(h.applink.register).toHaveBeenCalledTimes(1);
+    await h.app.close();
+  });
+
+  it('a billing block on Register is a failure, and Premium stays shut', async () => {
+    const h = await harness({ applink: otpApplink('INITIAL', { register: 'TEMPORARY_BLOCKED' }) });
+    const user = await h.addUser();
+    expect((await subscribe(h, user)).statusCode).toBe(503);
+    expect(await h.app.services.subscriptions.isPremium(user)).toBe(false);
+    await h.app.close();
+  });
+
   it('INITIAL stays pending until Applink says REGISTERED, here through the notification', async () => {
-    const h = await harness({ applink: otpApplink('INITIAL') });
+    const h = await harness({
+      applink: otpApplink('INITIAL', { register: 'PENDING CONFIRMATION' }),
+    });
     const user = await h.addUser();
     const res = await subscribe(h, user);
     expect(res.statusCode).toBe(200);
@@ -316,7 +391,9 @@ describe('Premium gate', () => {
   });
 
   it('a pending answer is settled at once when Applink’s status lookup already says REGISTERED', async () => {
-    const h = await harness({ applink: otpApplink('INITIAL', 'REGISTERED') });
+    const h = await harness({
+      applink: otpApplink('INITIAL', { lookup: 'REGISTERED', register: 'PENDING CONFIRMATION' }),
+    });
     const user = await h.addUser();
     const res = await subscribe(h, user);
     expect(res.json().status).toBe('ACTIVE');
@@ -326,7 +403,9 @@ describe('Premium gate', () => {
   });
 
   it('an UNREGISTERED lookup right after verify is not applied and never opts anyone out', async () => {
-    const h = await harness({ applink: otpApplink('INITIAL', 'UNREGISTERED') });
+    const h = await harness({
+      applink: otpApplink('INITIAL', { lookup: 'UNREGISTERED', register: 'PENDING CONFIRMATION' }),
+    });
     const user = await h.addUser();
     const res = await subscribe(h, user);
     expect(res.json().status).toBe('PENDING');
@@ -338,6 +417,7 @@ describe('Premium gate', () => {
     const applink = fakeApplink({
       requestOtp: async () => ok({ referenceNo: 'ref-1' }),
       verifyOtp: async () => ok({ subscriberId: SUB, subscriptionStatus: 'INITIAL' }),
+      register: async () => ok({ subscriptionStatus: 'PENDING CONFIRMATION' }),
       getSubscriberChargingInfo: async () => {
         throw applinkError('E1603');
       },
@@ -351,7 +431,7 @@ describe('Premium gate', () => {
   });
 
   it('keeps PENDING when intermediate INITIAL or REG_PENDING notifications arrive', async () => {
-    const h = await harness({ applink: otpApplink('INITIAL') });
+    const h = await harness({ applink: otpApplink('INITIAL', { register: 'INITIAL' }) });
     const user = await h.addUser();
     expect((await subscribe(h, user)).json().status).toBe('PENDING');
 
@@ -398,7 +478,7 @@ describe('Premium gate', () => {
   });
 
   it('an unconfirmed request lapses after Applink’s 60 minutes, and the person can ask again', async () => {
-    const h = await harness({ applink: otpApplink('INITIAL') });
+    const h = await harness({ applink: otpApplink('INITIAL', { register: 'INITIAL' }) });
     const user = await h.addUser();
     expect((await subscribe(h, user)).json().status).toBe('PENDING');
 
