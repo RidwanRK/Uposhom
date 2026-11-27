@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ApiError } from '../api/client';
 import { api } from '../api/endpoints';
 import { useT } from '../i18n';
 import { toLatinDigits } from '../utils/bangla';
@@ -8,6 +9,9 @@ import { BottomSheet } from './BottomSheet';
 import { Button } from './Button';
 import { Text } from './Text';
 import { TextField } from './TextField';
+
+/** The server's codes last five minutes; a little less, so a reopened sheet never shows a dead code. */
+const CODE_REUSE_MS = 4 * 60 * 1000;
 
 /**
  * Premium subscription by OTP (Applink OTP API). Step 1 records the consent the person ticked and
@@ -32,10 +36,13 @@ export function SubscribeOtpSheet({
   const [otp, setOtp] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // When the last code went out. Reopening the sheet soon after must not send a second SMS: codes
+  // are paid, rate limited, and Applink may refuse a second one while the first is still valid.
+  const sentAt = useRef<number | null>(null);
 
   useEffect(() => {
     if (visible) {
-      setSent(false);
+      setSent(sentAt.current !== null && Date.now() - sentAt.current < CODE_REUSE_MS);
       setOtp('');
       setError(null);
     }
@@ -46,6 +53,7 @@ export function SubscribeOtpSheet({
     setError(null);
     try {
       await api.billing.requestSubscribeOtp(consentWording);
+      sentAt.current = Date.now();
       setSent(true);
     } catch (e) {
       setError(errorMessage(e, t));
@@ -59,8 +67,14 @@ export function SubscribeOtpSheet({
     setError(null);
     try {
       await api.billing.verifySubscribeOtp(toLatinDigits(otp));
+      sentAt.current = null; // the code is used up
       onDone();
     } catch (e) {
+      // An expired code cannot be retried: offer to send a new one.
+      if (e instanceof ApiError && e.code === 'OTP_EXPIRED') {
+        sentAt.current = null;
+        setSent(false);
+      }
       setError(errorMessage(e, t));
       setOtp('');
     } finally {
