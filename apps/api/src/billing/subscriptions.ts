@@ -1,4 +1,4 @@
-import { ApplinkError, ApplinkTransportError, maskAddress } from '@uposhom/applink-client';
+import { maskAddress } from '@uposhom/applink-client';
 import { ApiError } from '../errors.js';
 import type { ServiceDeps } from '../services/deps.js';
 import type { UnregisterService } from '../subscription/unregister.js';
@@ -10,16 +10,14 @@ import { planConsentKind } from './config.js';
 export const ACTIVE_STATES = new Set(['REGISTERED', 'TRIAL']);
 
 /**
- * Applink accepted the request and is still awaiting subscriber confirmation or billing.
- * PENDING CONFIRMATION is what live Applink returns from Register (with E1338).
+ * Applink accepted the request and is still waiting on the subscriber or on billing.
+ * PENDING CONFIRMATION is what live Applink sometimes answers while it waits for the subscriber.
  */
 const PENDING_STATES = new Set(['INITIAL', 'REG_PENDING', 'PENDING CONFIRMATION']);
 
 /**
- * After Register, Applink texts the subscriber ("Applink Uposhom চালু করতে, ৬০ মিনিটের মধ্যে ...
- * A লিখে এসএমএস করুন") and the plan only starts once they reply. Until then Register answers
- * INITIAL or REG_PENDING, and the subscriber notification later reports REGISTERED. We wait this
- * long (Applink's own window) before letting the person ask again.
+ * How long a request may sit unconfirmed before we stop calling it pending and let the person ask
+ * again (Applink's own confirmation window).
  */
 export const CONFIRM_WINDOW_MS = 60 * 60 * 1000;
 
@@ -27,7 +25,7 @@ export const CONFIRM_WINDOW_MS = 60 * 60 * 1000;
 const BLOCKED_STATES = new Set(['TEMPORARY_BLOCKED', 'BLOCKED']);
 
 /**
- * True while our Register is waiting for the subscriber's SMS confirmation: we asked recently, the
+ * True while our subscription request is waiting for Applink to settle: we asked recently, the
  * status is not active yet, and Applink has not reported a final outcome since our request.
  */
 export function awaitingConfirmation(sub: SubscriptionRecord, now: Date): boolean {
@@ -50,28 +48,40 @@ export type SubscriptionView = {
   billingIssue?: boolean;
 };
 
+/**
+ * The Applink OTP API as the subscription flow uses it (docs/otp). Request sends the code to the
+ * subscriber's phone; verify checks it and, in Applink's words, activates the subscription.
+ */
+export interface SubscriptionOtp {
+  request(input: {
+    userId: string;
+    ip: string;
+  }): Promise<{ maskedPhone: string; expiresInSeconds: number }>;
+  verify(input: {
+    userId: string;
+    otp: string;
+  }): Promise<{ subscriberId: string | null; subscriptionStatus: string | null }>;
+}
+
 export const planFor = (user: UserRecord): SubscriptionPlan =>
   user.accountType === 'PHARMACY' ? 'PHARMACY' : 'FAMILY_CIRCLE';
 
-/** Applink status codes mapped to what the app may see. Never a raw code. */
-function mapRegisterError(err: unknown): ApiError {
-  if (err instanceof ApplinkError) {
-    if (err.statusCode === 'E1343') return new ApiError('NOT_ON_TEST_LIST', 403);
-    if (err.statusCode === 'E1342') return new ApiError('NUMBER_BLOCKED', 403);
-    if (err.statusCode === 'E1317') return new ApiError('NUMBER_NOT_ACCEPTED', 422);
-  }
-  return new ApiError('SERVICE_TROUBLE', 503);
-}
+const normaliseStatus = (status: string | null | undefined): string =>
+  (status ?? '').trim().toUpperCase().replace(/\.$/, '');
 
 /**
- * Premium subscriptions (Family Circle and the pharmacy plan).
+ * Premium subscriptions (Family Circle and the pharmacy plan), following Applink's documented flow:
+ *
+ *   1. requestOtp  : the consent is recorded, then Applink sends an OTP to the subscriber.
+ *   2. verifyOtp   : the subscriber enters it; Applink verifies it and activates the subscription,
+ *                    answering with the subscriptionStatus (INITIAL or REGISTERED). We act on that.
  *
  * The Premium gate (Master Plan section 8) is ALL of:
  *   1. an active subscriptions_mirror row for the user's subscriber id (REGISTERED or TRIAL),
  *   2. a recorded consent row for the plan, and
- *   3. a Register call that WE made for that plan.
- * `/otp/verify` already returns REGISTERED at free sign-up, so an active status alone never
- * unlocks anything. A notification is not authorisation either: it only updates the mirror.
+ *   3. a plan OTP verification that WE asked for (registerRequestedAt).
+ * `/otp/verify` also returns REGISTERED at free sign-up, so an active status alone never unlocks
+ * anything. A notification is not authorisation either: it only updates the mirror.
  * Nothing here calls Applink on a read path: status comes from the mirror.
  */
 export function createSubscriptionService(deps: ServiceDeps, unregister: UnregisterService) {
@@ -107,8 +117,8 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
         ? { status: 'ACTIVE', ...withPlan }
         : { status: 'INACTIVE', lastConfirmedAt: confirmed }; // free sign-up: registered, not Premium
     }
-    // Cancelled only when the stop came after our Register (an app cancel, a STOP, an operator
-    // removal), not when a request simply was never confirmed.
+    // Cancelled only when the stop came after our request, not when a request simply was never
+    // confirmed.
     if (
       sub.status === 'UNREGISTERED' &&
       sub.registerRequestedAt &&
@@ -121,30 +131,18 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
   }
 
   /**
-   * Subscribe to the user's plan. The consent row (wording, amount, currency, frequency, channel,
-   * IP) is written BEFORE Register is called. Register is never retried blindly: after a timeout
-   * the answer comes from the subscriber notification or the nightly sweep.
+   * Step 1. The consent row (wording, amount, currency, frequency, channel, IP) is written BEFORE
+   * the OTP goes out, because verifying it activates the subscription at Applink.
    */
-  async function subscribe(
+  async function requestOtp(
     user: UserRecord,
     input: { wording: string; ip: string },
-  ): Promise<SubscriptionView> {
-    if (!user.subscriberId) throw new ApiError('SERVICE_TROUBLE', 503);
-    if (!deps.applink) throw new ApiError('SERVICE_TROUBLE', 503);
-    if (await isPremium(user)) return view(user); // already subscribed: nothing to do
-    const before = await stores.subscriptions.get(user.subscriberId);
-    // Already asked and the confirmation SMS is with the person: never send a second Register.
-    if (before && awaitingConfirmation(before, deps.now())) return view(user);
-    // Copied now: a store may hand back the live row, which the upsert below changes.
-    const previous = {
-      registerRequestedAt: before?.registerRequestedAt ?? null,
-      plan: before?.plan ?? null,
-    };
+    otp: SubscriptionOtp,
+  ): Promise<{ maskedPhone: string; expiresInSeconds: number }> {
+    if (!user.subscriberId || !deps.applink) throw new ApiError('SERVICE_TROUBLE', 503);
 
     const plan = planFor(user);
     const price = billing.plans[plan];
-    const now = deps.now();
-
     await stores.consents.record(
       {
         userId: user.id,
@@ -156,98 +154,117 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
         currency: price.currency,
         frequency: price.frequency,
       },
-      now,
+      deps.now(),
     );
-    // Fresh, recorded consent is what allows a person who said STOP to be subscribed again.
-    await stores.optOuts.clearStop(user.subscriberId);
-    await stores.subscriptions.upsert(
-      { subscriberId: user.subscriberId, userId: user.id, plan, registerRequestedAt: now },
-      now,
-    );
+    return otp.request({ userId: user.id, ip: input.ip });
+  }
 
-    const settledSinceRequest = async (): Promise<boolean> => {
-      const current = await stores.subscriptions.get(user.subscriberId!);
-      return Boolean(
-        current &&
-          current.lastConfirmedAt &&
-          current.lastConfirmedAt >= now &&
-          !PENDING_STATES.has(current.status),
-      );
-    };
+  /**
+   * Step 2. Applink verifies the code and answers with the subscription status. REGISTERED (or
+   * TRIAL) activates the plan now. INITIAL or REG_PENDING means Applink is still settling it: the
+   * plan stays pending and one status lookup, then the notification or the nightly sweep, settles it.
+   * The OTP call is never retried blindly: a wrong code costs an attempt, not a second SMS.
+   */
+  async function verifyOtp(
+    user: UserRecord,
+    code: string,
+    otp: SubscriptionOtp,
+  ): Promise<SubscriptionView> {
+    const subscriberId = user.subscriberId;
+    if (!subscriberId) throw new ApiError('SERVICE_TROUBLE', 503);
 
-    let status: string;
-    try {
-      const res = await deps.applink.register(user.subscriberId);
-      status = (res.subscriptionStatus ?? '').trim().toUpperCase().replace(/\.$/, '');
-    } catch (err) {
-      if (err instanceof ApplinkTransportError) {
-        // It may have gone through. Leave it pending: the notification or the sweep settles it.
-        log.warn({ subscriber: maskAddress(user.subscriberId) }, 'register outcome unknown');
-        if (!(await settledSinceRequest())) {
-          await stores.subscriptions.upsert(
-            { subscriberId: user.subscriberId, status: 'REG_PENDING' },
-            deps.now(),
-          );
-        }
-        return view(user);
-      }
+    const plan = planFor(user);
+    const price = billing.plans[plan];
+    const startedAt = deps.now();
+    const verified = await otp.verify({ userId: user.id, otp: code });
+    const status = normaliseStatus(verified.subscriptionStatus) || 'INITIAL';
+
+    if (BLOCKED_STATES.has(status)) {
+      // A billing block: the subscription cannot take effect now. Record it, but do not mark the
+      // plan as requested, so a number that was already REGISTERED stays out of Premium.
       log.warn(
-        {
-          subscriber: maskAddress(user.subscriberId),
-          statusCode: (err as { statusCode?: string }).statusCode,
-        },
-        'register failed',
+        { subscriber: maskAddress(subscriberId), status },
+        'subscription otp verify blocked',
       );
-      // The request did not take effect: undo our mark, so a number that was already REGISTERED
-      // at sign-up cannot pass the Premium gate without a Register that worked.
-      await stores.subscriptions.upsert(
-        {
-          subscriberId: user.subscriberId,
-          ...previous,
-        },
-        deps.now(),
-      );
-      throw mapRegisterError(err);
+      await stores.subscriptions.upsert({ subscriberId, status }, deps.now());
+      throw new ApiError('SERVICE_TROUBLE', 503);
     }
-
-    if (ACTIVE_STATES.has(status)) {
-      await stores.subscriptions.upsert(
-        {
-          subscriberId: user.subscriberId,
-          status,
-          frequency: price.frequency,
-          confirmedAt: deps.now(),
-          confirmedBy: 'REGISTER_RESPONSE',
-        },
-        deps.now(),
-      );
-    } else if (BLOCKED_STATES.has(status)) {
-      // A billing block: the request cannot take effect now.
-      log.warn({ subscriber: maskAddress(user.subscriberId), status }, 'register blocked');
-      await stores.subscriptions.upsert(
-        {
-          subscriberId: user.subscriberId,
-          status,
-          ...previous,
-        },
-        deps.now(),
+    if (!ACTIVE_STATES.has(status) && !PENDING_STATES.has(status)) {
+      log.warn(
+        { subscriber: maskAddress(subscriberId), status },
+        'subscription otp verify returned an unexpected status',
       );
       throw new ApiError('SERVICE_TROUBLE', 503);
-    } else {
-      // INITIAL, REG_PENDING (or no status yet): Applink has texted the person to confirm (reply
-      // A). Not active, and not a failure: the subscriber notification settles it.
-      log.info(
-        { subscriber: maskAddress(user.subscriberId), status: status || 'none' },
-        'register awaiting the subscriber’s SMS confirmation',
-      );
-      if (!(await settledSinceRequest())) {
-        await stores.subscriptions.upsert(
-          { subscriberId: user.subscriberId, status: status || 'INITIAL' },
-          deps.now(),
-        );
-      }
     }
+
+    // Fresh, recorded consent and a proven phone are what allow a person who said STOP to be
+    // subscribed again.
+    await stores.optOuts.clearStop(subscriberId);
+
+    // A notification can arrive while verify is in flight: never overwrite its final status with a
+    // stale pending one.
+    const current = await stores.subscriptions.get(subscriberId);
+    const settledSinceRequest = Boolean(
+      current &&
+      current.lastConfirmedAt &&
+      current.lastConfirmedAt >= startedAt &&
+      !PENDING_STATES.has(current.status),
+    );
+    const active = ACTIVE_STATES.has(status);
+    await stores.subscriptions.upsert(
+      {
+        subscriberId,
+        userId: user.id,
+        plan,
+        registerRequestedAt: startedAt,
+        ...(settledSinceRequest
+          ? {}
+          : {
+              status,
+              frequency: price.frequency,
+              ...(active ? { confirmedAt: deps.now(), confirmedBy: 'OTP_VERIFY' as const } : {}),
+            }),
+      },
+      deps.now(),
+    );
+    log.info(
+      { subscriber: maskAddress(subscriberId), status },
+      'subscription otp verified: applink answered',
+    );
+
+    if (!active && !settledSinceRequest) await reconcileNow(subscriberId);
     return view(user);
+  }
+
+  /**
+   * One status lookup (getSubscriberChargingInfo) when verify answered INITIAL or REG_PENDING, so a
+   * plan that Applink has already settled does not wait for the nightly sweep. Best effort: if it
+   * fails the notification or the sweep settles it. UNREGISTERED is never applied from here.
+   */
+  async function reconcileNow(subscriberId: string): Promise<void> {
+    if (!deps.applink) return;
+    try {
+      const res = await deps.applink.getSubscriberChargingInfo([subscriberId]);
+      const entry = (res.subscriberInfo ?? res.destinationResponses ?? [])[0];
+      const status = normaliseStatus(entry?.subscriptionStatus);
+      if (!status || (entry?.statusCode && entry.statusCode !== 'S1000')) return;
+      if (
+        !ACTIVE_STATES.has(status) &&
+        !PENDING_STATES.has(status) &&
+        !BLOCKED_STATES.has(status)
+      ) {
+        return;
+      }
+      await handleNotification({ subscriberId, status, source: 'SWEEP' });
+    } catch (err) {
+      log.warn(
+        {
+          subscriber: maskAddress(subscriberId),
+          statusCode: (err as { statusCode?: string }).statusCode ?? 'transport',
+        },
+        'subscription status lookup failed: the notification or the sweep will settle it',
+      );
+    }
   }
 
   /**
@@ -280,7 +297,7 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
     subscriberId: string;
     status: string;
     frequency?: string | undefined;
-    /** NOTIFICATION from the callback, SWEEP from the nightly reconciliation. */
+    /** NOTIFICATION from the callback, SWEEP from a status lookup (nightly or right after verify). */
     source?: 'NOTIFICATION' | 'SWEEP';
   }): Promise<void> {
     const status = data.status.trim().toUpperCase().replace(/\.$/, '');
@@ -289,7 +306,7 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
     const now = deps.now();
 
     if (!user) {
-      // Stored and flagged, never unlocked: no account, no consent, no Register of ours.
+      // Stored and flagged, never unlocked: no account, no consent, no request of ours.
       log.warn(
         { subscriber: maskAddress(subscriberId), status },
         'subscription notification for unknown subscriber',
@@ -317,7 +334,7 @@ export function createSubscriptionService(deps: ServiceDeps, unregister: Unregis
     );
   }
 
-  return { isPremium, view, subscribe, unsubscribe, handleNotification };
+  return { isPremium, view, requestOtp, verifyOtp, unsubscribe, handleNotification };
 }
 
 export type SubscriptionService = ReturnType<typeof createSubscriptionService>;

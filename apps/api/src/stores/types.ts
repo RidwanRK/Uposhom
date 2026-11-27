@@ -43,7 +43,7 @@ export interface UserStore {
   setAdmin(userId: string, isAdmin: boolean): Promise<void>;
 }
 
-export type OtpPurpose = 'SIGNUP' | 'STEP_UP' | 'FAMILY_LINK';
+export type OtpPurpose = 'SIGNUP' | 'STEP_UP' | 'FAMILY_LINK' | 'SUBSCRIBE';
 
 export interface OtpSessionRecord {
   id: string;
@@ -227,7 +227,7 @@ export interface SubscriptionRecord {
   /** When WE called Register for the plan. Without it a REGISTERED status never unlocks Premium. */
   registerRequestedAt: Date | null;
   lastConfirmedAt: Date | null;
-  confirmedBy: 'NOTIFICATION' | 'REGISTER_RESPONSE' | 'SWEEP' | null;
+  confirmedBy: 'NOTIFICATION' | 'REGISTER_RESPONSE' | 'OTP_VERIFY' | 'SWEEP' | null;
   updatedAt: Date;
 }
 

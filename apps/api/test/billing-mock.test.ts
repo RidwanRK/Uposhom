@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { harness, settle, SUB } from './platform.js';
+import { harness, settle } from './platform.js';
 import { startMockApplink, type MockApplink } from './helpers.js';
 
 /**
@@ -96,20 +96,24 @@ describe('CaaS and Subscription against the Applink mock', () => {
     await h.app.close();
   });
 
-  it('subscribes and cancels with request bodies the contract accepts', async () => {
+  it('subscribes with the OTP API and cancels, with request bodies the contract accepts', async () => {
     const h = await harness({ applink: mock.client('') });
-    const user = await h.addUser();
-    const sub = await h.api(user, 'POST', '/billing/subscription/subscribe', {
+    // The mock's OTP verify sample answers with this subscriber id.
+    const MOCK_SUB = 'tel:8801416177301';
+    const user = await h.addUser(MOCK_SUB, { msisdn: '8801416177301' });
+    const sent = await h.api(user, 'POST', '/billing/subscription/otp/request', {
       consentAccepted: true,
       consentWording: 'Pay 30 BDT monthly.',
     });
+    expect(sent.statusCode, sent.body).toBe(200);
+    const sub = await h.api(user, 'POST', '/billing/subscription/otp/verify', { otp: '12345' });
     expect(sub.statusCode, sub.body).toBe(200);
-    expect(sub.json().status).toBe('ACTIVE'); // the mock's Register sample answers REGISTERED
+    expect(sub.json().status).toBe('ACTIVE'); // the mock's OTP verify sample answers REGISTERED
 
     await h.api(user, 'POST', '/billing/subscription/unsubscribe');
     await settle(h);
-    expect(await h.stores.optOuts.suppressionFor(SUB)).toBe('STOP');
-    expect((await h.stores.subscriptions.get(SUB))?.status).toBe('UNREGISTERED');
+    expect(await h.stores.optOuts.suppressionFor(MOCK_SUB)).toBe('STOP');
+    expect((await h.stores.subscriptions.get(MOCK_SUB))?.status).toBe('UNREGISTERED');
     expect(await mock.badRequests()).toEqual([]);
     expect(await h.deadLetterCount()).toBe(0);
     await h.app.close();

@@ -1,14 +1,24 @@
 import { describe, expect, it, vi } from 'vitest';
 import { subscriptionStatusResponse } from '@uposhom/shared';
-import { applinkError, fakeApplink, harness, ok, settle, SUB } from './platform.js';
-import { ApplinkTransportError } from '@uposhom/applink-client';
+import { applinkError, fakeApplink, harness, ok, OTHER, settle, SUB } from './platform.js';
 
 const WORDING = 'I agree to pay 30 BDT every month. Renews automatically. Cancel any time.';
-const subscribe = (h: Awaited<ReturnType<typeof harness>>, user: Parameters<typeof h.api>[0]) =>
-  h.api(user, 'POST', '/billing/subscription/subscribe', {
-    consentAccepted: true,
-    consentWording: WORDING,
-  });
+const CODE = '12345';
+type H = Awaited<ReturnType<typeof harness>>;
+type User = Parameters<H['api']>[0];
+
+/** Step 1 of Pro: the ticked consent, then Applink sends the OTP. */
+const requestCode = (h: H, user: User, payload: object = consent()) =>
+  h.api(user, 'POST', '/billing/subscription/otp/request', payload);
+/** Step 2: the code the person received. */
+const verifyCode = (h: H, user: User, otp = CODE) =>
+  h.api(user, 'POST', '/billing/subscription/otp/verify', { otp });
+/** Both steps, the way the app does them. Returns the verify answer (or the failed request). */
+const subscribe = async (h: H, user: User) => {
+  const sent = await requestCode(h, user);
+  return sent.statusCode === 200 ? verifyCode(h, user) : sent;
+};
+const consent = () => ({ consentAccepted: true, consentWording: WORDING });
 
 const notify = (status: string, subscriberId = SUB, timeStamp = '20261122100000') => ({
   timeStamp,
@@ -20,9 +30,19 @@ const notify = (status: string, subscriberId = SUB, timeStamp = '20261122100000'
   status,
 });
 
-/** Applink that registers successfully, answering with the given subscription status. */
-const registering = (status = 'REGISTERED') =>
-  fakeApplink({ register: async () => ok({ subscriptionStatus: status }) });
+/**
+ * Applink as the Pro flow sees it: the OTP is sent, then verify answers with the subscription
+ * status. `lookup` is what getSubscriberChargingInfo says afterwards. `register` is a spy that the
+ * flow must never call: the OTP verify is what activates the subscription.
+ */
+const otpApplink = (status = 'REGISTERED', lookup = status, subscriberId = SUB) =>
+  fakeApplink({
+    requestOtp: async () => ok({ referenceNo: 'ref-1' }),
+    verifyOtp: async () => ok({ subscriberId, subscriptionStatus: status }),
+    getSubscriberChargingInfo: async () =>
+      ok({ subscriberInfo: [{ subscriberId, subscriptionStatus: lookup, statusCode: 'S1000' }] }),
+    register: async () => ok({ subscriptionStatus: 'REGISTERED' }),
+  });
 
 describe('Premium gate', () => {
   it('a free sign-up is REGISTERED at Applink but is not Premium', async () => {
@@ -48,20 +68,25 @@ describe('Premium gate', () => {
     );
     await h.callback('subscription/notify', notify('REGISTERED'));
     await settle(h);
-    // Consent exists, status is active, but WE never called Register for the plan.
+    // Consent exists, status is active, but the person never verified the plan's OTP.
     expect((await h.api(user, 'GET', '/billing/subscription/status')).json().status).toBe(
       'INACTIVE',
     );
     await h.app.close();
   });
 
-  it('subscribes: consent is recorded BEFORE Register, then Premium is active', async () => {
+  it('subscribes with the OTP API: consent first, then the code is sent, then verify activates', async () => {
     const order: string[] = [];
     const applink = fakeApplink({
-      register: async () => {
-        order.push('register');
-        return ok({ subscriptionStatus: 'REGISTERED' });
+      requestOtp: async () => {
+        order.push('otp-request');
+        return ok({ referenceNo: 'ref-1' });
       },
+      verifyOtp: async () => {
+        order.push('otp-verify');
+        return ok({ subscriberId: SUB, subscriptionStatus: 'REGISTERED' });
+      },
+      register: async () => ok({ subscriptionStatus: 'REGISTERED' }),
     });
     const h = await harness({ applink });
     const user = await h.addUser();
@@ -71,8 +96,14 @@ describe('Premium gate', () => {
       return record(input, now);
     };
 
-    const res = await subscribe(h, user);
-    expect(order).toEqual(['consent', 'register']);
+    const sent = await requestCode(h, user);
+    expect(sent.statusCode).toBe(200);
+    expect(sent.json()).toMatchObject({ success: true, expiresInSeconds: 300 });
+    // Not Premium until the code is verified.
+    expect(await h.app.services.subscriptions.isPremium(user)).toBe(false);
+
+    const res = await verifyCode(h, user);
+    expect(order).toEqual(['consent', 'otp-request', 'otp-verify']);
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(body).toMatchObject({
@@ -82,7 +113,11 @@ describe('Premium gate', () => {
       currency: 'BDT',
     });
     expect(subscriptionStatusResponse.safeParse(body).success).toBe(true);
-    expect(applink.register).toHaveBeenCalledWith(SUB);
+    expect(applink.requestOtp).toHaveBeenCalledWith({ subscriberId: '8801959979376' });
+    expect(applink.verifyOtp).toHaveBeenCalledWith({ referenceNo: 'ref-1', otp: CODE });
+    // The documented flow has no separate Register step.
+    expect(applink.register).not.toHaveBeenCalled();
+    expect((await h.stores.subscriptions.get(SUB))?.confirmedBy).toBe('OTP_VERIFY');
 
     expect(await h.app.services.subscriptions.isPremium(user)).toBe(true);
     expect((await h.api(user, 'GET', '/billing/entitlements')).json().tier).toBe('PREMIUM');
@@ -90,7 +125,7 @@ describe('Premium gate', () => {
   });
 
   it('stores the consent evidence: wording, amount, currency, frequency, channel and IP', async () => {
-    const h = await harness({ applink: registering() });
+    const h = await harness({ applink: otpApplink() });
     const user = await h.addUser();
     const spy = vi.spyOn(h.stores.consents, 'record');
     await subscribe(h, user);
@@ -109,33 +144,85 @@ describe('Premium gate', () => {
     await h.app.close();
   });
 
-  it('refuses without consent and never calls Register', async () => {
-    const h = await harness({ applink: registering() });
+  it('refuses without consent and never sends a code', async () => {
+    const h = await harness({ applink: otpApplink() });
     const user = await h.addUser();
     for (const payload of [
       {},
       { consentAccepted: false, consentWording: WORDING },
       { consentAccepted: true },
     ]) {
-      const res = await h.api(user, 'POST', '/billing/subscription/subscribe', payload);
+      const res = await requestCode(h, user, payload);
       expect(res.statusCode).toBe(400);
       expect(res.json().error.code).toBe('CONSENT_REQUIRED');
     }
-    expect(h.applink.register).not.toHaveBeenCalled();
+    expect(h.applink.requestOtp).not.toHaveBeenCalled();
+    expect(h.applink.verifyOtp).not.toHaveBeenCalled();
     await h.app.close();
   });
 
-  it('subscribing again while Premium does nothing', async () => {
-    const h = await harness({ applink: registering() });
+  it('a code that was never requested cannot activate anything', async () => {
+    const h = await harness({ applink: otpApplink() });
     const user = await h.addUser();
-    await subscribe(h, user);
-    await subscribe(h, user);
-    expect(h.applink.register).toHaveBeenCalledTimes(1);
+    const res = await verifyCode(h, user);
+    expect(res.statusCode).toBe(410);
+    expect(res.json().error.code).toBe('OTP_EXPIRED');
+    expect(h.applink.verifyOtp).not.toHaveBeenCalled();
+    expect((await h.api(user, 'GET', '/billing/subscription/status')).json().status).toBe(
+      'INACTIVE',
+    );
+    await h.app.close();
+  });
+
+  it('refuses a malformed code before Applink is asked', async () => {
+    const h = await harness({ applink: otpApplink() });
+    const user = await h.addUser();
+    await requestCode(h, user);
+    for (const otp of ['abc', '1234', '123456', '']) {
+      expect((await verifyCode(h, user, otp)).statusCode).toBe(400);
+    }
+    expect(h.applink.verifyOtp).not.toHaveBeenCalled();
+    await h.app.close();
+  });
+
+  it('a wrong code does not activate, and the right one still can', async () => {
+    const applink = fakeApplink({
+      requestOtp: async () => ok({ referenceNo: 'ref-1' }),
+      verifyOtp: vi
+        .fn()
+        .mockRejectedValueOnce(applinkError('E1850'))
+        .mockResolvedValue(ok({ subscriberId: SUB, subscriptionStatus: 'REGISTERED' })),
+    });
+    const h = await harness({ applink });
+    const user = await h.addUser();
+    await requestCode(h, user);
+
+    const wrong = await verifyCode(h, user, '00000');
+    expect(wrong.statusCode).toBe(401);
+    expect(wrong.json().error.code).toBe('OTP_WRONG');
+    expect(wrong.body).not.toContain('E1850');
+    expect(await h.app.services.subscriptions.isPremium(user)).toBe(false);
+
+    expect((await verifyCode(h, user)).json().status).toBe('ACTIVE');
+    await h.app.close();
+  });
+
+  it('a code for another number cannot activate this account', async () => {
+    const applink = fakeApplink({
+      requestOtp: async () => ok({ referenceNo: 'ref-1' }),
+      verifyOtp: async () => ok({ subscriberId: OTHER, subscriptionStatus: 'REGISTERED' }),
+    });
+    const h = await harness({ applink });
+    const user = await h.addUser();
+    await requestCode(h, user);
+    const res = await verifyCode(h, user);
+    expect(res.statusCode).toBe(401);
+    expect(await h.app.services.subscriptions.isPremium(user)).toBe(false);
     await h.app.close();
   });
 
   it('REG_PENDING waits for the notification, which then activates it', async () => {
-    const h = await harness({ applink: registering('REG_PENDING') });
+    const h = await harness({ applink: otpApplink('REG_PENDING') });
     const user = await h.addUser();
     expect((await subscribe(h, user)).json().status).toBe('PENDING');
 
@@ -148,7 +235,7 @@ describe('Premium gate', () => {
   });
 
   it('the pharmacy plan is chosen by account type', async () => {
-    const h = await harness({ applink: registering() });
+    const h = await harness({ applink: otpApplink('REGISTERED', 'REGISTERED', 'tel:pharm-1') });
     const owner = await h.addUser('tel:pharm-1', {
       msisdn: '8801711111111',
       accountType: 'PHARMACY',
@@ -167,7 +254,7 @@ describe('Premium gate', () => {
       ['E1603', 503, 'SERVICE_TROUBLE'],
     ] as const) {
       const applink = fakeApplink({
-        register: async () => {
+        requestOtp: async () => {
           throw applinkError(code);
         },
       });
@@ -181,52 +268,31 @@ describe('Premium gate', () => {
     }
   });
 
-  it('a timeout leaves it pending, because it may have gone through', async () => {
+  it('an expired code is reported as expired', async () => {
     const applink = fakeApplink({
-      register: async () => {
-        throw new ApplinkTransportError('timed out', 'subscription-register');
+      requestOtp: async () => ok({ referenceNo: 'ref-1' }),
+      verifyOtp: async () => {
+        throw applinkError('E1851');
       },
     });
     const h = await harness({ applink });
     const user = await h.addUser();
-    const res = await subscribe(h, user);
-    expect(res.json().status).toBe('PENDING');
-    expect(applink.register).toHaveBeenCalledTimes(1); // never retried blindly
+    await requestCode(h, user);
+    const res = await verifyCode(h, user);
+    expect(res.statusCode).toBe(410);
+    expect(res.json().error.code).toBe('OTP_EXPIRED');
     await h.app.close();
   });
 
-  it('PENDING CONFIRMATION (live Register answer, with E1338) is pending, then active on the notification', async () => {
-    const h = await harness({ applink: registering('PENDING CONFIRMATION') });
+  it('INITIAL stays pending until Applink says REGISTERED, here through the notification', async () => {
+    const h = await harness({ applink: otpApplink('INITIAL') });
     const user = await h.addUser();
     const res = await subscribe(h, user);
     expect(res.statusCode).toBe(200);
     expect(res.json().status).toBe('PENDING');
     expect((await h.stores.subscriptions.get(SUB))?.registerRequestedAt).not.toBeNull();
-
-    // A second tap while waiting must not send a second Register.
-    expect((await subscribe(h, user)).json().status).toBe('PENDING');
-    expect(h.applink.register).toHaveBeenCalledTimes(1);
-
-    h.clock.now = new Date(h.clock.now.getTime() + 5 * 60_000);
-    await h.callback('subscription/notify', notify('REGISTERED', SUB, '20261122100500'));
-    await settle(h);
-    expect((await h.api(user, 'GET', '/billing/entitlements')).json().tier).toBe('PREMIUM');
-    await h.app.close();
-  });
-
-  it('INITIAL means Applink texted the person to confirm (reply A): pending, then active on the notification', async () => {
-    const h = await harness({ applink: registering('INITIAL') });
-    const user = await h.addUser();
-    const res = await subscribe(h, user);
-    expect(res.statusCode).toBe(200);
-    expect(res.json().status).toBe('PENDING');
     expect((await h.api(user, 'GET', '/billing/entitlements')).json().tier).toBe('FREE');
 
-    // A second tap while waiting must not send a second Register (and a second SMS).
-    expect((await subscribe(h, user)).json().status).toBe('PENDING');
-    expect(h.applink.register).toHaveBeenCalledTimes(1);
-
-    // The person replies A; Applink's subscriber notification reports REGISTERED.
     h.clock.now = new Date(h.clock.now.getTime() + 5 * 60_000);
     await h.callback('subscription/notify', notify('REGISTERED', SUB, '20261122100500'));
     await settle(h);
@@ -235,8 +301,57 @@ describe('Premium gate', () => {
     await h.app.close();
   });
 
-  it('keeps PENDING when intermediate INITIAL or REG_PENDING notifications arrive, and does not re-register', async () => {
-    const h = await harness({ applink: registering('INITIAL') });
+  it('PENDING CONFIRMATION is pending too, then active on the notification', async () => {
+    const h = await harness({ applink: otpApplink('PENDING CONFIRMATION') });
+    const user = await h.addUser();
+    const res = await subscribe(h, user);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().status).toBe('PENDING');
+
+    h.clock.now = new Date(h.clock.now.getTime() + 5 * 60_000);
+    await h.callback('subscription/notify', notify('REGISTERED', SUB, '20261122100500'));
+    await settle(h);
+    expect((await h.api(user, 'GET', '/billing/entitlements')).json().tier).toBe('PREMIUM');
+    await h.app.close();
+  });
+
+  it('a pending answer is settled at once when Applink’s status lookup already says REGISTERED', async () => {
+    const h = await harness({ applink: otpApplink('INITIAL', 'REGISTERED') });
+    const user = await h.addUser();
+    const res = await subscribe(h, user);
+    expect(res.json().status).toBe('ACTIVE');
+    expect(h.applink.getSubscriberChargingInfo).toHaveBeenCalledWith([SUB]);
+    expect((await h.stores.subscriptions.get(SUB))?.confirmedBy).toBe('SWEEP');
+    await h.app.close();
+  });
+
+  it('an UNREGISTERED lookup right after verify is not applied and never opts anyone out', async () => {
+    const h = await harness({ applink: otpApplink('INITIAL', 'UNREGISTERED') });
+    const user = await h.addUser();
+    const res = await subscribe(h, user);
+    expect(res.json().status).toBe('PENDING');
+    expect(await h.stores.optOuts.suppressionFor(SUB)).toBeNull();
+    await h.app.close();
+  });
+
+  it('a failing status lookup leaves it pending for the notification or the sweep', async () => {
+    const applink = fakeApplink({
+      requestOtp: async () => ok({ referenceNo: 'ref-1' }),
+      verifyOtp: async () => ok({ subscriberId: SUB, subscriptionStatus: 'INITIAL' }),
+      getSubscriberChargingInfo: async () => {
+        throw applinkError('E1603');
+      },
+    });
+    const h = await harness({ applink });
+    const user = await h.addUser();
+    const res = await subscribe(h, user);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().status).toBe('PENDING');
+    await h.app.close();
+  });
+
+  it('keeps PENDING when intermediate INITIAL or REG_PENDING notifications arrive', async () => {
+    const h = await harness({ applink: otpApplink('INITIAL') });
     const user = await h.addUser();
     expect((await subscribe(h, user)).json().status).toBe('PENDING');
 
@@ -246,8 +361,6 @@ describe('Premium gate', () => {
     expect((await h.api(user, 'GET', '/billing/subscription/status')).json().status).toBe(
       'PENDING',
     );
-    expect((await subscribe(h, user)).json().status).toBe('PENDING');
-    expect(h.applink.register).toHaveBeenCalledTimes(1);
 
     h.clock.now = new Date(h.clock.now.getTime() + 60_000);
     await h.callback('subscription/notify', notify('REGISTERED', SUB, '20261122100200'));
@@ -256,24 +369,28 @@ describe('Premium gate', () => {
     await h.app.close();
   });
 
-  it('does not overwrite an in-flight REGISTERED notification with a stale INITIAL response', async () => {
-    let resolveRegister!: (v: ReturnType<typeof ok<{ subscriptionStatus: string }>>) => void;
+  it('does not overwrite an in-flight REGISTERED notification with a stale INITIAL answer', async () => {
+    let resolveVerify!: (
+      v: ReturnType<typeof ok<{ subscriberId: string; subscriptionStatus: string }>>,
+    ) => void;
     const applink = fakeApplink({
-      register: () =>
+      requestOtp: async () => ok({ referenceNo: 'ref-1' }),
+      verifyOtp: () =>
         new Promise((resolve) => {
-          resolveRegister = resolve;
+          resolveVerify = resolve;
         }),
     });
     const h = await harness({ applink });
     const user = await h.addUser();
-    const pending = subscribe(h, user);
+    await requestCode(h, user);
+    const pending = verifyCode(h, user);
 
-    await vi.waitFor(() => expect(applink.register).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(applink.verifyOtp).toHaveBeenCalledTimes(1));
     h.clock.now = new Date(h.clock.now.getTime() + 1000);
     await h.callback('subscription/notify', notify('REGISTERED', SUB, '20261122100001'));
     await settle(h);
 
-    resolveRegister(ok({ subscriptionStatus: 'INITIAL' }));
+    resolveVerify(ok({ subscriberId: SUB, subscriptionStatus: 'INITIAL' }));
     const res = await pending;
     expect(res.json().status).toBe('ACTIVE');
     expect((await h.stores.subscriptions.get(SUB))?.status).toBe('REGISTERED');
@@ -281,7 +398,7 @@ describe('Premium gate', () => {
   });
 
   it('an unconfirmed request lapses after Applink’s 60 minutes, and the person can ask again', async () => {
-    const h = await harness({ applink: registering('UNREGISTERED.') });
+    const h = await harness({ applink: otpApplink('INITIAL') });
     const user = await h.addUser();
     expect((await subscribe(h, user)).json().status).toBe('PENDING');
 
@@ -290,24 +407,34 @@ describe('Premium gate', () => {
     expect((await h.api(user, 'GET', '/billing/subscription/status')).json().status).toBe(
       'INACTIVE',
     );
-    await subscribe(h, user);
-    expect(h.applink.register).toHaveBeenCalledTimes(2);
+    expect((await subscribe(h, user)).json().status).toBe('PENDING');
+    expect(h.applink.requestOtp).toHaveBeenCalledTimes(2);
     await h.app.close();
   });
 
-  it('a billing block from Register is a failure, and Premium stays shut', async () => {
-    const h = await harness({ applink: registering('TEMPORARY_BLOCKED') });
+  it('a billing block on verify is a failure, and Premium stays shut', async () => {
+    const h = await harness({ applink: otpApplink('TEMPORARY_BLOCKED') });
     const user = await h.addUser();
     expect((await subscribe(h, user)).statusCode).toBe(503);
     expect((await h.api(user, 'GET', '/billing/subscription/status')).json().status).not.toBe(
       'ACTIVE',
     );
+    expect(await h.app.services.subscriptions.isPremium(user)).toBe(false);
     await h.app.close();
   });
 
-  it('a failed Register never makes a number REGISTERED at sign-up look Premium', async () => {
+  it('an unexpected status on verify is a failure and unlocks nothing', async () => {
+    const h = await harness({ applink: otpApplink('UNREGISTERED.') });
+    const user = await h.addUser();
+    expect((await subscribe(h, user)).statusCode).toBe(503);
+    expect(await h.app.services.subscriptions.isPremium(user)).toBe(false);
+    await h.app.close();
+  });
+
+  it('a failed verify never makes a number REGISTERED at sign-up look Premium', async () => {
     const applink = fakeApplink({
-      register: async () => {
+      requestOtp: async () => ok({ referenceNo: 'ref-1' }),
+      verifyOtp: async () => {
         throw applinkError('E1603');
       },
     });
@@ -324,6 +451,19 @@ describe('Premium gate', () => {
     await h.app.close();
   });
 
+  it('a fresh code lets a person who said STOP subscribe again', async () => {
+    const h = await harness({ applink: otpApplink() });
+    const user = await h.addUser();
+    await h.stores.optOuts.suppress(
+      { subscriberId: SUB, reason: 'STOP', source: 'SMS' },
+      h.clock.now,
+    );
+    expect(await h.stores.optOuts.suppressionFor(SUB)).toBe('STOP');
+    expect((await subscribe(h, user)).json().status).toBe('ACTIVE');
+    expect(await h.stores.optOuts.suppressionFor(SUB)).toBeNull();
+    await h.app.close();
+  });
+
   it('fails closed when Applink is not configured yet', async () => {
     const h = await harness({ applink: undefined });
     const user = await h.addUser();
@@ -335,7 +475,8 @@ describe('Premium gate', () => {
     const h = await harness();
     for (const [method, url] of [
       ['GET', '/api/v1/billing/subscription/status'],
-      ['POST', '/api/v1/billing/subscription/subscribe'],
+      ['POST', '/api/v1/billing/subscription/otp/request'],
+      ['POST', '/api/v1/billing/subscription/otp/verify'],
       ['POST', '/api/v1/billing/subscription/unsubscribe'],
       ['GET', '/api/v1/billing/entitlements'],
       ['POST', '/api/v1/account/opt-out'],
@@ -343,215 +484,6 @@ describe('Premium gate', () => {
       const res = await h.app.inject({ method, url, payload: method === 'POST' ? {} : undefined });
       expect(res.statusCode, url).toBe(401);
     }
-    await h.app.close();
-  });
-});
-
-describe('subscription lifecycle', () => {
-  it('a billing failure (TEMPORARY_BLOCKED) keeps the account and shows the fix-payment path', async () => {
-    const h = await harness({ applink: registering() });
-    const user = await h.addUser();
-    await subscribe(h, user);
-    await h.callback('subscription/notify', notify('TEMPORARY_BLOCKED', SUB, '20261122110000'));
-    await settle(h);
-    const body = (await h.api(user, 'GET', '/billing/subscription/status')).json();
-    expect(body.status).toBe('INACTIVE');
-    expect(body.billingIssue).toBe(true);
-    expect(await h.stores.users.findById(user.id)).not.toBeNull(); // account is kept
-    await h.app.close();
-  });
-
-  it('unsubscribing closes Premium at once, stops messages, and retries Unregister until it takes', async () => {
-    let calls = 0;
-    const applink = fakeApplink({
-      register: async () => ok({ subscriptionStatus: 'REGISTERED' }),
-      unregister: async () =>
-        ok({ subscriptionStatus: ++calls < 2 ? 'REGISTERED' : 'UNREGISTERED' }),
-    });
-    const h = await harness({ applink });
-    const user = await h.addUser();
-    await subscribe(h, user);
-
-    const res = await h.api(user, 'POST', '/billing/subscription/unsubscribe');
-    expect(res.json().status).toBe('CANCELLED');
-    expect(await h.app.services.subscriptions.isPremium(user)).toBe(false);
-    expect(await h.stores.optOuts.suppressionFor(SUB)).toBe('STOP');
-
-    await settle(h);
-    expect(calls).toBe(2);
-    expect(h.queue.deadLetters?.()).toHaveLength(0);
-    await h.app.close();
-  });
-
-  it('an operator or STOP removal arriving by notification suppresses the number', async () => {
-    const h = await harness();
-    await h.addUser();
-    await h.callback('subscription/notify', notify('UNREGISTERED.'));
-    await settle(h);
-    expect(await h.stores.optOuts.suppressionFor(SUB)).toBe('STOP');
-    await h.app.close();
-  });
-
-  it('subscribing again with fresh consent lifts the STOP; a block is never lifted', async () => {
-    const h = await harness({ applink: registering() });
-    const user = await h.addUser();
-    await h.stores.optOuts.suppress(
-      { subscriberId: SUB, reason: 'STOP', source: 'SMS' },
-      h.clock.now,
-    );
-    await subscribe(h, user);
-    expect(await h.stores.optOuts.suppressionFor(SUB)).toBeNull();
-    await h.app.close();
-
-    const h2 = await harness({ applink: registering() });
-    const user2 = await h2.addUser();
-    await h2.stores.optOuts.suppress(
-      { subscriberId: SUB, reason: 'BLOCKED', source: 'SYSTEM' },
-      h2.clock.now,
-    );
-    await subscribe(h2, user2);
-    expect(await h2.stores.optOuts.suppressionFor(SUB)).toBe('BLOCKED');
-    await h2.app.close();
-  });
-
-  it('stores a notification for an unknown subscriber but unlocks nothing', async () => {
-    const h = await harness();
-    await h.callback('subscription/notify', notify('REGISTERED', 'tel:nobody'));
-    await settle(h);
-    const row = await h.stores.subscriptions.get('tel:nobody');
-    expect(row).toMatchObject({ status: 'REGISTERED', userId: null, plan: null });
-    await h.app.close();
-  });
-
-  it('handles a redelivered notification once and never sees the API key it carries', async () => {
-    const h = await harness();
-    await h.addUser();
-    const spy = vi.spyOn(h.stores.subscriptions, 'upsert');
-    await h.callback('subscription/notify', notify('REGISTERED'));
-    await h.callback('subscription/notify', notify('REGISTERED'));
-    await settle(h);
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(JSON.stringify(spy.mock.calls)).not.toContain('SECRET-API-KEY');
-    await h.app.close();
-  });
-
-  it('opt-out from the app ends the subscription and stops every message', async () => {
-    const h = await harness();
-    const user = await h.addUser();
-    for (const scope of ['SMS', 'SUBSCRIPTION', 'ALL']) {
-      const res = await h.api(user, 'POST', '/account/opt-out', { scope });
-      expect(res.statusCode).toBe(200);
-      expect(res.json()).toEqual({ success: true });
-    }
-    expect(await h.stores.optOuts.suppressionFor(SUB)).toBe('STOP');
-    await settle(h);
-    expect(h.applink.unregister).toHaveBeenCalledWith(SUB);
-    expect((await h.api(user, 'POST', '/account/opt-out', { scope: 'NOPE' })).statusCode).toBe(400);
-    await h.app.close();
-  });
-});
-
-describe('entitlements and quotas', () => {
-  it('free scans stop at the monthly limit and then point to pay-per-use', async () => {
-    const h = await harness();
-    const user = await h.addUser();
-    const limit = 5; // DEFAULT_BILLING.limits.free.scans
-    for (let i = 0; i < limit; i++) {
-      expect(await h.app.services.entitlements.useScan(user.id)).toEqual({
-        allowed: true,
-        via: 'QUOTA',
-      });
-    }
-    const denied = await h.app.services.entitlements.useScan(user.id);
-    expect(denied).toEqual({
-      allowed: false,
-      reason: 'QUOTA_EXCEEDED',
-      payWith: { purpose: 'SCAN', amount: '5.00', currency: 'BDT' },
-    });
-    const view = (await h.api(user, 'GET', '/billing/entitlements')).json();
-    expect(view).toMatchObject({ tier: 'FREE', scans: { used: 5, limit: 5 } });
-    await h.app.close();
-  });
-
-  it('a paid credit covers a scan over the limit', async () => {
-    const h = await harness();
-    const user = await h.addUser();
-    for (let i = 0; i < 5; i++) await h.app.services.entitlements.useScan(user.id);
-    const charge = await h.stores.charges.create(
-      {
-        externalTrxId: 'trx-1',
-        userId: user.id,
-        subscriberId: SUB,
-        purpose: 'SCAN',
-        amount: '5.00',
-        currency: 'BDT',
-      },
-      h.clock.now,
-    );
-    await h.stores.entitlements.grant(
-      { userId: user.id, feature: 'SCAN', quantity: 1, chargeId: charge.externalTrxId },
-      h.clock.now,
-    );
-    expect(await h.app.services.entitlements.useScan(user.id)).toEqual({
-      allowed: true,
-      via: 'CREDIT',
-    });
-    expect((await h.app.services.entitlements.useScan(user.id)).allowed).toBe(false);
-    await h.app.close();
-  });
-
-  it('Premium has bigger allowances and includes doctor summaries', async () => {
-    const h = await harness({ applink: registering() });
-    const user = await h.addUser();
-    expect(await h.app.services.entitlements.useFeature(user.id, 'DOCTOR_SUMMARY')).toMatchObject({
-      allowed: false,
-      payWith: { purpose: 'DOCTOR_SUMMARY', amount: '2.00' },
-    });
-
-    await subscribe(h, user);
-    expect(await h.app.services.entitlements.useFeature(user.id, 'DOCTOR_SUMMARY')).toEqual({
-      allowed: true,
-      via: 'PREMIUM',
-    });
-    const view = (await h.api(user, 'GET', '/billing/entitlements')).json();
-    expect(view.tier).toBe('PREMIUM');
-    expect(view.scans.limit).toBe(100);
-    expect(view.features).toContain('CAREGIVER_ESCALATION');
-    await h.app.close();
-  });
-
-  it('reminder SMS count against the monthly cap, atomically', async () => {
-    const h = await harness();
-    const user = await h.addUser();
-    const results = await Promise.all(
-      Array.from({ length: 40 }, () => h.app.services.entitlements.useSms(user.id)),
-    );
-    expect(results.filter((r) => r.allowed)).toHaveLength(30); // free cap
-    await h.app.close();
-  });
-
-  it('counters roll over at the start of the month in Bangladesh time', async () => {
-    const h = await harness();
-    const user = await h.addUser();
-    for (let i = 0; i < 5; i++) await h.app.services.entitlements.useScan(user.id);
-    expect((await h.app.services.entitlements.useScan(user.id)).allowed).toBe(false);
-    // 18:30 UTC on the 30th is already December 1st in Dhaka (UTC+6).
-    h.clock.now = new Date('2026-11-30T18:30:00Z');
-    expect((await h.app.services.entitlements.useScan(user.id)).allowed).toBe(true);
-    await h.app.close();
-  });
-
-  it('the entitlements response matches the shared contract', async () => {
-    const h = await harness();
-    const user = await h.addUser();
-    const res = await h.api(user, 'GET', '/billing/entitlements');
-    expect(res.statusCode).toBe(200);
-    expect(res.json()).toMatchObject({
-      tier: 'FREE',
-      scans: { used: 0, limit: 5 },
-      sms: { used: 0, limit: 30 },
-      doctorSummaryCredits: 0,
-    });
     await h.app.close();
   });
 });

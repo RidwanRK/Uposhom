@@ -79,11 +79,17 @@ describe.skipIf(!url)('OTP sign-up on the Postgres stores', () => {
       { NODE_ENV: 'test', JWT_SECRET: 'x'.repeat(40) },
       { stores, applink: mock.client('', echo) },
     );
-    const call = (method: 'GET' | 'POST', url: string, token: string, payload?: object) =>
+    const call = (
+      method: 'GET' | 'POST',
+      url: string,
+      token: string,
+      payload?: object,
+      headers: Record<string, string> = {},
+    ) =>
       app.inject({
         method,
         url,
-        headers: { authorization: `Bearer ${token}` },
+        headers: { authorization: `Bearer ${token}`, ...headers },
         ...(payload ? { payload } : {}),
       });
 
@@ -99,10 +105,15 @@ describe.skipIf(!url)('OTP sign-up on the Postgres stores', () => {
     });
     const { token, user } = signUp.json();
 
-    // Subscription: consent, Register, then the Premium gate on real rows.
-    const sub = await call('POST', '/api/v1/billing/subscription/subscribe', token, {
+    // Subscription (Applink OTP API): consent and code request, then verify, then the Premium gate
+    // on real rows.
+    const sent = await call('POST', '/api/v1/billing/subscription/otp/request', token, {
       consentAccepted: true,
       consentWording: 'Pay 30 BDT monthly.',
+    });
+    expect(sent.statusCode).toBe(200);
+    const sub = await call('POST', '/api/v1/billing/subscription/otp/verify', token, {
+      otp: '12345',
     });
     expect(sub.json().status).toBe('ACTIVE');
     expect((await call('GET', '/api/v1/billing/entitlements', token)).json().tier).toBe('PREMIUM');

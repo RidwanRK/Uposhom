@@ -7,6 +7,7 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Icon } from '../components/Icon';
 import { Banner, ErrorState, Loading } from '../components/Misc';
+import { SubscribeOtpSheet } from '../components/SubscribeOtpSheet';
 import { Text } from '../components/Text';
 import { qk, useSubscription } from '../hooks/queries';
 import { trList, useT } from '../i18n';
@@ -30,6 +31,7 @@ export function PremiumView() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [askCode, setAskCode] = useState(false);
 
   const status = data?.status ?? 'INACTIVE';
 
@@ -43,17 +45,15 @@ export function PremiumView() {
     }
   }, [status, qc]);
 
-  const subscribe = async () => {
-    setBusy(true);
+  // The code was accepted by Applink: refresh the server's own record. Premium shows only when it
+  // says ACTIVE (or PENDING while the carrier settles it).
+  const codeAccepted = async () => {
+    setAskCode(false);
     setMessage(null);
     try {
-      // The exact wording shown on screen is stored as consent evidence.
-      await api.billing.subscribe(t('premium.consent'));
       await refetch();
     } catch (e) {
       setMessage(errorMessage(e, t));
-    } finally {
-      setBusy(false);
     }
   };
 
@@ -155,10 +155,18 @@ export function PremiumView() {
             label={t('premium.confirm')}
             disabled={!agreed}
             loading={busy}
-            onPress={subscribe}
+            onPress={() => setAskCode(true)}
           />
         </>
       )}
+
+      {/* The consent wording shown on screen is what is stored as evidence when the code is sent. */}
+      <SubscribeOtpSheet
+        visible={askCode}
+        consentWording={t('premium.consent')}
+        onClose={() => setAskCode(false)}
+        onDone={codeAccepted}
+      />
 
       <BottomSheet
         visible={confirmCancel}

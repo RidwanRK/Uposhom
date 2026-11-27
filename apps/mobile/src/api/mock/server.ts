@@ -86,6 +86,8 @@ interface World {
   pharmacyProfile: StoreProfile;
   stock: Map<string, { status: StockStatus; updatedAt: string }>;
   stepUp: boolean;
+  /** A Premium subscription code has been sent and not yet used. */
+  subOtp: boolean;
 }
 
 const worlds = new Map<string, World>();
@@ -235,6 +237,7 @@ function ensureWorld(msisdn: string, accountType?: 'INDIVIDUAL' | 'PHARMACY'): W
       ]),
     ),
     stepUp: false,
+    subOtp: false,
   };
 
   w.profiles.push({
@@ -881,10 +884,20 @@ route('GET', '/billing/subscription/status', true, (_r, _p, w) => {
   settleSub(w);
   return ok(subBody(w));
 });
-route('POST', '/billing/subscription/subscribe', true, async (req, _p, w) => {
+// Subscribing follows Applink's OTP API: a code is texted to the number, and verifying it activates.
+route('POST', '/billing/subscription/otp/request', true, async (req, _p, w) => {
   const b = bodyOf<{ consentAccepted: boolean }>(req);
   if (!b.consentAccepted) return fail(400, 'CONSENT_REQUIRED');
+  await sleep(300);
+  w.subOtp = true;
+  return ok({ success: true, maskedPhone: '019****9376', expiresInSeconds: 300 });
+});
+route('POST', '/billing/subscription/otp/verify', true, async (req, _p, w) => {
+  const { otp } = bodyOf<{ otp: string }>(req);
+  if (!w.subOtp) return fail(410, 'OTP_EXPIRED');
+  if (otp !== OTP) return fail(401, 'OTP_WRONG');
   await sleep(500);
+  w.subOtp = false;
   // Premium only unlocks from the server's own record, after the carrier confirms (design.md 6.12).
   w.sub = { status: 'PENDING', pendingSince: Date.now() };
   return ok(subBody(w));
