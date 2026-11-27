@@ -35,6 +35,7 @@ import {
   profile,
   refreshResponse,
   stepUpVerifyResponse,
+  subscribeOtpRequestResponse,
   subscriptionStatusResponse,
   todayDosesResponse,
 } from '@uposhom/shared';
@@ -353,15 +354,34 @@ if (charge.data) {
     { schema: caasVerifyResponse },
   );
 }
-await call('subscribe without consent -> 400', 'POST', '/billing/subscription/subscribe', {
-  body: {},
-  expect: 400,
-});
-await call('subscribe with consent', 'POST', '/billing/subscription/subscribe', {
+// Subscribing follows Applink's OTP API: consent and code request, then verify the code.
+await call(
+  'subscribe code request without consent -> 400',
+  'POST',
+  '/billing/subscription/otp/request',
+  {
+    body: {},
+    expect: 400,
+  },
+);
+await call(
+  'subscribe code verify before a request -> 410',
+  'POST',
+  '/billing/subscription/otp/verify',
+  {
+    body: { otp: '12345' },
+    expect: 410,
+  },
+);
+await call('subscribe code request', 'POST', '/billing/subscription/otp/request', {
   body: {
     consentAccepted: true,
     consentWording: 'মাসিক চার্জ: ৩০ টাকা (৳৩০) আপনার মোবাইল অ্যাকাউন্ট থেকে কাটা হবে।',
   },
+  schema: subscribeOtpRequestResponse,
+});
+await call('subscribe code verify', 'POST', '/billing/subscription/otp/verify', {
+  body: { otp: '123456' },
   schema: subscriptionStatusResponse,
 });
 await call('subscription status (after)', 'GET', '/billing/subscription/status', {

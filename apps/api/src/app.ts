@@ -209,6 +209,7 @@ export function buildApp(config: AppConfig, deps: AppDeps = {}): FastifyInstance
       users: stores.users,
       subscriptions: services.subscriptions,
       entitlements: services.entitlements,
+      otp: { request: otp.requestSubscription, verify: otp.verifySubscription },
     }),
     { prefix: '/api/v1/billing' },
   );

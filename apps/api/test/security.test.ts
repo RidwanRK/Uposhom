@@ -224,9 +224,15 @@ describe('PII and secrets never reach the logs', () => {
     );
     await h.app.inject({
       method: 'POST',
-      url: '/api/v1/billing/subscription/subscribe',
-      headers: { ...bearer, 'x-step-up-token': String(stepUp['stepUpToken']) },
+      url: '/api/v1/billing/subscription/otp/request',
+      headers: bearer,
       payload: { consentAccepted: true, consentWording: 'Pay 30 BDT monthly.' },
+    });
+    await h.app.inject({
+      method: 'POST',
+      url: '/api/v1/billing/subscription/otp/verify',
+      headers: bearer,
+      payload: { otp: OTP },
     });
     const started = json(
       await h.app.inject({

@@ -9,11 +9,21 @@ export const subscriptionStatusResponse = z.object({
 });
 export type SubscriptionStatusResponse = z.infer<typeof subscriptionStatusResponse>;
 
+/** Step 1 of subscribing: the consent the person ticked. The server records it, then sends the OTP. */
 export const subscribeBody = z.object({
   consentAccepted: z.literal(true),
   /** Exact wording shown on screen, stored as consent evidence. */
   consentWording: z.string(),
 });
+
+export const subscribeOtpRequestResponse = z.object({
+  success: z.boolean(),
+  maskedPhone: z.string(),
+  expiresInSeconds: z.number(),
+});
+
+/** Step 2: the code the person received. A successful verify activates the subscription. */
+export const subscribeOtpVerifyBody = z.object({ otp: z.string() });
 
 export const caasPurpose = z.enum(['SCAN', 'DOCTOR_SUMMARY', 'REPORT_EXPLAIN']);
 export type CaasPurpose = z.infer<typeof caasPurpose>;

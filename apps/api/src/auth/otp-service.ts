@@ -246,6 +246,36 @@ export function createOtpService(deps: OtpServiceDeps) {
   }
 
   /**
+   * Premium subscription, step 1 (Applink OTP API): a code to the signed-in user's own number. The
+   * caller records the plan consent BEFORE this, because a successful verify activates the
+   * subscription at Applink.
+   */
+  async function requestSubscription(input: { userId: string; ip: string }) {
+    const user = await deps.stores.users.findById(input.userId);
+    if (!user) throw new AuthError('INVALID_REFRESH', 401);
+    return sendOtp(user.msisdn, input.ip, 'SUBSCRIBE');
+  }
+
+  /**
+   * Premium subscription, step 2: Applink verifies the code and, per its docs, activates the
+   * subscription. Returns what Applink answered (subscriberId and subscriptionStatus, as given).
+   */
+  async function verifySubscription(input: { userId: string; otp: string }) {
+    if (!OTP_FORMAT.test(input.otp)) throw new AuthError('INVALID_INPUT', 400);
+    const user = await deps.stores.users.findById(input.userId);
+    if (!user) throw new AuthError('INVALID_REFRESH', 401);
+    const verified = await checkOtp(user.msisdn, input.otp, 'SUBSCRIBE');
+    // Whoever answered must be the subscriber we know. A different id means a different person.
+    if (user.subscriberId && verified.subscriberId && verified.subscriberId !== user.subscriberId) {
+      throw new AuthError('OTP_WRONG', 401);
+    }
+    return {
+      subscriberId: verified.subscriberId ?? user.subscriberId,
+      subscriptionStatus: verified.subscriptionStatus ?? null,
+    };
+  }
+
+  /**
    * Family Link, step 1: a code to the dependent's own phone. The caller (the domain service) has
    * already checked that the signed-in user administers the profile.
    */
@@ -328,6 +358,8 @@ export function createOtpService(deps: OtpServiceDeps) {
     verifyOtp,
     requestStepUp,
     verifyStepUp,
+    requestSubscription,
+    verifySubscription,
     requestFamilyLink,
     verifyFamilyLink,
     refresh,

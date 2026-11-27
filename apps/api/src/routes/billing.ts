@@ -1,8 +1,13 @@
 import type { FastifyInstance, FastifyReply } from 'fastify';
-import { entitlementsResponse, subscribeBody } from '@uposhom/shared';
+import {
+  entitlementsResponse,
+  subscribeBody,
+  subscribeOtpRequestResponse,
+  subscribeOtpVerifyBody,
+} from '@uposhom/shared';
 import { ApiError } from '../errors.js';
 import type { EntitlementService } from '../billing/entitlements.js';
-import type { SubscriptionService } from '../billing/subscriptions.js';
+import type { SubscriptionOtp, SubscriptionService } from '../billing/subscriptions.js';
 import type { UserStore } from '../stores/types.js';
 
 export function sendApiError(reply: FastifyReply, err: ApiError): FastifyReply {
@@ -28,6 +33,8 @@ export interface BillingRouteDeps {
   users: UserStore;
   subscriptions: SubscriptionService;
   entitlements: EntitlementService;
+  /** Applink's OTP API, for the subscription flow. */
+  otp: SubscriptionOtp;
 }
 
 /** /api/v1/billing: subscription status and entitlements. CaaS routes are added in caas.ts. */
@@ -48,13 +55,27 @@ export function billingRoutes(deps: BillingRouteDeps) {
       return reply.send(await deps.subscriptions.view(user));
     });
 
-    app.post('/subscription/subscribe', async (req, reply) => {
+    // Subscribing follows Applink's OTP API (docs/otp): the OTP is sent to the subscriber, the
+    // subscriber enters it in the app, and a successful verify activates the subscription.
+    // Step 1: the ticked consent is recorded, then the code goes to the signed-in user's own number.
+    app.post('/subscription/otp/request', async (req, reply) => {
       const body = subscribeBody.safeParse(req.body);
       if (!body.success) throw new ApiError('CONSENT_REQUIRED', 400);
       const user = await currentUser(req.auth?.userId ?? '');
-      return reply.send(
-        await deps.subscriptions.subscribe(user, { wording: body.data.consentWording, ip: req.ip }),
+      const sent = await deps.subscriptions.requestOtp(
+        user,
+        { wording: body.data.consentWording, ip: req.ip },
+        deps.otp,
       );
+      return reply.send(subscribeOtpRequestResponse.parse({ success: true, ...sent }));
+    });
+
+    // Step 2: the code. Applink verifies it and answers with the subscription status.
+    app.post('/subscription/otp/verify', async (req, reply) => {
+      const body = subscribeOtpVerifyBody.safeParse(req.body);
+      if (!body.success) throw new ApiError('INVALID_INPUT', 400);
+      const user = await currentUser(req.auth?.userId ?? '');
+      return reply.send(await deps.subscriptions.verifyOtp(user, body.data.otp, deps.otp));
     });
 
     app.post('/subscription/unsubscribe', async (req, reply) => {

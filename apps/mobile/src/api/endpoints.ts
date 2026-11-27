@@ -24,6 +24,7 @@ import {
   reportDetail,
   reportListResponse,
   stepUpVerifyResponse,
+  subscribeOtpRequestResponse,
   subscriptionStatusResponse,
   todayDosesResponse,
   tracesResponse,
@@ -224,11 +225,20 @@ export const api = {
   billing: {
     subscriptionStatus: () =>
       request({ path: '/billing/subscription/status', schema: subscriptionStatusResponse }),
-    subscribe: (consentWording: string) =>
+    /** Step 1 of Pro: records the consent, then Applink texts a code to the signed-in number. */
+    requestSubscribeOtp: (consentWording: string) =>
       request({
         method: 'POST',
-        path: '/billing/subscription/subscribe',
+        path: '/billing/subscription/otp/request',
         body: { consentAccepted: true, consentWording },
+        schema: subscribeOtpRequestResponse,
+      }),
+    /** Step 2: the code. Applink verifies it and activates the subscription. */
+    verifySubscribeOtp: (otp: string) =>
+      request({
+        method: 'POST',
+        path: '/billing/subscription/otp/verify',
+        body: { otp },
         schema: subscriptionStatusResponse,
       }),
     unsubscribe: () =>
